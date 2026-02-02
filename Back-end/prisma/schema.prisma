@@ -11,3 +11,117 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Basemodel {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  companyName String   @db.VarChar(255)
+  address     String?  @db.VarChar(255)
+  siret       String?  @db.VarChar(14)
+  establishment_type String?  @db.VarChar(100)
+  description  String?  @db.Text
+  website     String?  @db.VarChar(255)
+  social_media String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      String   @db.VarChar(50)
+  is_active Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Worker {
+  id           Int      @id @default(autoincrement())
+  firstName    String   @db.VarChar(100)
+  lastName     String   @db.VarChar(100)
+  dateOfBirth  DateTime?
+  city         String?  @db.VarChar(100)
+  postalCode   String?  @db.VarChar(20)
+  photoURL     String?  @db.VarChar(255)
+  profession   String?  @db.VarChar(100)
+  experience_years Int?
+  languages    String?  @db.Text
+  qualifications String?  @db.Text
+  cv_url      String?  @db.VarChar(255)
+  availability  Boolean  @default(true)
+  phoneNumber  String?  @db.VarChar(20)
+  skills       String?  @db.Text
+  latitude     Float?
+  longitude    Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(100)
+  description String   @db.Text
+  salary      Float?
+  latitude    Float?
+  longitude   Float?
+  start_time  DateTime?
+  end_time    DateTime?
+  companyId   Int
+  status     String   @db.VarChar(50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId], name: "idx_companyId")
+}
+
+model JobOffer {
+  id          Int      @id @default(autoincrement())
+  request_at DateTime @default(now())
+  response_at DateTime?
+  selected_at DateTime?
+  contract_url String?  @db.VarChar(255)
+  contract_signed Boolean? @default(false)
+  signed_at   DateTime?
+  selected_by_company Boolean? @default(false)
+  jobId       Int
+  workerId    Int
+  applicationDate DateTime @default(now())
+  status      String   @db.VarChar(50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([jobId], name: "idx_jobId")
+  @@index([workerId], name: "idx_workerId")
+}
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  rating      Int
+  comment     String?  @db.Text
+  jobId       Int
+  reviewerId   Int
+  revieweeId  Int
+  is_visible Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([jobId], name: "idx_review_jobId")
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  jobOfferId  Int
+  senderId    Int
+  receiverId  Int
+  content     String   @db.Text
+  sentAt      DateTime @default(now())
+  is_read     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
