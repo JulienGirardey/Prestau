@@ -15,9 +15,9 @@ datasource db {
 model Company {
   id          Int      @id @default(autoincrement())
   companyName String   @db.VarChar(255)
-  address     String?  @db.VarChar(255)
-  siret       String?  @db.VarChar(14)
-  establishment_type String?  @db.VarChar(100)
+  address     String  @db.VarChar(255)
+  siret       String  @db.VarChar(14)
+  establishment_type String  @db.VarChar(100)
   description  String?  @db.Text
   website     String?  @db.VarChar(255)
   social_media String?  @db.VarChar(255)
@@ -40,19 +40,17 @@ model Worker {
   firstName    String   @db.VarChar(100)
   lastName     String   @db.VarChar(100)
   dateOfBirth  DateTime?
-  city         String?  @db.VarChar(100)
-  postalCode   String?  @db.VarChar(20)
+  city         String  @db.VarChar(100)
+  postalCode   String  @db.VarChar(20)
   photoURL     String?  @db.VarChar(255)
-  profession   String?  @db.VarChar(100)
+  profession   String  @db.VarChar(100)
   experience_years Int?
-  languages    String?  @db.Text
+  languages    String  @db.Text
   qualifications String?  @db.Text
-  cv_url      String?  @db.VarChar(255)
+  cv_url       String?  @db.VarChar(255)
   availability  Boolean  @default(true)
-  phoneNumber  String?  @db.VarChar(20)
-  skills       String?  @db.Text
-  latitude     Float?
-  longitude    Float?
+  phoneNumber  String  @db.VarChar(20)
+  skills       String  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -61,13 +59,12 @@ model Job {
   id          Int      @id @default(autoincrement())
   title       String   @db.VarChar(100)
   description String   @db.Text
-  salary      Float?
-  latitude    Float?
-  longitude   Float?
-  start_time  DateTime?
-  end_time    DateTime?
+  salary      Float
+  address			String   @db.VarChar(255)
+  start_time  DateTime
+  end_time    DateTime
   companyId   Int
-  status     String   @db.VarChar(50)
+  status      String   @db.VarChar(50)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -99,9 +96,9 @@ model Review {
   rating      Int
   comment     String?  @db.Text
   jobId       Int
-  reviewerId   Int
+  reviewerId  Int
   revieweeId  Int
-  is_visible Boolean  @default(true)
+  is_visible  Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

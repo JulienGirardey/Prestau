@@ -8,24 +8,24 @@ export class CreateJobDto {
   description!: string;
 
 	@IsNumber()
-  @IsOptional()
-  salary!: number | null;
+  salary!: number;
+
+	@IsString()
+	addres!: string;
 
 	@IsNumber()
   @IsOptional()
-  latitude!: number | null;
+  latitude?: number;
 
 	@IsNumber()
   @IsOptional()
-  longitude!: number | null;
+  longitude?: number;
 
 	@IsDate()
-  @IsOptional()
-  start_time!: Date | null;
+  start_time!: Date;
 
 	@IsDate()
-  @IsOptional()
-  end_time!: Date | null;
+  end_time!: Date;
 
 	@IsNumber()
   companyId!: number;
