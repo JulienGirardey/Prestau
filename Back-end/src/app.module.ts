@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { PrismaService } from './prisma.service';
+import { JobModule } from './Modules/job/job.module';
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { PrismaService } from './prisma.service';
 				DATABASE_URL: Joi.string().required(),
 			}),
 		}),
+		JobModule,
 	],
 	controllers: [],
 	providers: [PrismaService],
