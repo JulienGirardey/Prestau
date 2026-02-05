@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { PrismaService } from './prisma.service';
 import { JobModule } from './Modules/job/job.module';
+import { WorkerModule } from './Modules/worker/worker.module';
 
 @Module({
 	imports: [
@@ -18,6 +19,7 @@ import { JobModule } from './Modules/job/job.module';
 			}),
 		}),
 		JobModule,
+		WorkerModule,
 	],
 	controllers: [],
 	providers: [PrismaService],
