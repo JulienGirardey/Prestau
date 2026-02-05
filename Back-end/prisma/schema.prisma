@@ -23,6 +23,10 @@ model Company {
   social_media String?  @db.VarChar(255)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+	userId      Int      @unique
+  user       	Users    @relation(fields: [userId], references: [id])
+	jobs        Job[]
 }
 
 model Users {
@@ -33,6 +37,9 @@ model Users {
   is_active Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+	company   Company?
+	worker    Worker?
 }
 
 model Worker {
@@ -53,6 +60,11 @@ model Worker {
   skills       String  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+	userId       Int       @unique
+  user         Users     @relation(fields: [userId], references: [id])
+
+	jobOffers        JobOffer[]
 }
 
 model Job {
@@ -64,11 +76,20 @@ model Job {
   start_time  DateTime
   end_time    DateTime
   companyId   Int
-  status      String   @db.VarChar(50)
+  status      JobStatus @default(OPEN)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+	company     Company  @relation(fields: [companyId], references: [id])
+  jobOffers   JobOffer[]
+	reviews     Review[]
   @@index([companyId], name: "idx_companyId")
+}
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 model JobOffer {
@@ -83,26 +104,43 @@ model JobOffer {
   jobId       Int
   workerId    Int
   applicationDate DateTime @default(now())
-  status      String   @db.VarChar(50)
+  status      JobOfferStatus @default(PENDING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+	job         Job      @relation(fields: [jobId], references: [id])
+	worker      Worker   @relation(fields: [workerId], references: [id])
+	messages            Message[]
   @@index([jobId], name: "idx_jobId")
   @@index([workerId], name: "idx_workerId")
 }
+enum JobOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
 
 model Review {
   id          Int      @id @default(autoincrement())
   rating      Int
   comment     String?  @db.Text
   jobId       Int
-  reviewerId  Int
-  revieweeId  Int
+  reviewerType   String   @db.VarChar(50)
+  reviewerId     Int
+  revieweeType   String   @db.VarChar(50)
+  revieweeId     Int
   is_visible  Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([jobId], name: "idx_review_jobId")
+	job         Job      @relation(fields: [jobId], references: [id])
+
+	@@index([jobId], name: "idx_review_jobId")
+  @@index([reviewerId, reviewerType], name: "idx_reviewer")
+  @@index([revieweeId, revieweeType], name: "idx_reviewee")
 }
 
 model Message {
@@ -115,4 +153,6 @@ model Message {
   is_read     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id])
 }
