@@ -22,5 +22,6 @@ export class CreateCompanyDto {
   website?: string;
 	
 	@IsString()
-  social_media!: string;
+	@IsOptional()
+  social_media?: string;
 };
