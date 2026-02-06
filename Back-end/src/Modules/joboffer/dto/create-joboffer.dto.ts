@@ -2,5 +2,5 @@ import { IsString } from "class-validator";
 
 export class CreateJobofferDto {
 	@IsString()
-	contract_url!: string;
+	contract_url?: string;
 }
