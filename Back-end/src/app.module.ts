@@ -8,6 +8,7 @@ import { WorkerModule } from './Modules/worker/worker.module';
 import { JobofferModule } from './Modules/joboffer/joboffer.module';
 import { CompanyModule } from './Modules/company/company.module';
 import { UserModule } from './Modules/user/user.module';
+import { ReviewModule } from './Modules/review/review.module';
 
 @Module({
 	imports: [
@@ -26,6 +27,7 @@ import { UserModule } from './Modules/user/user.module';
 		JobofferModule,
 		CompanyModule,
 		UserModule,
+		ReviewModule,
 	],
 	controllers: [],
 	providers: [PrismaService],

@@ -1,6 +1,6 @@
-import { IsInt } from "class-validator";
+import { IsString } from "class-validator";
 
 export class CreateJobofferDto {
-	@IsInt()
-	job_id!: number;
+	@IsString()
+	contract_url!: string;
 }
