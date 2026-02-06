@@ -9,6 +9,7 @@ import { JobofferModule } from './Modules/joboffer/joboffer.module';
 import { CompanyModule } from './Modules/company/company.module';
 import { UserModule } from './Modules/user/user.module';
 import { ReviewModule } from './Modules/review/review.module';
+import { MessageModule } from './Modules/message/message.module'
 
 @Module({
 	imports: [
@@ -28,6 +29,7 @@ import { ReviewModule } from './Modules/review/review.module';
 		CompanyModule,
 		UserModule,
 		ReviewModule,
+		MessageModule,
 	],
 	controllers: [],
 	providers: [PrismaService],
