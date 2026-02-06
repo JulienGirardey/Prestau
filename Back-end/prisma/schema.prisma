@@ -34,7 +34,6 @@ model Users {
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
   role      String   @db.VarChar(50)
-  is_active Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -96,14 +95,12 @@ model JobOffer {
   id          Int      @id @default(autoincrement())
   request_at DateTime @default(now())
   response_at DateTime?
-  selected_at DateTime?
   contract_url String?  @db.VarChar(255)
   contract_signed Boolean? @default(false)
   signed_at   DateTime?
   selected_by_company Boolean? @default(false)
   jobId       Int
   workerId    Int
-  applicationDate DateTime @default(now())
   status      JobOfferStatus @default(PENDING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
