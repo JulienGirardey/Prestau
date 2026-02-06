@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { PrismaService } from './prisma.service';
 import { JobModule } from './Modules/job/job.module';
 import { WorkerModule } from './Modules/worker/worker.module';
+import { JobofferModule } from './Modules/joboffer/joboffer.module';
 
 @Module({
 	imports: [
@@ -20,6 +21,7 @@ import { WorkerModule } from './Modules/worker/worker.module';
 		}),
 		JobModule,
 		WorkerModule,
+		JobofferModule,
 	],
 	controllers: [],
 	providers: [PrismaService],
