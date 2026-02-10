@@ -14,8 +14,8 @@ export class CreateWorkerDto {
     @IsString()
     city!: string;
 
-    @IsString()
-    postalCode!: string;
+    @IsNumber()
+    postalCode!: number;
 
     @IsOptional()
     @IsString()
@@ -48,4 +48,9 @@ export class CreateWorkerDto {
 
     @IsString()
     skills!: string;
+
+    @IsNumber()
+    userId!: number;
+
+		
 }
