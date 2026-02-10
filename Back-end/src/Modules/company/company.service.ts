@@ -25,10 +25,15 @@ export class CompanyService {
   }
 
   update(id: number, updateCompanyDto: UpdateCompanyDto) {
-    return `This action updates a #${id} company`;
+    return this.Prisma.company.update({
+      where: { id },
+      data: updateCompanyDto,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} company`;
+    return this.Prisma.company.delete({
+      where: { id },
+    });
   }
 }
