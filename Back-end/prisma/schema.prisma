@@ -47,7 +47,7 @@ model Worker {
   lastName     String   @db.VarChar(100)
   dateOfBirth  DateTime?
   city         String  @db.VarChar(100)
-  postalCode   String  @db.VarChar(20)
+  postalCode   Int
   photoURL     String?  @db.VarChar(255)
   profession   String  @db.VarChar(100)
   experience_years Int?
