@@ -1,26 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Users } from '@prisma/client'
+import { PrismaService } from '../../prisma.service';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+	constructor(private Prisma: PrismaService) { }
 
-  findAll() {
-    return `This action returns all user`;
-  }
+	async create(createUserDto: CreateUserDto): Promise<Users> {
+		const existingUser = await this.Prisma.users.findUnique({
+			where: { email: createUserDto.email }
+		});
+		if (existingUser) {
+			throw new ConflictException('This email already use');
+		}
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
+		return this.Prisma.users.create({
+			data: createUserDto,
+		});
+	}
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+	findAll(): Promise<Omit<Users, 'password'>[]> {
+		return this.Prisma.users.findMany({
+			select: {
+				id: true,
+				email: true,
+				role: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+	}
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+	async findOne(id: number): Promise<Omit<Users, 'password'>> {
+		const user = await this.Prisma.users.findUnique({
+			where: { id },
+			select: {
+				id: true,
+				email: true,
+				role: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		if (!user) {
+			throw new NotFoundException(`User with this ID ${id} not found`);
+		}
+		return user;
+	}
+
+	async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+		const user = await this.Prisma.users.findUnique({
+			where: { id },
+		});
+
+		if (!user) {
+			throw new NotFoundException(`User with id ${id} not found`);
+		}
+
+		if (updateUserDto.email) {
+			const existingUser = await this.Prisma.users.findUnique({
+				where: { email: updateUserDto.email },
+			});
+
+			if (existingUser && existingUser.id !== id) {
+				throw new ConflictException(`This email is already in use`);
+			}
+		}
+
+		return this.Prisma.users.update({
+			where: { id },
+			data: updateUserDto,
+		});
+	}
+
+	async remove(id: number): Promise<Users> {
+		const user = await this.Prisma.users.findUnique({
+			where: { id },
+		});
+
+		if (!user) {
+			throw new NotFoundException(`User with this ID ${id} not found`);
+		}
+
+		return this.Prisma.users.delete({
+			where: { id },
+		});
+	}
+
+
 }
