@@ -90,5 +90,16 @@ export class UserService {
 		});
 	}
 
-
+	async checkRole(id: number): Promise<{ role: string }> {
+		const user = await this.Prisma.users.findUnique({
+			where: { id },
+			select: { 
+				role: true,
+			},
+		});
+		if (!user) {
+			throw new NotFoundException (`User with ID ${id} not found`);
+		}
+		return { role: user.role };
+	}
 }
