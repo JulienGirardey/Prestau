@@ -12,10 +12,10 @@ export class WorkerService {
 		const existingWorkerUserId = await this.Prisma.worker.findUnique({
 			where: { userId: createWorkerDto.userId }
 		});
+		// Check if a worker with the same userId already exists
 		if (existingWorkerUserId) {
 			throw new Error('Worker with this userId already exists');
 		}
-
 		return this.Prisma.worker.create({ data: createWorkerDto });
 	}
 
@@ -27,6 +27,7 @@ export class WorkerService {
 		const worker = await this.Prisma.worker.findUnique({
 			where: { id }
 		});
+		// Check if worker with this id exists in the database to return it
 		if (!worker) {
 			throw new Error(`Worker with this id ${id} not found`);
 		}
@@ -37,6 +38,7 @@ export class WorkerService {
 		const updateworker = await this.Prisma.worker.findUnique({
 			where: { id }
 		});
+		// Check if worker with this id exists in the database to update it
 		if (!updateworker) {
 			throw new Error(`Worker with this id ${id} not found`);
 		}
@@ -51,6 +53,7 @@ export class WorkerService {
 		const deleteworker = await this.Prisma.worker.findUnique({
 			where: { id }
 		});
+		// Check if worker with this id exists in the database to delete it
 		if (!deleteworker) {
 			throw new Error(`Worker with this id ${id} not found`);
 		}
