@@ -19,4 +19,6 @@ export class CreateJobDto {
 	@IsDateString()
   end_time!: string;
 
+	@IsNumber()
+	companyId!: number;
 };
