@@ -1,6 +1,20 @@
-import { IsString } from "class-validator";
+import { IsInt, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateMessageDto {
 	@IsString()
+	@IsNotEmpty()
 	content!: string;
+
+	@IsNotEmpty()
+	@IsInt()
+	jobOfferId!: number;
+
+	@IsNotEmpty()
+	@IsInt()
+	senderId!: number;
+	
+	@IsNotEmpty()
+	@IsInt()
+	receiverId!: number;
+
 };
