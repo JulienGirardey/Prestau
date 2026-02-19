@@ -67,21 +67,26 @@ export class AuthService {
 		if (!isPasswordValid) {
 			throw new UnauthorizedException('Invalid credentials');
 		}
-		// Génére le token JWT
-		const access_token = this.jwtService.sign({
-			email: user.email,
-			sub: user.id,
-			role: user.role
-		});
+		   // Vérifie que le rôle demandé correspond au rôle du user
+		   if (loginDto.role !== user.role) {
+			   throw new UnauthorizedException('Invalid role for this user');
+		   }
 
-		return {
-			access_token,
-			user: {
-				id: user.id,
-				email: user.email,
-				role: user.role,
-			}
-		};
+		   // Génére le token JWT
+		   const access_token = this.jwtService.sign({
+			   email: user.email,
+			   sub: user.id,
+			   role: user.role
+		   });
+
+		   return {
+			   access_token,
+			   user: {
+				   id: user.id,
+				   email: user.email,
+				   role: user.role,
+			   }
+		   };
 	}
 
 	// Valide le token JWT et retourne les infos de l'utilisateur
