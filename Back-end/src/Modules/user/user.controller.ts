@@ -18,13 +18,6 @@ import { Roles } from "../auth/decorators/roles.decorator";
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  @UseGuards(RolesGuard)
-  @Roles("admin")
-  findAll() {
-    return this.userService.findAll();
-  }
-
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.userService.findOne(+id);
@@ -41,8 +34,6 @@ export class UserController {
   }
 
   @Delete(":id")
-  @UseGuards(RolesGuard)
-  @Roles("admin")
   remove(@Param("id") id: string) {
     return this.userService.remove(+id);
   }
