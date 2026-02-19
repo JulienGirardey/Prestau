@@ -10,6 +10,7 @@ import { CompanyModule } from './Modules/company/company.module';
 import { UserModule } from './Modules/user/user.module';
 import { ReviewModule } from './Modules/review/review.module';
 import { MessageModule } from './Modules/message/message.module'
+import { AuthModule } from './Modules/auth/auth.module';
 
 @Module({
 	imports: [
@@ -30,6 +31,7 @@ import { MessageModule } from './Modules/message/message.module'
 		UserModule,
 		ReviewModule,
 		MessageModule,
+		AuthModule,
 	],
 	controllers: [],
 	providers: [PrismaService],
