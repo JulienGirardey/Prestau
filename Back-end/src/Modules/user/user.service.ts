@@ -12,18 +12,6 @@ import { PrismaService } from "../../prisma.service";
 export class UserService {
   constructor(private Prisma: PrismaService) {}
 
-  findAll(): Promise<Omit<Users, "password">[]> {
-    return this.Prisma.users.findMany({
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
   async findOne(id: number): Promise<Omit<Users, "password">> {
     const user = await this.Prisma.users.findUnique({
       where: { id },
@@ -79,18 +67,5 @@ export class UserService {
     return this.Prisma.users.delete({
       where: { id },
     });
-  }
-
-  async checkRole(id: number): Promise<{ role: string }> {
-    const user = await this.Prisma.users.findUnique({
-      where: { id },
-      select: {
-        role: true,
-      },
-    });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    return { role: user.role };
   }
 }

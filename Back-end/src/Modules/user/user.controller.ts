@@ -13,7 +13,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -21,11 +21,6 @@ export class UserController {
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.userService.findOne(+id);
-  }
-
-  @Get(":id/role")
-  checkRole(@Param("id") id: string) {
-    return this.userService.checkRole(+id);
   }
 
   @Patch(":id")
