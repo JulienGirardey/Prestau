@@ -1,21 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { PrismaService } from '../../prisma.service';
 
 @Injectable()
 export class MessageService {
-  create(createMessageDto: CreateMessageDto) {
-    return 'This action adds a new message';
-  }
+	constructor(private prisma: PrismaService) { }
 
-  findAll() {
-    return `This action returns all message`;
-  }
+	async create(createMessageDto: CreateMessageDto) {
+		return await this.prisma.message.create({
+			data: {
+				content: createMessageDto.content,
+				jobOfferId: createMessageDto.jobOfferId,
+				senderId: createMessageDto.senderId,
+				receiverId: createMessageDto.receiverId,
+			},
+			include: {
+				jobOffer: true,
+			}
+		});
+	}
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
-  }
+	async findAll() {
+		return this.prisma.message.findMany({
+			include: {
+				jobOffer: true,
+			}
+		});
+	}
 
-  remove(id: number) {
-    return `This action removes a #${id} message`;
-  }
+	async findOne(id: number) {
+		const message = await this.prisma.message.findUnique({
+			where: { id },
+			include: {
+				jobOffer: true,
+			},
+		});
+
+		if (!message) {
+			throw new NotFoundException(`Message with this ID ${id} not found`);
+		}
+		return message;
+	}
+	
 }

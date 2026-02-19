@@ -1,4 +1,4 @@
-import { IsEmail, IsIn, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsIn } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -8,7 +8,7 @@ export class LoginDto {
   @MinLength(6)
   password!: string;
 
-	@IsString()
+  @IsString()
   @IsIn(['COMPANY', 'WORKER'])
   role!: string;
 }
