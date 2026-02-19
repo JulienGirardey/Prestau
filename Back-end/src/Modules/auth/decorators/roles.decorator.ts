@@ -1,4 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
+import { Role } from '../enums/role.enum';
 
-// crée le décorateur Rôle() qui stocke les rôles autorisés sur une route
-export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
+// crée le décorateur Roles() qui stocke les rôles autorisés sur une route
+export const Roles = (...roles: Role[]) => SetMetadata('roles', roles);
