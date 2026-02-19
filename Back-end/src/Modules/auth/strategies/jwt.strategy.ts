@@ -3,12 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
 
-// Interface pour typer le payload JWT
-interface JwtPayload {
-	email: string;
-	sub: number;
-	role: string;
-}
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -27,14 +22,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
 	// Appelé automatiquement après décodage du token
 	async validate(payload: JwtPayload) {
-		// Vérifie que le user existe toujours dans la DB avce l'id du token (payload.sub)
+		// Vérifie que le user existe toujours dans la DB avec l'id du token (payload.sub)
 		const user = await this.authService.validateUser(payload.sub);
 
 		if (!user) {
 			throw new UnauthorizedException('User not found');
 		}
 
-		// retourne l'utilisateur trouvé, qui sera ajouté à req.user dans les Guards
-		return user;
+		// Retourne uniquement les champs nécessaires pour req.user
+		return {
+			id: user.id,
+			email: user.email,
+			role: user.role,
+		};
 	}
 };
