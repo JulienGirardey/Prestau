@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company } from '@prisma/client';
@@ -6,72 +6,70 @@ import { PrismaService } from '../../prisma.service';
 
 @Injectable()
 export class CompanyService {
-  constructor(private Prisma: PrismaService) { }
+	constructor(private prisma: PrismaService) { }
 
-  async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
-    const existingCompany = await this.Prisma.company.findUnique({
-      where: { userId: createCompanyDto.userId },
-    });
-    // Check if a company with the same userId already exists
-    if (existingCompany) {
-      throw new Error('This company already exists');
-    }
-    // Check if a company with the same companyName already exists
-    if (await this.Prisma.company.findFirst({
-      where: { companyName: createCompanyDto.companyName }
-    })) {
-      throw new Error('This company name is already taken');
-    }
-    // If no existing company is found, create a new one
-    return this.Prisma.company.create({
-      data: createCompanyDto,
-    });
-  }
+	// créer une company liée à un utilisateur (userId)
+	async create(createCompanyDto: CreateCompanyDto, userId: number): Promise<Company> {
+		return this.prisma.company.create({
+			data: {
+				...createCompanyDto,
+				userId, // association de la company avec l'utilisateur qui l'a créé (= même token)
+			}
+		});
+	}
 
-  findAll(): Promise<Company[]> {
-    return this.Prisma.company.findMany();
-  }
+	// trouver une comapny par son userId (pour que la company puisse voir son profil)
+	async findOneByUserId(userId: number) {
+		const company = await this.prisma.company.findUnique({
+			where: { userId }
+		});
+		// Vérifie si une company avec cet id existe dans la db pour le retourner
+		if (!company) {
+			throw new NotFoundException(`Company not found`)
+		}
+		return company;
+	}
 
-  async findOne(id: number): Promise<Company | null> {
-    const company = await this.Prisma.company.findUnique({
-      where: { id },
-    });
-    // If no company is found with the given ID, throw an error
-    if (!company) {
-      throw new Error(`Company with this ID ${id} not found`);
-    }
-    return company;
-  }
+	// Trouver une company par son id (pour que le worker puisse voir le profil de la company)
+	async findOne(id: number) {
+		const company = await this.prisma.company.findUnique({
+			where: { id },
+		});
+		// Vérifie si une company avec cet id existe dans la db pour le retourner
+		if (!company) {
+			throw new NotFoundException(`Company not found`);
+		}
+		return company;
+	}
 
-  async update(id: number, updateCompanyDto: UpdateCompanyDto) {
-    const company = await this.Prisma.company.findUnique({
-      where: { id },
-    });
-    // If no company is found with the given ID, throw an error
-    if (!company) {
-      throw new Error(`Company with this ID ${id} not found`);
-    }
-    // If the company exists, proceed to update it
-    this.Prisma.company.update({
-      where: { id },
-      data: updateCompanyDto,
-    });
-    return console.log(`Company with this ID ${id} has been updated successfully`);
-  }
+	// mettre à jour une company par son userId
+	async update(userId: number, updateCompanyDto: UpdateCompanyDto) {
+		const updatecompany = await this.prisma.company.findUnique({
+			where: { userId },
+		});
+		// Vérifie si une company avec cet id existe dans la db pour le mettre à jour
+		if (!updatecompany) {
+			throw new NotFoundException(`Company not found`);
+		}
+		// If the company exists, proceed to update it
+		return this.prisma.company.update({
+			where: { userId },
+			data: updateCompanyDto,
+		});
+	}
 
-  async remove(id: number) {
-    // Check if the company exists before attempting to delete it
-    const company = await this.Prisma.company.findUnique({
-      where: { id },
-    });
-    // If no company is found with the given ID, throw an error
-    if (!company) {
-      throw new Error(`Company with this ID ${id} not found`);
-    }
-    // If the company exists, proceed to delete it
-    this.Prisma.company.delete({
-      where: { id },
-    });
-    return console.log(`Company with this ID ${id} has been deleted successfully`);
-  }
+	// supprimer une company par son userId
+	async remove(userId: number) {
+		const deletecompany = await this.prisma.company.findUnique({
+			where: { userId },
+		});
+		// Verifie si une company avec cet id existe dans la db pour le supprimer
+		if (!deletecompany) {
+			throw new NotFoundException(`Company not found`);
+		}
+		// If the company exists, proceed to delete it
+		return this.prisma.company.delete({
+			where: { userId },
+		});
+	}
 }
