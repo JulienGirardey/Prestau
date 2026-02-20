@@ -30,7 +30,10 @@ export class UserService {
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<Users> {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<Omit<Users, "password">> {
     const user = await this.Prisma.users.findUnique({
       where: { id },
     });
@@ -52,10 +55,17 @@ export class UserService {
     return this.Prisma.users.update({
       where: { id },
       data: updateUserDto,
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
-  async remove(id: number): Promise<Users> {
+  async remove(id: number): Promise<Omit<Users, "password">> {
     const user = await this.Prisma.users.findUnique({
       where: { id },
     });
@@ -66,6 +76,13 @@ export class UserService {
 
     return this.Prisma.users.delete({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }

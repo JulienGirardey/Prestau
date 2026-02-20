@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -13,23 +14,26 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  update(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.update(id, updateUserDto);
   }
 
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.userService.remove(+id);
+  remove(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.remove(id);
   }
 }
