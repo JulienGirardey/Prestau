@@ -1,56 +1,51 @@
 import { IsNumber, IsString, IsDate, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreateWorkerDto {
-    @IsString()
-    firstName!: string;
+	@IsString()
+	firstName!: string;
 
-    @IsString()
-    lastName!: string;
+	@IsString()
+	lastName!: string;
 
-    @IsDate()
-    @IsOptional()
-    dateOfBirth?: Date;
+	@IsDate()
+	@IsOptional()
+	dateOfBirth?: Date;
 
-    @IsString()
-    city!: string;
+	@IsString()
+	city!: string;
 
-    @IsNumber()
-    postalCode!: number;
+	@IsNumber()
+	postalCode!: number;
 
-    @IsOptional()
-    @IsString()
-    photoURL?: string;
+	@IsOptional()
+	@IsString()
+	photoURL?: string;
 
-    @IsString()
-    profession!: string;
+	@IsString()
+	profession!: string;
 
-    @IsOptional()
-    @IsNumber()
-    experience_years?: number;
+	@IsOptional()
+	@IsNumber()
+	experience_years?: number;
 
-    @IsString()
-    languages!: string;
+	@IsString()
+	languages!: string;
 
-    @IsOptional()
-    @IsString()
-    qualifications?: string;
+	@IsOptional()
+	@IsString()
+	qualifications?: string;
 
-    @IsString()
-    @IsOptional()
-    cv_url?: string;
+	@IsString()
+	@IsOptional()
+	cv_url?: string;
 
-    @IsOptional()
-    @IsBoolean()
-    availability?: boolean;
+	@IsOptional()
+	@IsBoolean()
+	availability?: boolean;
 
-    @IsString()
-    phoneNumber!: string;
+	@IsString()
+	phoneNumber!: string;
 
-    @IsString()
-    skills!: string;
-
-    @IsNumber()
-    userId!: number;
-
-		
+	@IsString()
+	skills!: string;
 }
