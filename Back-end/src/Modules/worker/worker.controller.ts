@@ -36,7 +36,7 @@ export class WorkerController {
 	@Roles(Role.WORKER)
 	@UseGuards(RolesGuard)
 	update(@Body() updateWorkerDto: UpdateWorkerDto, @Req() req: CurrentUserRequest) {
-		return this.workerService.update(updateWorkerDto, req.user.id);
+		return this.workerService.update(req.user.id, updateWorkerDto);
 	}
 
 	@Delete('MyProfile') // un worker peut supprimer son profil worker
