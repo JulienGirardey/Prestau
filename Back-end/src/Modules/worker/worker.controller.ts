@@ -20,7 +20,7 @@ export class WorkerController {
 		return this.workerService.create(createWorkerDto, req.user.id);
 	}
 
-	@Get() // un worker peut voir son profil
+	@Get('MyProfile') // un worker peut voir son profil
 	@Roles(Role.WORKER)
 	@UseGuards(RolesGuard)
 	findMyProfile(@Req() req: CurrentUserRequest) {
@@ -32,19 +32,17 @@ export class WorkerController {
 		return this.workerService.findOne(id);
 	}
 
-	@Patch(':id') // un worker peut mettre à jour son profil worker
+	@Patch('MyProfile') // un worker peut mettre à jour son profil worker
 	@Roles(Role.WORKER)
 	@UseGuards(RolesGuard)
-	update(
-		@Param('id', ParseIntPipe) id: number,
-		@Body() updateWorkerDto: UpdateWorkerDto, @Req() req: CurrentUserRequest) {
-		return this.workerService.update(id, updateWorkerDto, req.user.id);
+	update(@Body() updateWorkerDto: UpdateWorkerDto, @Req() req: CurrentUserRequest) {
+		return this.workerService.update(updateWorkerDto, req.user.id);
 	}
 
-	@Delete(':id') // un worker peut supprimer son profil worker
+	@Delete('MyProfile') // un worker peut supprimer son profil worker
 	@Roles(Role.WORKER)
 	@UseGuards(RolesGuard)
-	remove(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
-		return this.workerService.remove(id, req.user.id);
+	remove(@Req() req: CurrentUserRequest) {
+		return this.workerService.remove(req.user.id);
 	}
 }
