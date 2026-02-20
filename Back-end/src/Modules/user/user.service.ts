@@ -7,6 +7,7 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { Users } from "@prisma/client";
 import { PrismaService } from "../../prisma.service";
+import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
 export class UserService {
@@ -54,14 +55,10 @@ export class UserService {
 
     return this.Prisma.users.update({
       where: { id },
-      data: updateUserDto,
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      data: {
+					...updateUserDto,
+					role: updateUserDto.role as Role,
+				},
     });
   }
 

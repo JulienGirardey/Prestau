@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -7,7 +8,7 @@ export class RolesGuard implements CanActivate {
 
 	canActivate(context: ExecutionContext): boolean {
 		// Récupère les rôles requis pour cette route depuis le décorateur @Roles()
-		const roles = this.reflector.get<string[]>('roles', context.getHandler());
+		const roles = this.reflector.get<Role[]>('roles', context.getHandler());
 
 		// Si pas de @Roles(), laisser passer tous les rôles
 		if (!roles) {

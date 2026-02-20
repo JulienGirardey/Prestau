@@ -33,12 +33,16 @@ model Users {
   id        Int      @id @default(autoincrement())
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
-  role      String   @db.VarChar(50)
+  role      Role
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-	company   Company?
+  company   Company?
 	worker    Worker?
+}
+enum Role {
+	COMPANY
+	WORKER
 }
 
 model Worker {

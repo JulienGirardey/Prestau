@@ -1,4 +1,5 @@
-import { IsEmail, IsString, MinLength, IsIn } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsEnum } from 'class-validator';
+import { Role } from '../enums/role.enum';
 
 export class RegisterDto {
   @IsEmail()
@@ -8,7 +9,6 @@ export class RegisterDto {
   @MinLength(6) // Minimum length for password is 6 characters
   password!: string;
 
-  @IsString()
-  @IsIn(['COMPANY', 'WORKER']) // Role must be either 'COMPANY' or 'WORKER'
-  role!: string;
+  @IsEnum(Role) //WORKER or COMPANY
+  role!: Role;
 }
