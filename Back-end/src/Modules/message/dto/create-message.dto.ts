@@ -17,4 +17,4 @@ export class CreateMessageDto {
 	@IsInt()
 	receiverId!: number;
 
-};
+}
