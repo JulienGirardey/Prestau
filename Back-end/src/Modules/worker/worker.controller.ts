@@ -9,8 +9,8 @@ import { Role } from '../auth/enums/role.enum';
 import { CurrentUserRequest } from '../auth/interfaces/jwt-payload.interface';
 
 @Controller('worker')
-@UseGuards(JwtAuthGuard) // Applique le guard d'authentification JWT à tous les endpoints de ce contrôleur
-@UseGuards(RolesGuard) // guard de rôle pour vérifier que l'utilisateur a le rôle de worker
+@UseGuards(JwtAuthGuard, RolesGuard) // Applique le guard d'authentification JWT à tous les endpoints de ce contrôleur
+// guard de rôle pour vérifier que l'utilisateur a le rôle de worker
 export class WorkerController {
 	constructor(private readonly workerService: WorkerService) { }
 
