@@ -26,18 +26,18 @@ export class JobService {
 
 	async findAll(user: { id: number; role: Role }) {
 		if (user.role === Role.COMPANY) {
-        const company = await this.prisma.company.findUnique({
-            where: { userId: user.id } // Trouve la company associée à l'utilisateur
-        });
+			const company = await this.prisma.company.findUnique({
+				where: { userId: user.id } // Trouve la company associée à l'utilisateur
+			});
 
-        if (!company) {
-            throw new NotFoundException('Company not found');
-        }
+			if (!company) {
+				throw new NotFoundException('Company not found');
+			}
 
-        return this.prisma.job.findMany({
-            where: { companyId: company.id } // companyId est l'identifiant unique de la company récupéré via userId
-        });
-    }
+			return this.prisma.job.findMany({
+				where: { companyId: company.id } // companyId est l'identifiant unique de la company récupéré via userId
+			});
+		}
 		// Le worker voit tous les jobs
 		return this.prisma.job.findMany()
 	}
@@ -52,12 +52,19 @@ export class JobService {
 		return job;
 	}
 
-	async update(id: number, updateJobDto: UpdateJobDto, companyId: number) {
-		const job = await this.findOne(id);
+	async update(id: number, updateJobDto: UpdateJobDto, userId: number) {
+		const company = await this.prisma.company.findUnique({
+			where: { userId }
+		});
 
-		//vérifie que la company est bien propriétaire du job pour pouvoir le mettre à jour
-		if (job.companyId !== companyId) {
-			throw new ForbiddenException(`You are not autorized to update this job`);
+		if (!company) {
+			throw new NotFoundException('Company not found');
+		}
+
+		const job = await this.findOne(id);
+		// Vérifie que la company est bien propriétaire du job pour pouvoir le mettre à jour
+		if (job.companyId !== company.id) {
+			throw new ForbiddenException('You are not authorized to update this job');
 		}
 
 		return this.prisma.job.update({
@@ -66,12 +73,20 @@ export class JobService {
 		});
 	}
 
-	async remove(id: number, companyId: number) {
+	async remove(id: number, userId: number) {
+		const company = await this.prisma.company.findUnique({
+			where: { userId }
+		});
+
+		if (!company) {
+			throw new NotFoundException('Company not found');
+		}
+
 		const job = await this.findOne(id)
 
 		// Vérifie que la company est bien propriétaire du job pour pouvoir le supprimer
-		if (job.companyId !== companyId) {
-			throw new ForbiddenException(`You are not autorized to delete this job`)
+		if (job.companyId !== company.id) {
+			throw new ForbiddenException(`You are not authorized to delete this job`)
 		}
 		return this.prisma.job.delete({
 			where: { id },
