@@ -8,13 +8,4 @@ export class CreateMessageDto {
 	@IsNotEmpty()
 	@IsInt()
 	jobOfferId!: number;
-
-	@IsNotEmpty()
-	@IsInt()
-	senderId!: number;
-	
-	@IsNotEmpty()
-	@IsInt()
-	receiverId!: number;
-
-};
+}
