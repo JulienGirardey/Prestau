@@ -8,24 +8,36 @@ import { Role } from '../auth/enums/role.enum';
 export class JobService {
 	constructor(private prisma: PrismaService) { }
 
-	async create(createJobDto: CreateJobDto, companyId: number) {
+	async create(createJobDto: CreateJobDto, userId: number) {
+		const company = await this.prisma.company.findUnique({
+			where: { userId }
+		});
+
+		if (!company) {
+			throw new NotFoundException('Company not found');
+		}
 		return this.prisma.job.create({
 			data: {
 				...createJobDto,
-				companyId,
+				companyId: company.id,
 			}
 		});
 	}
 
-	findAll(user: { id: number; role: Role }) {
+	async findAll(user: { id: number; role: Role }) {
 		if (user.role === Role.COMPANY) {
-			// La company voit uniquement ses propres jobs
-			return this.prisma.job.findMany({
-				where: {
-					companyId: user.id,
-				}
-			});
-		}
+        const company = await this.prisma.company.findUnique({
+            where: { userId: user.id } // Trouve la company associée à l'utilisateur
+        });
+
+        if (!company) {
+            throw new NotFoundException('Company not found');
+        }
+
+        return this.prisma.job.findMany({
+            where: { companyId: company.id } // companyId est l'identifiant unique de la company récupéré via userId
+        });
+    }
 		// Le worker voit tous les jobs
 		return this.prisma.job.findMany()
 	}
