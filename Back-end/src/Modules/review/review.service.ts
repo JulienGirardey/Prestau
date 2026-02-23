@@ -1,52 +1,58 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PrismaService } from '../../prisma.service';
 import { Review } from '@prisma/client';
+import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
 export class ReviewService {
-	constructor(private Prisma: PrismaService) { }
+    constructor(private Prisma: PrismaService) { }
 
-	async create(createReviewDto: CreateReviewDto): Promise<Review> {
-		// review yourself
-		if (
-			createReviewDto.reviewerId === createReviewDto.revieweeId &&
-			createReviewDto.reviewerType === createReviewDto.revieweeType
-		) {
-			throw new BadRequestException('Cannnot review yourself');
-		}
+    async create(createReviewDto: CreateReviewDto, userId: number): Promise<Review> {
+        // Vérifier que le reviewee existe
+        await this.validateRevieweeExists(createReviewDto.revieweeId, createReviewDto.revieweeType);
 
-		return this.Prisma.review.create({
-			data: createReviewDto,
-		});
-	}
+        // Empêcher l'auto-évaluation
+        if (userId === createReviewDto.revieweeId) {
+            throw new BadRequestException('Vous ne pouvez pas vous évaluer vous-même.');
+        }
 
-	async findAll(): Promise<Review[]> {
-		return this.Prisma.review.findMany();
-	}
+        return this.Prisma.review.create({
+            data: {
+                ...createReviewDto,
+                reviewerId: userId,
+            },
+        });
+    }
 
-	async findOne(id: number): Promise<Review> {
-		const review = await this.Prisma.review.findUnique({
-			where: { id },
-		});
+	// Récupérer une review par ID 
+    async findOne(id: number): Promise<Review> {
+        const review = await this.Prisma.review.findUnique({
+            where: { id },
+        });
 
-		if (!review) {
-			throw new NotFoundException(`Review with ID ${id} not found`);
-		}
+        if (!review) {
+            throw new NotFoundException(`Avis introuvable.`);
+        }
 
-		return review;
-	}
+        return review;
+    }
+	// Supprimer une review (seul l'auteur peut supprimer son avis)
+    async remove(id: number, userId: number): Promise<Review> {
+        const review = await this.Prisma.review.findUnique({
+            where: { id },
+        });
 
-	async remove(id: number): Promise<Review> {
-		const review = await this.Prisma.review.findUnique({
-			where: { id },
-		});
+        if (!review) {
+            throw new NotFoundException(`Avis introuvable.`);
+        }
 
-		if (!review) {
-			throw new NotFoundException(`Review with ID ${id} not found`);
-		}
-		return this.Prisma.review.delete({
-			where: { id },
-		});
-	}
+        if (review.reviewerId !== userId) {
+            throw new ForbiddenException('Vous ne pouvez supprimer que vos propres avis.');
+        }
+
+        return this.Prisma.review.delete({
+            where: { id },
+        });
+    }
 }
