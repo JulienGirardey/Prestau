@@ -1,38 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { PrismaService } from '../../prisma.service';
+import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
 export class JobService {
-	constructor(private Prisma: PrismaService) { }
+	constructor(private prisma: PrismaService) { }
 
-	async create(createJobDto: CreateJobDto) {
-		return this.Prisma.job.create({
-			data: createJobDto,
+	async create(createJobDto: CreateJobDto, companyId: number) {
+		return this.prisma.job.create({
+			data: {
+				...createJobDto,
+				companyId,
+			}
 		});
 	}
 
-	findAll() {
-		return this.Prisma.job.findMany();
+	findAll(user: { id: number; role: Role }) {
+		if (user.role === Role.COMPANY) {
+			// La company voit uniquement ses propres jobs
+			return this.prisma.job.findMany({
+				where: {
+					companyId: user.id,
+				}
+			});
+		}
+		// Le worker voit tous les jobs
+		return this.prisma.job.findMany()
 	}
 
-	findOne(id: number) {
-		return this.Prisma.job.findUnique({
+	async findOne(id: number) {
+		const job = await this.prisma.job.findUnique({
 			where: { id },
 		});
-
+		if (!job) {
+			throw new NotFoundException(`Job not found`);
+		}
+		return job;
 	}
 
-	update(id: number, updateJobDto: UpdateJobDto) {
-		return this.Prisma.job.update({
+	async update(id: number, updateJobDto: UpdateJobDto, companyId: number) {
+		const job = await this.findOne(id);
+
+		//vérifie que la company est bien propriétaire du job pour pouvoir le mettre à jour
+		if (job.companyId !== companyId) {
+			throw new ForbiddenException(`You are not autorized to update this job`);
+		}
+
+		return this.prisma.job.update({
 			where: { id },
 			data: updateJobDto,
 		});
 	}
 
-	remove(id: number) {
-		return this.Prisma.job.delete({
+	async remove(id: number, companyId: number) {
+		const job = await this.findOne(id)
+
+		// Vérifie que la company est bien propriétaire du job pour pouvoir le supprimer
+		if (job.companyId !== companyId) {
+			throw new ForbiddenException(`You are not autorized to delete this job`)
+		}
+		return this.prisma.job.delete({
 			where: { id },
 		});
 	}
