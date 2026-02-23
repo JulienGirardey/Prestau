@@ -9,8 +9,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { CurrentUserRequest } from '../auth/interfaces/jwt-payload.interface';
 
 @Controller('company')
-@UseGuards(JwtAuthGuard) // Appliquer le guard d'authentification JWT à toutes les routes de ce contrôleur
-@UseGuards(RolesGuard) // guard de rôle pour vérifier que l'utilisateur a le rôle de company
+@UseGuards(JwtAuthGuard, RolesGuard) // Appliquer le guard d'authentification JWT à toutes les routes de ce contrôleur
+// guard de rôle pour vérifier que l'utilisateur a le rôle de company
 export class CompanyController {
 	constructor(private readonly companyService: CompanyService) { }
 
