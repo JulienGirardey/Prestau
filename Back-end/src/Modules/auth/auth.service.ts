@@ -67,26 +67,49 @@ export class AuthService {
 		if (!isPasswordValid) {
 			throw new UnauthorizedException('Invalid credentials');
 		}
-		   // Vérifie que le rôle demandé correspond au rôle du user
-		   if (loginDto.role !== user.role) {
-			   throw new UnauthorizedException('Invalid role for this user');
-		   }
 
-		   // Génére le token JWT
-		   const access_token = this.jwtService.sign({
-			   email: user.email,
-			   sub: user.id,
-			   role: user.role
-		   });
+		// Vérifie que le rôle demandé correspond au rôle du user
+		if (loginDto.role !== user.role) {
+			throw new UnauthorizedException('Invalid role for this user');
+		}
 
-		   return {
-			   access_token,
-			   user: {
-				   id: user.id,
-				   email: user.email,
-				   role: user.role,
-			   }
-		   };
+		// si le user est une COMPANY, vérifie qu'elle a bien créé son profil company avant de pouvoir se connecter
+		if (user.role === 'COMPANY') {
+			const company = await this.prisma.company.findUnique({
+				where: { userId: user.id }
+			});
+
+			if (!company) {
+				throw new UnauthorizedException('Company profile not created yet');
+			}
+		}
+
+		// si le user est un WORKER, vérifie qu'il a bien créé son profil worker avant de pouvoir se connecter
+		if (user.role === 'WORKER') {
+			const worker = await this.prisma.worker.findUnique({
+				where: { userId: user.id }
+			});
+
+			if (!worker) {
+				throw new UnauthorizedException('Worker profile not created yet');
+			}
+		}
+
+		// Génère le token JWT avec sign()
+		const access_token = this.jwtService.sign({
+			email: user.email,
+			sub: user.id,
+			role: user.role
+		});
+
+		return {
+			access_token,
+			user: {
+				id: user.id,
+				email: user.email,
+				role: user.role,
+			}
+		};
 	}
 
 	// Valide le token JWT et retourne les infos de l'utilisateur
