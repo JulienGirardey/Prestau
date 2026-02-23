@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company } from '@prisma/client';
@@ -10,6 +10,14 @@ export class CompanyService {
 
 	// créer une company liée à un utilisateur (userId)
 	async create(createCompanyDto: CreateCompanyDto, userId: number): Promise<Company> {
+		const existingCompany = await this.prisma.company.findUnique({
+			where: { userId },
+		});
+
+		if (existingCompany) {
+			throw new ConflictException('A company already exists for this user.');
+		}
+
 		return this.prisma.company.create({
 			data: {
 				...createCompanyDto,
@@ -44,14 +52,8 @@ export class CompanyService {
 
 	// mettre à jour une company par son userId
 	async update(userId: number, updateCompanyDto: UpdateCompanyDto) {
-		const updatecompany = await this.prisma.company.findUnique({
-			where: { userId },
-		});
-		// Vérifie si une company avec cet id existe dans la db pour le mettre à jour
-		if (!updatecompany) {
-			throw new NotFoundException(`Company not found`);
-		}
-		// If the company exists, proceed to update it
+		await this.findOneByUserId(userId); // vérifie que la company existe
+
 		return this.prisma.company.update({
 			where: { userId },
 			data: updateCompanyDto,
@@ -60,14 +62,8 @@ export class CompanyService {
 
 	// supprimer une company par son userId
 	async remove(userId: number) {
-		const deletecompany = await this.prisma.company.findUnique({
-			where: { userId },
-		});
-		// Verifie si une company avec cet id existe dans la db pour le supprimer
-		if (!deletecompany) {
-			throw new NotFoundException(`Company not found`);
-		}
-		// If the company exists, proceed to delete it
+		await this.findOneByUserId(userId); // vérifie que la company existe
+
 		return this.prisma.company.delete({
 			where: { userId },
 		});
