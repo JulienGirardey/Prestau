@@ -6,7 +6,7 @@ import { PrismaService } from '../../prisma.service';
 export class MessageService {
 	constructor(private prisma: PrismaService) { }
 
-	async create(createMessageDto: CreateMessageDto) {
+	async create(createMessageDto: CreateMessageDto, userId: number) {
 		return await this.prisma.message.create({
 			data: {
 				content: createMessageDto.content,
@@ -20,7 +20,7 @@ export class MessageService {
 		});
 	}
 
-	async findAll() {
+	async findAll(userId: number) {
 		return this.prisma.message.findMany({
 			include: {
 				jobOffer: true,
@@ -28,7 +28,7 @@ export class MessageService {
 		});
 	}
 
-	async findOne(id: number) {
+	async findOne(id: number, userId: number) {
 		const message = await this.prisma.message.findUnique({
 			where: { id },
 			include: {
