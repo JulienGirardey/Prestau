@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PrismaService } from '../../prisma.service';
 import { Review } from '@prisma/client';
@@ -9,9 +9,6 @@ export class ReviewService {
     constructor(private Prisma: PrismaService) { }
 
     async create(createReviewDto: CreateReviewDto, userId: number): Promise<Review> {
-        // Vérifier que le reviewee existe
-        await this.validateRevieweeExists(createReviewDto.revieweeId, createReviewDto.revieweeType);
-
         // Empêcher l'auto-évaluation
         if (userId === createReviewDto.revieweeId) {
             throw new BadRequestException('Vous ne pouvez pas vous évaluer vous-même.');
