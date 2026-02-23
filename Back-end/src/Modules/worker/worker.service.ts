@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { PrismaService } from '../../prisma.service';
@@ -10,6 +10,14 @@ export class WorkerService {
 
 	// créer un worker lié à un utilisateur (userId)
 	async create(createWorkerDto: CreateWorkerDto, userId: number): Promise<Worker> {
+		const existingWorker = await this.prisma.worker.findUnique({
+			where: { userId }
+		});
+
+		if (existingWorker) {
+			throw new ConflictException('Worker profile already exists');
+		}
+
 		return this.prisma.worker.create({
 			data: {
 				...createWorkerDto,
@@ -44,13 +52,8 @@ export class WorkerService {
 
 	// mettre à jour un worker par son userId (pour que le worker puisse mettre à jour son profil)
 	async update(userId: number, updateWorkerDto: UpdateWorkerDto) {
-		const updateworker = await this.prisma.worker.findUnique({
-			where: { userId }
-		});
-		// Vérifie si un worker avec cet id existe dans la base de données pour le mettre à jour
-		if (!updateworker) {
-			throw new NotFoundException(`Worker not found`);
-		}
+		await this.findOneByUserId(userId); // vérifie que le worker existe
+
 		return this.prisma.worker.update({
 			where: { userId },
 			data: updateWorkerDto,
@@ -59,13 +62,8 @@ export class WorkerService {
 
 	// supprimer un worker par son userId (pour que le worker puisse supprimer son profil)
 	async remove(userId: number) {
-		const deleteworker = await this.prisma.worker.findUnique({
-			where: { userId }
-		});
-		// Vérifie si un worker avec cet id existe dans la base de données pour le supprimer
-		if (!deleteworker) {
-			throw new NotFoundException(`Worker not found`);
-		}
+		await this.findOneByUserId(userId); // vérifie que le worker existe
+
 		return this.prisma.worker.delete({
 			where: { userId }
 		});
