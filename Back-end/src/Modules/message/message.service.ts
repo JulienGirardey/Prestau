@@ -17,7 +17,7 @@ export class MessageService {
 		});
 
 		if (!jobOffer) {
-			throw new NotFoundException('JobOffer not found');
+			throw new NotFoundException(`L'offre d'emploi avec l'ID ${createMessageDto.jobOfferId} n'existe pas`);
 		}
 
 		// Vérifier que l'utilisateur est impliqué dans ce jobOffer
@@ -25,7 +25,7 @@ export class MessageService {
 		const isWorker = jobOffer.worker.userId === userId;
 
 		if (!isCompany && !isWorker) {
-			throw new ForbiddenException('You are not part of this job offer');
+			throw new ForbiddenException("Vous n'êtes pas autorisé à envoyer un message pour cette offre");
 		}
 
 		// Déterminer automatiquement le receiverId
@@ -70,15 +70,14 @@ export class MessageService {
 		});
 
 		if (!message) {
-			throw new NotFoundException(`Message with this ID ${id} not found`);
+			throw new NotFoundException(`Le message avec l'ID ${id} n'existe pas`);
 		}
 
 		// Vérifier que l'utilisateur est sender OU receiver
 		if (message.senderId !== userId && message.receiverId !== userId) {
-			throw new ForbiddenException('Access denied');
+			throw new ForbiddenException("Vous n'avez pas accès à ce message");
 		}
 
 		return message;
 	}
-	
 }
