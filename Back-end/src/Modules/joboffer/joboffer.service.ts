@@ -8,7 +8,7 @@ import { worker } from 'node:cluster';
 export class JobofferService {
 	constructor(private Prisma: PrismaService) { }
 
-	async create(createJobofferDto: CreateJobofferDto, userId: number): Promise<JobOffer> {
+	async create(createJobofferDto: CreateJobofferDto, userId: number, jobId: number): Promise<JobOffer> {
 		const existingJobOffer = await this.Prisma.jobOffer.findFirst({
 			where: { workerId: userId },
 		});
@@ -21,6 +21,7 @@ export class JobofferService {
 			data: {
 				...createJobofferDto,
 				workerId: userId, // association de l'offre d'emploi avec l'utilisateur qui l'a créée (même token)
+				jobId: jobId, // association de l'offre d'emploi avec le job auquel elle est liée
 			},
 		});
 	}

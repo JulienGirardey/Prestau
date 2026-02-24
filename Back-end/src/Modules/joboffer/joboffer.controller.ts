@@ -12,10 +12,10 @@ import { CurrentUserRequest } from '../auth/interfaces/jwt-payload.interface';
 export class JobofferController {
   constructor(private readonly jobofferService: JobofferService) {}
 
-  @Post()
+  @Post(':jobId')
   @Roles(Role.WORKER) // seulement un Worker peut créer une offre d'emploi
-  create(@Body() createJobofferDto: CreateJobofferDto, @Req() req: CurrentUserRequest) {
-    return this.jobofferService.create(createJobofferDto, req.user.id); // Associer l'offre d'emploi créée à l'utilisateur qui l'a créée (même token)
+  create(@Param('jobId', ParseIntPipe) jobId: number, @Body() createJobofferDto: CreateJobofferDto, @Req() req: CurrentUserRequest) {
+    return this.jobofferService.create(createJobofferDto, req.user.id, jobId); // Associer l'offre d'emploi créée à l'utilisateur qui l'a créée (même token)
   }
 
   @Get()
