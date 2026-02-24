@@ -1,18 +1,16 @@
-import {StyleSheet, Text } from "react-native";
-import { Link } from "expo-router";
+import { StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { Card } from "@/components/Card";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/Header";
 
 export default function DashboardCompany() {
-  const colors = useThemeColors();
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="Dashboard Company" />
-      <Text style={styles.title}>Dashboard Company</Text>
-    </SafeAreaView>
-  );
+    const colors = useThemeColors();
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <Header title="Dashboard Company" />
+            <Text style={styles.title}>Dashboard Company</Text>
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
