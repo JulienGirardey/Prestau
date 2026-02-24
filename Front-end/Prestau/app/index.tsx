@@ -8,6 +8,7 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <Text>Aurélie ? ça va ? oui!</Text>
       <Link href="/register">Go to Register</Link>
+			<Link href="/login">Go to Login</Link>
     </SafeAreaView>
   );
 }
