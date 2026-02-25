@@ -17,8 +17,9 @@ export default function DashboardWorker() {
     >
       <Header title="Dashboard Worker" />
       <Text style={styles.title}>Dashboard Worker</Text>
-      <DefaultCard title="Mission a venir">
-        <Text>Mission a venir</Text>
+      <DefaultCard title="Missions à venir">
+        {}
+        <Text>Détails des missions</Text>
       </DefaultCard>
       <DefaultCard title="Me disponibilites">
         <Text>Me disponibilités</Text>
@@ -27,9 +28,9 @@ export default function DashboardWorker() {
         <Text>Dernières missions postées</Text>
       </DefaultCard>
       <View style={styles.buttonContainer}>
-        <NewButton title="Avis Professionels" onPress={handlePress} />
+        <NewButton title="Avis Professionnels" onPress={handlePress} />
       </View>
-	  <BarreNavigation />
+      <BarreNavigation />
     </SafeAreaView>
   );
 }
@@ -37,7 +38,7 @@ export default function DashboardWorker() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-	gap: 20,
+    gap: 20,
     alignItems: "center",
     padding: 100,
   },
@@ -46,17 +47,7 @@ const styles = StyleSheet.create({
     fontSize: 31,
     textAlign: "center",
   },
-  body: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  form: {
-    width: "100%",
-  },
-  spacer: {
-    flex: 1,
-  },
-  buttonCreateAccount: {
-    marginTop: 30,
+  buttonContainer: {
+    marginTop: 20,
   }
 });
