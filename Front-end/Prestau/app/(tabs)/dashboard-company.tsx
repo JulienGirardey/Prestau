@@ -2,13 +2,14 @@ import { StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
+import { DefaultCard } from "@/components/DefaultCard";
 
 export default function DashboardCompany() {
     const colors = useThemeColors();
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <Header title="Dashboard Company" />
-            <Text style={styles.title}>Dashboard Company</Text>
+            <Header title="Dashboard Company" style={styles.headerstyle} />
+            <DefaultCard />
         </SafeAreaView>
     );
 }
