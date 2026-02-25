@@ -4,6 +4,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
+import { BarreNavigation } from "@/components/BarreNav";
 
 export default function DashboardWorker() {
   const colors = useThemeColors();
@@ -26,8 +27,9 @@ export default function DashboardWorker() {
         <Text>Dernières missions postées</Text>
       </DefaultCard>
       <View style={styles.buttonContainer}>
-        <NewButton title="Avis Professionels" onPress={handlePress}/>
+        <NewButton title="Avis Professionels" onPress={handlePress} />
       </View>
+	  <BarreNavigation />
     </SafeAreaView>
   );
 }
@@ -35,6 +37,7 @@ export default function DashboardWorker() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+	gap: 20,
     alignItems: "center",
     padding: 100,
   },
@@ -55,5 +58,5 @@ const styles = StyleSheet.create({
   },
   buttonCreateAccount: {
     marginTop: 30,
-  },
+  }
 });
