@@ -4,7 +4,6 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
-import { BarreNavigation } from "@/components/BarreNav";
 
 export default function DashboardWorker() {
   const colors = useThemeColors();
