@@ -2,7 +2,7 @@ import { StyleSheet, View, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { Card } from "@/components/Card";
+import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
@@ -15,7 +15,7 @@ export default function Register() {
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<Card>
+			<DefaultCard>
 				<View style={styles.form}>
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Create Account</ThemedText>
@@ -24,8 +24,8 @@ export default function Register() {
 					<InputBar style={inputStyle.inputVerifyPassword} placeholder="Verify password" value={inputVerifyPassword} onChange={setInputVerifyPassword} />
 				</View>
 				<View style={styles.spacer} />
-				<NewButton style={styles.buttonCreateAccount} title="Create Account" />
-			</Card>
+				<NewButton title="Create Account" />
+			</DefaultCard>
 		</SafeAreaView>
 	);
 }
@@ -47,9 +47,6 @@ const styles = StyleSheet.create({
 	},
 	spacer: {
 		flex: 1
-	},
-
-	buttonCreateAccount: {
 	},
 
 	baseImageStyle: {

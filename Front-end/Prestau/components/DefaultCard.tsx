@@ -3,7 +3,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 
 type Props = ViewProps & { children?: React.ReactNode };
 
-export function Card({ style, children, ...rest }: Props) {
+export function DefaultCard({ style, children, ...rest }: Props) {
     const colors = useThemeColors();
     return (
         <View style={[styles, { backgroundColor: colors.primary, borderColor: colors.secondary }]} {...rest}>
