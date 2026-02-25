@@ -4,7 +4,6 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
-import { BarreNavigation } from "@/components/BarreNav";
 
 export default function DashboardWorker() {
   const colors = useThemeColors();
@@ -19,13 +18,13 @@ export default function DashboardWorker() {
       <Text style={styles.title}>Dashboard Worker</Text>
       <DefaultCard title="Missions à venir">
         {}
-        <Text>Détails des missions</Text>
+        <Text style={styles.titletext}>Missions à venir</Text>
       </DefaultCard>
       <DefaultCard title="Me disponibilites">
-        <Text>Me disponibilités</Text>
+        <Text style={styles.titletext}>Mes disponibilités</Text>
       </DefaultCard>
       <DefaultCard title="Dernières missions postées">
-        <Text>Dernières missions postées</Text>
+        <Text style={styles.titletext}>Dernières missions postées</Text>
       </DefaultCard>
       <View style={styles.buttonContainer}>
         <NewButton title="Avis Professionnels" onPress={handlePress} />
@@ -48,5 +47,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 20,
+  },
+  titletext: {
+	fontSize: 18,
+	textAlign: "center",
+	color: "#F5F2D9",
+	marginTop: -25,
   }
 });
