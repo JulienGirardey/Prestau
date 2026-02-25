@@ -9,6 +9,7 @@ export default function Index() {
       <Text>Aurélie ? ça va ? oui!</Text>
       <Link href="/register">Go to Register</Link>
       <Link href="/dashboard-company">Go to DashboardCompany</Link>
+	  <Link href="/dashboard-worker">Go to DashboardWorker</Link>
     </SafeAreaView>
   );
 }
