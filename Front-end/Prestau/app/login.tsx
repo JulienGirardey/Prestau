@@ -1,7 +1,7 @@
 import { View, Image } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { StyleSheet } from "react-native";
-import { Card } from "@/components/Card";
+import { DefaultCard } from "@/components/DefaultCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { InputBar } from "@/components/InputBar";
@@ -14,7 +14,7 @@ export default function login() {
 	const [inputPassword, setPassword] = React.useState("");
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<Card>
+			<DefaultCard>
 				<View style={styles.form}>
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Login</ThemedText>
@@ -23,7 +23,7 @@ export default function login() {
 				</View>
 				<View style={styles.spacer} />
 				<NewButton title="Sign in" />
-			</Card>
+			</DefaultCard>
 		</SafeAreaView>
 	);
 }
