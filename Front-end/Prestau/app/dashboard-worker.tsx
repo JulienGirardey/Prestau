@@ -30,7 +30,6 @@ export default function DashboardWorker() {
       <View style={styles.buttonContainer}>
         <NewButton title="Avis Professionnels" onPress={handlePress} />
       </View>
-      <BarreNavigation />
     </SafeAreaView>
   );
 }
