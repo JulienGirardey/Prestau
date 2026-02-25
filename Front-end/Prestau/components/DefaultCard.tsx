@@ -1,12 +1,13 @@
-import { View, ViewProps, ViewStyle } from "react-native";
+import { View, ViewProps, ViewStyle, useWindowDimensions } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 type Props = ViewProps & { children?: React.ReactNode };
 
 export function DefaultCard({ style, children, ...rest }: Props) {
     const colors = useThemeColors();
+    const { height } = useWindowDimensions();
     return (
-        <View style={[styles, { backgroundColor: colors.primary, borderColor: colors.secondary }]} {...rest}>
+        <View style={[styles, { backgroundColor: colors.primary, borderColor: colors.secondary, padding: height * 0.02 }]} {...rest}>
             {children}
         </View>
     );
@@ -15,9 +16,7 @@ export function DefaultCard({ style, children, ...rest }: Props) {
 const styles = {
     flex: 1,
     alignSelf: 'center',
-    justifyContent: 'flex-start',
-    padding: 30,
+    justifyContent: 'center',
     borderRadius: 15,
     borderWidth: 4,
-    width: 328,
 } satisfies ViewStyle;
