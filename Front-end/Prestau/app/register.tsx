@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View, Image, useWindowDimensions, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -6,9 +6,8 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
-import { TouchableOpacity } from "react-native";
-import { Colors } from "@/constants/Colors";
 import { register } from "@/src/api/auth";
+import { Colors } from "@/constants/Colors";
 
 
 export default function Register() {
@@ -29,6 +28,14 @@ export default function Register() {
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 			<DefaultCard>
+	const { width, height } = useWindowDimensions();
+	const [role, setRole] = useState<'worker' | 'company' | null>(null);
+	const handleRegister = () => {
+		if (!role) return;
+	};
+	return (
+		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
 				<View style={styles.form}>
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Create Account</ThemedText>
