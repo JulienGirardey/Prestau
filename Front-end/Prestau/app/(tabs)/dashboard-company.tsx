@@ -22,14 +22,18 @@ export default function DashboardCompany() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        alignItems: 'center',
+        padding: 100
     },
     title: {
+        paddingTop: 30,
         fontSize: 31,
         textAlign: "center"
     },
     body: {
-        flex: 1
+        flex: 1,
+        justifyContent: "space-between"
     },
     form: {
         width: "100%"

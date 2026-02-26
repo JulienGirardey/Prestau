@@ -11,6 +11,17 @@ export default function Login() {
 	const colors = useThemeColors();
 	const [inputEmail, setEmail] = React.useState("");
 	const [inputPassword, setPassword] = React.useState("");
+	const handleLogin = async () => {
+		try {
+			const result = await login(inputEmail, inputPassword);
+			console.log('succès', result);
+		} catch (error) {
+			console.log('erreur', error);
+		}
+	};
+	return (
+		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+			<DefaultCard>
 	const { width, height } = useWindowDimensions();
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -22,7 +33,7 @@ export default function Login() {
 					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setPassword} />
 				</View>
 				<View style={styles.spacer} />
-				<NewButton title="Sign in" />
+				<NewButton title="Sign in" onPress={handleLogin} />
 			</DefaultCard>
 		</SafeAreaView>
 	);
