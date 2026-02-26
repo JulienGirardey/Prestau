@@ -7,7 +7,7 @@ export function DefaultCard({ style, children, ...rest }: Props) {
     const colors = useThemeColors();
     const { height } = useWindowDimensions();
     return (
-        <View style={[styles, { backgroundColor: colors.primary, borderColor: colors.secondary, padding: height * 0.02 }]} {...rest}>
+        <View style={[styles, { backgroundColor: colors.primary, borderColor: colors.secondary, padding: height * 0.02 }, style]} {...rest}>
             {children}
         </View>
     );

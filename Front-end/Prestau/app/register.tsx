@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View, Image, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -13,9 +13,10 @@ export default function Register() {
 	const [inputEmail, setEmail] = useState("");
 	const [inputPassword, setInputPassword] = useState("");
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
+	const { width, height } = useWindowDimensions();
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<DefaultCard>
+			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
 				<View style={styles.form}>
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Create Account</ThemedText>
