@@ -1,39 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  Req,
+} from "@nestjs/common";
+import { UserService } from "./user.service";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles.guard";
+import { Roles } from "../auth/decorators/roles.decorator";
+import { CurrentUserRequest } from "../auth/interfaces/jwt-payload.interface";
 
-@Controller('user')
+@Controller("user")
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Get("MyProfile") // un utilisateur peut voir son propre profil
+  findMyProfile(@Req() req: CurrentUserRequest) {
+    return this.userService.findOne(req.user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Get(":id") // voir un utilisateur par ID
+  findOne(@Param("id", ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Patch("MyProfile") // un utilisateur peut mettre à jour son propre profil
+  updateMyProfile(
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() req: CurrentUserRequest,
+  ) {
+    return this.userService.update(req.user.id, updateUserDto);
   }
 
-  @Get(':id/role')
-  checkRole(@Param('id') id: string) {
-	return this.userService.checkRole(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Delete("MyProfile") // un utilisateur peut supprimer son propre profil
+  removeMyProfile(@Req() req: CurrentUserRequest) {
+    return this.userService.remove(req.user.id);
   }
 }

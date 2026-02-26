@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { PrismaService } from '../../prisma.service';
@@ -6,59 +6,66 @@ import { Worker } from '@prisma/client';
 
 @Injectable()
 export class WorkerService {
-	constructor(private Prisma: PrismaService) { }
+	constructor(private prisma: PrismaService) { }
 
-	async create(createWorkerDto: CreateWorkerDto): Promise<Worker> {
-		const existingWorkerUserId = await this.Prisma.worker.findUnique({
-			where: { userId: createWorkerDto.userId }
+	// créer un worker lié à un utilisateur (userId)
+	async create(createWorkerDto: CreateWorkerDto, userId: number): Promise<Worker> {
+		const existingWorker = await this.prisma.worker.findUnique({
+			where: { userId }
 		});
-		// Check if a worker with the same userId already exists
-		if (existingWorkerUserId) {
-			throw new Error('Worker with this userId already exists');
+
+		if (existingWorker) {
+			throw new ConflictException('Worker profile already exists');
 		}
-		return this.Prisma.worker.create({ data: createWorkerDto });
-	}
 
-	findAll() {
-		return this.Prisma.worker.findMany();
-	}
-
-	async findOne(id: number) {
-		const worker = await this.Prisma.worker.findUnique({
-			where: { id }
+		return this.prisma.worker.create({
+			data: {
+				...createWorkerDto,
+				userId, // association du worker avec l'utilisateur qui l'a créé (=même token)
+			}
 		});
-		// Check if worker with this id exists in the database to return it
+	}
+
+	// trouver un worker par son userId (pour que le worker puisse voir son profil)
+	async findOneByUserId(userId: number) {
+		const worker = await this.prisma.worker.findUnique({
+			where: { userId }
+		});
+		// Vérifie si un worker avec ce userId existe dans la base de données pour le retourner
 		if (!worker) {
-			throw new Error(`Worker with this id ${id} not found`);
+			throw new NotFoundException(`Worker not found`);
 		}
 		return worker;
 	}
 
-	async update(id: number, updateWorkerDto: UpdateWorkerDto) {
-		const updateworker = await this.Prisma.worker.findUnique({
+	// trouver un worker par son id (pour que la company puisse voir le profil d'un worker)
+	async findOne(id: number) {
+		const worker = await this.prisma.worker.findUnique({
 			where: { id }
 		});
-		// Check if worker with this id exists in the database to update it
-		if (!updateworker) {
-			throw new Error(`Worker with this id ${id} not found`);
+		// Vérifie si un worker avec cet id existe dans la base de données pour le retourner
+		if (!worker) {
+			throw new NotFoundException(`Worker not found`);
 		}
-		const updatedWorker = await this.Prisma.worker.update({
-			where: { id },
-			data: updateWorkerDto
-		});
-		return updatedWorker;
+		return worker;
 	}
 
-	async remove(id: number) {
-		const deleteworker = await this.Prisma.worker.findUnique({
-			where: { id }
+	// mettre à jour un worker par son userId (pour que le worker puisse mettre à jour son profil)
+	async update(userId: number, updateWorkerDto: UpdateWorkerDto) {
+		await this.findOneByUserId(userId); // vérifie que le worker existe
+
+		return this.prisma.worker.update({
+			where: { userId },
+			data: updateWorkerDto,
 		});
-		// Check if worker with this id exists in the database to delete it
-		if (!deleteworker) {
-			throw new Error(`Worker with this id ${id} not found`);
-		}
-		return this.Prisma.worker.delete({
-			where: { id }
+	}
+
+	// supprimer un worker par son userId (pour que le worker puisse supprimer son profil)
+	async remove(userId: number) {
+		await this.findOneByUserId(userId); // vérifie que le worker existe
+
+		return this.prisma.worker.delete({
+			where: { userId }
 		});
 	}
 }

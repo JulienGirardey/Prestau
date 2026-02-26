@@ -1,56 +1,59 @@
-import { IsNumber, IsString, IsDate, IsBoolean, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsDate, IsBoolean, IsOptional, IsNotEmpty, IsUrl } from 'class-validator';
 
 export class CreateWorkerDto {
-    @IsString()
-    firstName!: string;
+	@IsString()
+	@IsNotEmpty({ message: 'Le prénom est obligatoire.' })
+	firstName!: string;
 
-    @IsString()
-    lastName!: string;
+	@IsString()
+	@IsNotEmpty({ message: 'Le nom est obligatoire.' })
+	lastName!: string;
 
-    @IsDate()
-    @IsOptional()
-    dateOfBirth?: Date;
+	@IsOptional()
+	@IsDate({ message: 'La date de naissance doit être une date valide.' })
+	dateOfBirth?: Date;
 
-    @IsString()
-    city!: string;
+	@IsString()
+	@IsNotEmpty({ message: 'La ville est obligatoire.' })
+	city!: string;
 
-    @IsNumber()
-    postalCode!: number;
+	@IsNumber()
+	@IsNotEmpty({ message: 'Le code postal est obligatoire.' })
+	postalCode!: number;
 
-    @IsOptional()
-    @IsString()
-    photoURL?: string;
+	@IsOptional()
+	@IsUrl({}, { message: 'Le champ photoURL doit être une URL valide.' })
+	photoURL?: string;
 
-    @IsString()
-    profession!: string;
+	@IsString()
+	@IsNotEmpty({ message: 'La profession est obligatoire.' })
+	profession!: string;
 
-    @IsOptional()
-    @IsNumber()
-    experience_years?: number;
+	@IsOptional()
+	@IsNumber()
+	experience_years?: number;
 
-    @IsString()
-    languages!: string;
+	@IsString()
+	@IsNotEmpty({ message: 'Le champ langues est obligatoire.' })
+	languages!: string;
 
-    @IsOptional()
-    @IsString()
-    qualifications?: string;
+	@IsOptional()
+	@IsString()
+	qualifications?: string;
 
-    @IsString()
-    @IsOptional()
-    cv_url?: string;
+	@IsOptional()
+	@IsUrl({}, { message: 'Le champ cv_url doit être une URL valide.' })
+	cv_url?: string;
 
-    @IsOptional()
-    @IsBoolean()
-    availability?: boolean;
+	@IsOptional()
+	@IsBoolean()
+	availability?: boolean;
 
-    @IsString()
-    phoneNumber!: string;
+	@IsString()
+	@IsNotEmpty({ message: 'Le numéro de téléphone est obligatoire.' })
+	phoneNumber!: string;
 
-    @IsString()
-    skills!: string;
-
-    @IsNumber()
-    userId!: number;
-
-		
+	@IsString()
+	@IsNotEmpty({ message: 'Le champ compétences est obligatoire.' })
+	skills!: string;
 }
