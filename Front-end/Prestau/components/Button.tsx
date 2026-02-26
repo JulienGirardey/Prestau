@@ -19,13 +19,10 @@ export function NewButton({ title = "Button", onPress, style }: Props) {
 
 const styles = StyleSheet.create({
     buttonContainer: {
-        width: '100%',
+        width: "100%",
         height: 43,
         backgroundColor: '#EE4832',
         borderRadius: 15,
         justifyContent: 'center',
-    },
-    buttonStyle: {
-        color: '#F5F2D9',
     }
 });
