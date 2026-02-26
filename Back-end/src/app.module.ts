@@ -3,7 +3,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { PrismaService } from './prisma.service';
-import { BasemodelModule } from './Modules/basemodel/basemodel.module';
+import { JobModule } from './Modules/job/job.module';
+import { WorkerModule } from './Modules/worker/worker.module';
+import { JobofferModule } from './Modules/joboffer/joboffer.module';
+import { CompanyModule } from './Modules/company/company.module';
+import { UserModule } from './Modules/user/user.module';
+import { ReviewModule } from './Modules/review/review.module';
+import { MessageModule } from './Modules/message/message.module'
+import { AuthModule } from './Modules/auth/auth.module';
 
 @Module({
 	imports: [
@@ -17,7 +24,14 @@ import { BasemodelModule } from './Modules/basemodel/basemodel.module';
 				DATABASE_URL: Joi.string().required(),
 			}),
 		}),
-		BasemodelModule,
+		JobModule,
+		WorkerModule,
+		JobofferModule,
+		CompanyModule,
+		UserModule,
+		ReviewModule,
+		MessageModule,
+		AuthModule,
 	],
 	controllers: [],
 	providers: [PrismaService],

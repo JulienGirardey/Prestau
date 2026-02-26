@@ -5,40 +5,44 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model Basemodel {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Company {
   id          Int      @id @default(autoincrement())
   companyName String   @db.VarChar(255)
-  address     String?  @db.VarChar(255)
-  siret       String?  @db.VarChar(14)
-  establishment_type String?  @db.VarChar(100)
+  address     String  @db.VarChar(255)
+  siret       String  @db.VarChar(14)
+  establishment_type String  @db.VarChar(100)
   description  String?  @db.Text
   website     String?  @db.VarChar(255)
   social_media String?  @db.VarChar(255)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+	userId      Int      @unique
+  user       	Users    @relation(fields: [userId], references: [id])
+	jobs        Job[]
 }
 
 model Users {
   id        Int      @id @default(autoincrement())
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
-  role      String   @db.VarChar(50)
-  is_active Boolean  @default(true)
+  role      Role
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  company   Company?
+	worker    Worker?
+}
+enum Role {
+	COMPANY
+	WORKER
 }
 
 model Worker {
@@ -46,72 +50,98 @@ model Worker {
   firstName    String   @db.VarChar(100)
   lastName     String   @db.VarChar(100)
   dateOfBirth  DateTime?
-  city         String?  @db.VarChar(100)
-  postalCode   String?  @db.VarChar(20)
+  city         String  @db.VarChar(100)
+  postalCode   Int
   photoURL     String?  @db.VarChar(255)
-  profession   String?  @db.VarChar(100)
+  profession   String  @db.VarChar(100)
   experience_years Int?
-  languages    String?  @db.Text
+  languages    String  @db.Text
   qualifications String?  @db.Text
-  cv_url      String?  @db.VarChar(255)
+  cv_url       String?  @db.VarChar(255)
   availability  Boolean  @default(true)
-  phoneNumber  String?  @db.VarChar(20)
-  skills       String?  @db.Text
-  latitude     Float?
-  longitude    Float?
+  phoneNumber  String  @db.VarChar(20)
+  skills       String  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+	userId       Int       @unique
+  user         Users     @relation(fields: [userId], references: [id])
+
+	jobOffers        JobOffer[]
 }
 
 model Job {
   id          Int      @id @default(autoincrement())
   title       String   @db.VarChar(100)
   description String   @db.Text
-  salary      Float?
-  latitude    Float?
-  longitude   Float?
-  start_time  DateTime?
-  end_time    DateTime?
+  salary      Float
+  address			String   @db.VarChar(255)
+  start_time  DateTime
+  end_time    DateTime
   companyId   Int
-  status     String   @db.VarChar(50)
+  status      JobStatus @default(OPEN)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+	company     Company  @relation(fields: [companyId], references: [id])
+  jobOffers   JobOffer[]
+	reviews     Review[]
   @@index([companyId], name: "idx_companyId")
+}
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 model JobOffer {
   id          Int      @id @default(autoincrement())
   request_at DateTime @default(now())
   response_at DateTime?
-  selected_at DateTime?
   contract_url String?  @db.VarChar(255)
   contract_signed Boolean? @default(false)
   signed_at   DateTime?
   selected_by_company Boolean? @default(false)
   jobId       Int
   workerId    Int
-  applicationDate DateTime @default(now())
-  status      String   @db.VarChar(50)
+  status      JobOfferStatus @default(PENDING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+	job         Job      @relation(fields: [jobId], references: [id])
+	worker      Worker   @relation(fields: [workerId], references: [id])
+	messages            Message[]
   @@index([jobId], name: "idx_jobId")
   @@index([workerId], name: "idx_workerId")
 }
+enum JobOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
 
 model Review {
   id          Int      @id @default(autoincrement())
   rating      Int
   comment     String?  @db.Text
   jobId       Int
-  reviewerId   Int
-  revieweeId  Int
-  is_visible Boolean  @default(true)
+  reviewerType   String   @db.VarChar(50)
+  reviewerId     Int
+  revieweeType   String   @db.VarChar(50)
+  revieweeId     Int
+  is_visible  Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([jobId], name: "idx_review_jobId")
+	job         Job      @relation(fields: [jobId], references: [id])
+
+	@@index([jobId], name: "idx_review_jobId")
+  @@index([reviewerId, reviewerType], name: "idx_reviewer")
+  @@index([revieweeId, revieweeType], name: "idx_reviewee")
 }
 
 model Message {
@@ -124,4 +154,6 @@ model Message {
   is_read     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id])
 }
