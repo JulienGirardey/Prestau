@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, useWindowDimensions } from "react-native";
+import { StyleSheet, View, Image, useWindowDimensions, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -6,7 +6,6 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
-import { TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/Colors";
 
 
