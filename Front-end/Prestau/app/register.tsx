@@ -8,6 +8,7 @@ import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
 import { TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/Colors";
+import { register } from "@/src/api/auth";
 
 
 export default function Register() {
@@ -15,9 +16,15 @@ export default function Register() {
 	const [inputEmail, setEmail] = useState("");
 	const [inputPassword, setInputPassword] = useState("");
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
-	const [role, setRole] = useState<'worker' | 'company' | null>(null);
-	const handleRegister = () => {
+	const [role, setRole] = useState<'WORKER' | 'COMPANY' | null>(null);
+	const handleRegister = async () => {
 		if (!role) return;
+		try {
+			const result = await register(inputEmail, inputPassword, role);
+			console.log('succès', result);
+		} catch (error) {
+			console.log('erreur', error);
+		}
 	};
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -29,15 +36,15 @@ export default function Register() {
 					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setInputPassword} />
 					<InputBar style={inputStyle.inputVerifyPassword} placeholder="Verify password" value={inputVerifyPassword} onChange={setInputVerifyPassword} />
 				</View>
-				<View style={{ flexDirection: "row", gap: 7, marginTop: 48 }}>
+				<View style={{ flexDirection: "row", gap: "3%", marginTop: 48 }}>
 					<TouchableOpacity
-						onPress={() => setRole('worker')}
-						style={[buttonRoleStyle.form, { backgroundColor: role === 'worker' ? Colors.light.secondary : 'transparent' }]}>
+						onPress={() => setRole('WORKER')}
+						style={[buttonRoleStyle.form, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}> 
 						<ThemedText style={buttonRoleStyle.Text}>Worker</ThemedText>
 					</TouchableOpacity>
 					<TouchableOpacity
-						onPress={() => setRole('company')}
-						style={[buttonRoleStyle.form, { backgroundColor: role === 'company' ? Colors.light.secondary : 'transparent' }]}>
+						onPress={() => setRole('COMPANY')}
+						style={[buttonRoleStyle.form, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}> 
 						<ThemedText style={buttonRoleStyle.Text}>Company</ThemedText>
 					</TouchableOpacity>
 				</View>
