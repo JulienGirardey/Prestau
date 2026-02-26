@@ -16,6 +16,7 @@ export default function Register() {
 	const [inputPassword, setInputPassword] = useState("");
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
 	const [role, setRole] = useState<'WORKER' | 'COMPANY' | null>(null);
+	const { width, height } = useWindowDimensions();
 	const handleRegister = async () => {
 		if (!role) return;
 		try {
@@ -24,14 +25,6 @@ export default function Register() {
 		} catch (error) {
 			console.log('erreur', error);
 		}
-	};
-	return (
-		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<DefaultCard>
-	const { width, height } = useWindowDimensions();
-	const [role, setRole] = useState<'worker' | 'company' | null>(null);
-	const handleRegister = () => {
-		if (!role) return;
 	};
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -46,12 +39,12 @@ export default function Register() {
 				<View style={{ flexDirection: "row", gap: "3%", marginTop: 48 }}>
 					<TouchableOpacity
 						onPress={() => setRole('WORKER')}
-						style={[buttonRoleStyle.form, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}> 
+						style={[buttonRoleStyle.form, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}>
 						<ThemedText style={buttonRoleStyle.Text}>Worker</ThemedText>
 					</TouchableOpacity>
 					<TouchableOpacity
 						onPress={() => setRole('COMPANY')}
-						style={[buttonRoleStyle.form, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}> 
+						style={[buttonRoleStyle.form, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}>
 						<ThemedText style={buttonRoleStyle.Text}>Company</ThemedText>
 					</TouchableOpacity>
 				</View>
@@ -106,17 +99,17 @@ const inputStyle = StyleSheet.create({
 });
 
 const buttonRoleStyle = StyleSheet.create({
-		form: {
+	form: {
 		flex: 1,
 		padding: 7,
 		borderRadius: 13,
 		borderWidth: 2,
 		borderColor: Colors.light.secondary,
 		alignItems: 'center'
-		},
+	},
 
-		Text: {
-			color: '#ffffff',
-			fontSize: 13.5,
-		},
+	Text: {
+		color: '#ffffff',
+		fontSize: 13.5,
+	},
 });
