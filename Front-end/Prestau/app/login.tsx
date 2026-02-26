@@ -6,11 +6,13 @@ import { ThemedText } from "@/components/ThemedText";
 import { InputBar } from "@/components/InputBar";
 import React from "react";
 import { NewButton } from "@/components/Button";
+import { login } from "@/src/api/auth";
 
 export default function Login() {
 	const colors = useThemeColors();
 	const [inputEmail, setEmail] = React.useState("");
 	const [inputPassword, setPassword] = React.useState("");
+	const { width, height } = useWindowDimensions();
 	const handleLogin = async () => {
 		try {
 			const result = await login(inputEmail, inputPassword);
@@ -19,10 +21,6 @@ export default function Login() {
 			console.log('erreur', error);
 		}
 	};
-	return (
-		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<DefaultCard>
-	const { width, height } = useWindowDimensions();
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>

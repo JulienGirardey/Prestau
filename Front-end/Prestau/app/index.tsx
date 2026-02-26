@@ -1,4 +1,4 @@
-import {StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,9 +8,9 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <Text>Aurélie ? ça va ? oui!</Text>
       <Link href="/register">Go to Register</Link>
-			<Link href="/login">Go to Login</Link>
+      <Link href="/login">Go to Login</Link>
       <Link href="/dashboard-company">Go to DashboardCompany</Link>
-	  <Link href="/dashboard-worker">Go to DashboardWorker</Link>
+      <Link href="/dashboard-worker">Go to DashboardWorker</Link>
     </SafeAreaView>
   );
 }
