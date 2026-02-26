@@ -1,6 +1,5 @@
-import { View, Image } from "react-native";
+import { View, Image, useWindowDimensions, StyleSheet } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { StyleSheet } from "react-native";
 import { DefaultCard } from "@/components/DefaultCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
@@ -8,13 +7,25 @@ import { InputBar } from "@/components/InputBar";
 import React from "react";
 import { NewButton } from "@/components/Button";
 
-export default function login() {
+export default function Login() {
 	const colors = useThemeColors();
 	const [inputEmail, setEmail] = React.useState("");
 	const [inputPassword, setPassword] = React.useState("");
+	const handleLogin = async () => {
+		try {
+			const result = await login(inputEmail, inputPassword);
+			console.log('succès', result);
+		} catch (error) {
+			console.log('erreur', error);
+		}
+	};
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 			<DefaultCard>
+	const { width, height } = useWindowDimensions();
+	return (
+		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
 				<View style={styles.form}>
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Login</ThemedText>
@@ -22,7 +33,7 @@ export default function login() {
 					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setPassword} />
 				</View>
 				<View style={styles.spacer} />
-				<NewButton title="Sign in" />
+				<NewButton title="Sign in" onPress={handleLogin} />
 			</DefaultCard>
 		</SafeAreaView>
 	);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, useWindowDimensions } from 'react-native';
 import { useThemeColors } from '@/hooks/useThemeColors';
 
 type Props = {
@@ -8,33 +8,26 @@ type Props = {
     style?: any
 }
 
-export function Header({ title = "Button", onPress, style }: Props) {
+export function Header({ title = "Header", onPress, style }: Props) {
     const colors = useThemeColors();
+    const { width, height } = useWindowDimensions();
     return (
-        <View style={[styles.headerContainer, style, { backgroundColor: colors.primary, borderColor: colors.secondary }]}>
-            <Image style={[baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
+        <View style={[styles.headerContainer, { height: Math.min(height * 0.25, 135) }, { backgroundColor: colors.primary, borderColor: colors.secondary }]}>
+            <Image style={[baseImageStyle, { borderColor: colors.secondary, width: Math.min(80, width * 0.25), height: Math.min(80, width * 0.25) }]} source={require('@/assets/images/logo-prestau.jpg')} />
+            <View style={{ flex: 0.2 }} />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     headerContainer: {
-        width: "200%",
-        height: 160,
-        borderRadius: 15,
-        borderWidth: 4,
-        position: "absolute",
-        top: -10,
-        marginLeft: "auto",
-        marginRight: "auto",
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        borderBottomWidth: 4,
     }
 });
 
 const baseImageStyle = {
-    width: 80,
-    height: 80,
-    borderRadius: 5,
-    borderWidth: 2,
     alignSelf: "center" as const, // Type assertion to satisfy the type requirement
-    marginTop: 55,
+    justifyContent: "center" as const, // Type assertion to satisfy the type requirement
 }

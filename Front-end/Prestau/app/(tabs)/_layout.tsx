@@ -20,15 +20,6 @@ export default function TabLayout() {
             }}
         >
             <Tabs.Screen
-                name="index"
-                options={{
-                    tabBarLabel: "Home",
-                    tabBarIcon: ({ color, size }) => (
-                        <FontAwesome name="home" color={color} size={size} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
                 name="dashboard-company"
                 options={{
                     tabBarLabel: "Dashboard",
