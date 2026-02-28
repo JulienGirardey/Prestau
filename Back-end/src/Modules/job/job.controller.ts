@@ -14,7 +14,7 @@ export class JobController {
 	constructor(private readonly jobService: JobService) { }
 
 	@Post()
-	@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company
+	//@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company
 	@Roles(Role.COMPANY) // Seules les entreprises peuvent créer des emplois
 	create(@Body() createJobDto: CreateJobDto, @Req() req: CurrentUserRequest) {
 		return this.jobService.create(createJobDto, req.user.id);

@@ -3,16 +3,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
+import { getJobs } from "@/src/api/job";
+import { useState, useEffect } from "react";
 
 export default function DashboardCompany() {
     const colors = useThemeColors();
     const { width, height } = useWindowDimensions();
+    const [jobs, setJobs] = useState([]);
+
+    useEffect(() => {
+        getJobs()
+            .then((response) => setJobs(response.data))
+            .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
+    }, []);
+
     return (
         <View style={{ flex: 1 }}>
             <Header />
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <DefaultCard style={{ width: Math.min(width * 0.8, 400), height: Math.min(height * 0.25, 135), justifyContent: "flex-start" }}>
-                    <Text style={styles.title}>Dashboard Company</Text>
+                    <Text style={[styles.title, styles.text]}>Missions postées</Text>
+                    <Text style={styles.body}>{jobs.map((job: any) => (
+                        <Text style={[styles.jobItem, styles.text]} key={job.id}>{job.title} - {job.description}{"\n"}</Text>
+                    ))}</Text>
                 </DefaultCard>
             </SafeAreaView>
         </View>
@@ -41,5 +54,12 @@ const styles = StyleSheet.create({
     },
     buttonCreateAccount: {
         marginTop: 30
+    },
+    jobItem: {
+        fontSize: 18,
+        marginBottom: 10
+    },
+    text: {
+        color: "#ffffff"
     }
 });
