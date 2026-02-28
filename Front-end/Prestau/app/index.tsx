@@ -11,6 +11,7 @@ export default function Index() {
       <Link href="/login">Go to Login</Link>
       <Link href="/dashboard-company">Go to DashboardCompany</Link>
       <Link href="/dashboard-worker">Go to DashboardWorker</Link>
+			<Link href="/workerCreation">Go to WorkerCreation</Link>
     </SafeAreaView>
   );
 }
