@@ -1,113 +1,33 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native"; 
+import { StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native"; 
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
+import { getMissions, Mission } from "@/src/api/mission";
+import * as SecureStore from 'expo-secure-store';
 
-interface MissionData {
-    id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    salary: number;
-    address: string;
-}
-
-export default function Mission() {
+export default function MissionScreen() {
     const colors = useThemeColors();
-    const [missions, setMissions] = useState<MissionData[]>([]);
+    const [missions, setMissions] = useState<Mission[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Simuler le chargement avec des données d'exemple
-        setTimeout(() => {
-            setMissions([
-                {
-                    id: 1,
-                    title: "Serveur Restaurant Gastronomique",
-                    start_time: "2024-03-15T19:00:00",
-                    end_time: "2024-03-15T23:30:00",
-                    salary: 15,
-                    address: "123 Avenue des Champs-Élysées, Paris"
-                },
-                {
-                    id: 2,
-                    title: "Barman Événement Privé",
-                    start_time: "2024-03-16T18:00:00",
-                    end_time: "2024-03-17T02:00:00",
-                    salary: 18,
-                    address: "45 Rue de Rivoli, Paris"
-                },
-                {
-                    id: 3,
-                    title: "Chef de Rang Mariage",
-                    start_time: "2024-03-20T12:00:00",
-                    end_time: "2024-03-20T22:00:00",
-                    salary: 20,
-                    address: "Château de Versailles, Versailles"
-                },
-                {
-                    id: 4,
-                    title: "Plongeur Restaurant Étoilé",
-                    start_time: "2024-03-18T17:00:00",
-                    end_time: "2024-03-18T23:00:00",
-                    salary: 12,
-                    address: "78 Boulevard Saint-Germain, Paris"
-                },
-                {
-                    id: 5,
-                    title: "Serveur Brunch Hôtel 5 étoiles",
-                    start_time: "2024-03-17T09:00:00",
-                    end_time: "2024-03-17T15:00:00",
-                    salary: 16,
-                    address: "15 Place Vendôme, Paris"
-                },
-                {
-                    id: 6,
-                    title: "Commis de Cuisine Banquet",
-                    start_time: "2024-03-22T10:00:00",
-                    end_time: "2024-03-22T18:00:00",
-                    salary: 14,
-                    address: "90 Rue du Faubourg Saint-Honoré, Paris"
-                },
-                {
-                    id: 7,
-                    title: "Barista Coffee Shop",
-                    start_time: "2024-03-19T07:00:00",
-                    end_time: "2024-03-19T14:00:00",
-                    salary: 13,
-                    address: "32 Rue Montmartre, Paris"
-                },
-                {
-                    id: 8,
-                    title: "Maître d'Hôtel Soirée Gala",
-                    start_time: "2024-03-25T19:00:00",
-                    end_time: "2024-03-26T01:00:00",
-                    salary: 25,
-                    address: "Hôtel Le Bristol, Paris"
-                },
-                {
-                    id: 9,
-                    title: "Aide Cuisine Fast-Food Premium",
-                    start_time: "2024-03-21T11:00:00",
-                    end_time: "2024-03-21T19:00:00",
-                    salary: 11,
-                    address: "56 Avenue Montaigne, Paris"
-                },
-                {
-                    id: 10,
-                    title: "Serveur Terrasse Brasserie",
-                    start_time: "2024-03-23T12:00:00",
-                    end_time: "2024-03-23T22:00:00",
-                    salary: 14,
-                    address: "101 Boulevard Haussmann, Paris"
-                }
-            ]);
-            setIsLoading(false);
-        }, 1000);
+        loadMissions();
     }, []);
+
+    const loadMissions = async () => {
+        setIsLoading(true);
+        try {
+            setMissions(await getMissions());
+            setError(null);
+        } catch (err: any) {
+            setError(err?.response?.data?.message || 'Erreur de connexion');
+        }
+        setIsLoading(false);
+    };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -127,35 +47,53 @@ export default function Mission() {
     };
 
     const renderMissionCard = ({ item }: { item: Mission }) => (
-        <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#fff" }]}>
+        <DefaultCard style={styles.card}>
             <View style={styles.cardHeader}>
-                <Ionicons name="briefcase" size={24} color={colors.primary || "#007AFF"} />
-                <Text style={[styles.missionTitle, { color: colors.text }]}>
+                <Ionicons name="briefcase" size={24} color={colors.primary} />
+                <Text style={[styles.missionTitle, { color: colors.primary }]}>
                     {item.title}
                 </Text>
             </View>
+            
+            {item.description && (
+                <Text style={[styles.description, { color: colors.inactive }]} numberOfLines={2}>
+                    {item.description}
+                </Text>
+            )}
+
             <View style={styles.infoRow}>
-                <Ionicons name="time-outline" size={18} color={colors.textSecondary || "#666"} />
-                <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]}>
+                <Ionicons name="time-outline" size={18} color={colors.inactive} />
+                <Text style={[styles.infoText, { color: colors.inactive }]}>
                     {formatTime(item.start_time)} - {formatTime(item.end_time)}
                 </Text>
             </View>
+
             <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={18} color={colors.textSecondary || "#666"} />
-                <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]}>
+                <Ionicons name="calendar-outline" size={18} color={colors.inactive} />
+                <Text style={[styles.infoText, { color: colors.inactive }]}>
                     {formatDate(item.start_time)}
                 </Text>
             </View>
+
             <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={18} color={colors.textSecondary || "#666"} />
-                <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]}>
+                <Ionicons name="location-outline" size={18} color={colors.inactive} />
+                <Text style={[styles.infoText, { color: colors.inactive }]} numberOfLines={1}>
                     {item.address}
                 </Text>
             </View>
+
             <View style={styles.infoRow}>
-                <Ionicons name="cash-outline" size={18} color="#4CAF50" />
-                <Text style={[styles.salaryText, { color: "#4CAF50" }]}>
+                <Ionicons name="cash-outline" size={18} color={colors.secondary} />
+                <Text style={[styles.salaryText, { color: colors.secondary }]}>
                     {item.salary}€/h
+                </Text>
+            </View>
+
+            <View style={[styles.statusBadge, { 
+                backgroundColor: item.status === 'OPEN' ? '#4CAF50' : '#FFA500' 
+            }]}>
+                <Text style={styles.statusText}>
+                    {item.status === 'OPEN' ? 'Ouvert' : item.status}
                 </Text>
             </View>
         </DefaultCard>
@@ -165,8 +103,11 @@ export default function Mission() {
         return (
             <View style={{ flex: 1 }}>
                 <Header />
-                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
-                    <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={{ marginTop: 50 }} />
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                    <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
+                    <Text style={{ color: colors.inactive, textAlign: 'center', marginTop: 20 }}>
+                        Chargement des missions...
+                    </Text>
                 </SafeAreaView>
             </View>
         );
@@ -175,15 +116,22 @@ export default function Mission() {
     return (
         <View style={{ flex: 1 }}> 
             <Header />
-            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
-                <Text style={{ color: colors.text, fontSize: 24, fontWeight: "bold", marginBottom: 20, alignSelf: "center" }}>
-                    Missions
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                <Text style={[styles.pageTitle, { color: colors.primary }]}>
+                    Missions disponibles
                 </Text>
+                
+                {error && (
+                    <View style={[styles.errorContainer, { backgroundColor: colors.secondary }]}>
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                )}
+
                 {missions.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Ionicons name="briefcase-outline" size={60} color={colors.textSecondary || "#666"} />
-                        <Text style={[styles.emptyText, { color: colors.textSecondary || "#666" }]}>
-                            Aucune mission disponible
+                        <Ionicons name="briefcase-outline" size={60} color={colors.inactive} />
+                        <Text style={[styles.emptyText, { color: colors.inactive }]}>
+                            Aucune mission disponible pour le moment
                         </Text>
                     </View>
                 ) : (
@@ -193,6 +141,8 @@ export default function Mission() {
                         keyExtractor={(item) => item.id.toString()}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 20 }}
+                        refreshing={isLoading}
+                        onRefresh={loadMissions}
                     />
                 )}
             </SafeAreaView>
@@ -205,9 +155,16 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
     },
+    pageTitle: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 20,
+        textAlign: "center",
+    },
     card: {
         marginBottom: 15,
         width: '100%',
+        position: 'relative',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -220,6 +177,11 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         flex: 1,
     },
+    description: {
+        fontSize: 14,
+        marginBottom: 12,
+        lineHeight: 20,
+    },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -228,10 +190,24 @@ const styles = StyleSheet.create({
     },
     infoText: {
         fontSize: 14,
+        flex: 1,
     },
     salaryText: {
         fontSize: 16,
         fontWeight: "600",
+    },
+    statusBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
     },
     emptyState: {
         flex: 1,
@@ -242,5 +218,16 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         marginTop: 12,
+        textAlign: 'center',
+    },
+    errorContainer: {
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    errorText: {
+        color: '#fff',
+        textAlign: 'center',
+        fontSize: 14,
     },
 });

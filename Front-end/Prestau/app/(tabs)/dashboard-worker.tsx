@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { useState, useEffect } from "react";
+import { getJobs } from "@/src/api/job";
 import * as SecureStore from 'expo-secure-store';
 
 interface Mission {
@@ -25,33 +26,16 @@ export default function DashboardWorker() {
         const fetchMissions = async () => {
             setIsLoading(true);
             try {
-                const token = await SecureStore.getItemAsync('token');
-                
-                if (!token) {
-                    console.error("Please log in!");
-                    setIsLoading(false);
-                    return;
-                }
-                const response = await fetch('http://192.168.1.34:3000/job', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Error loading missions');
-                }
-                const data = await response.json();
-                setMissions(data);
+                const response = await getJobs();
+                setMissions(response.data);
             } catch (error) {
-                console.error("Error data:", error);
+                console.error("Error fetching jobs:", error);
             } finally {
                 setIsLoading(false);
             }
         };
         fetchMissions();
-    }, []); // a transmettre une dépendance pour recharger les missions après une action (ex: création de mission)
+    }, []);
 
     return (
         <View style={{ flex: 1 }}> 

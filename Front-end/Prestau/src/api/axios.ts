@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Création d'une instance d'axios avec une configuration de base
 const api = axios.create({
-	baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://10.6.3.194:3000',
+	baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.14:3000',
 	timeout: 10000, // Temps d'attente maximum pour une réponse du serveur
 	headers: {
 		'Content-Type': 'application/json',
