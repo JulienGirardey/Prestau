@@ -17,7 +17,8 @@ export default function MissionScreen() {
     useEffect(() => {
         initAndLoad();
     }, []);
-	// Fonction pour initialiser le token et charger les missions POUR LES TESTS UNIQUEMENT, À SUPPRIMER EN PRODUCTION
+
+    // Initialise le token de test et charge les missions
     const initAndLoad = async () => {
         const token = await SecureStore.getItemAsync('token');
         if (!token) {
@@ -26,6 +27,7 @@ export default function MissionScreen() {
         await loadMissions();
     };
 
+    // Charge la liste des missions depuis l'API
     const loadMissions = async () => {
         setIsLoading(true);
         try {
@@ -38,6 +40,7 @@ export default function MissionScreen() {
         setIsLoading(false);
     };
 
+    // Formate la date au format français
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('fr-FR', { 
@@ -47,6 +50,7 @@ export default function MissionScreen() {
         });
     };
 
+    // Formate l'heure au format français
     const formatTime = (timeString: string) => {
         const date = new Date(timeString);
         return date.toLocaleTimeString('fr-FR', { 
@@ -55,6 +59,7 @@ export default function MissionScreen() {
         });
     };
 
+    // Rendu d'une carte de mission
     const renderMissionCard = ({ item }: { item: Mission }) => (
         <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#ffffff" }]}>
             <View style={styles.cardHeader}>
