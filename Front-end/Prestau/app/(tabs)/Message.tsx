@@ -135,8 +135,10 @@ export default function Message() {
                         data={messages}
                         renderItem={renderMessageCard}
                         keyExtractor={(item) => item.id.toString()}
+						inverted={true}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 20 }}
+                        contentContainerStyle={{ paddingTop: 100 }}
+						
                     />
                 )}
             </SafeAreaView>
