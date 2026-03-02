@@ -8,6 +8,7 @@ import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
 import { register } from "@/src/api/auth";
 import { Colors } from "@/constants/Colors";
+import { router } from "expo-router";
 
 
 export default function Register() {
@@ -19,8 +20,12 @@ export default function Register() {
 	const { width, height } = useWindowDimensions();
 	const handleRegister = async () => {
 		if (!role) return;
-		try {
-			const result = await register(inputEmail, inputPassword, role);
+		    try {
+        const result = await register(inputEmail, inputPassword, role);
+        // Redicrection selon le rôle choisi
+        if (role === 'WORKER') {
+            router.push('/workerCreation');
+        } 
 			console.log('succès', result);
 		} catch (error) {
 			console.log('erreur', error);
