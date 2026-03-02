@@ -129,8 +129,8 @@ export default function DashboardWorker() {
             // Si aujourd'hui est neutre, on crée le style avec la bordure seule
             marks[todayStr] = {
                 customStyles: {
-                    container: { borderWidth: 1.5, borderColor: '#ffffff', borderRadius: 10 },
-                    text: { color: colors.primary, fontWeight: 'bold' }
+                    container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#ffffff', borderRadius: 10 },
+                    text: { color: '#F5F2D9', fontWeight: 'bold' }
                 }
             };
         }
