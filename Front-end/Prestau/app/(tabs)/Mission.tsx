@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native"; 
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, RefreshControl } from "react-native"; 
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
@@ -6,7 +6,6 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { getMissions, Mission } from "@/src/api/mission";
-import * as SecureStore from 'expo-secure-store';
 
 export default function MissionScreen() {
     const colors = useThemeColors();
@@ -15,29 +14,24 @@ export default function MissionScreen() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        initAndLoad();
+        loadMissions();
     }, []);
 
-    // Initialise le token de test et charge les missions
-    const initAndLoad = async () => {
-        const token = await SecureStore.getItemAsync('token');
-        if (!token) {
-            await SecureStore.setItemAsync('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndvcmtlcjFAdGVzdC5jb20iLCJzdWIiOjE3LCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzcyNDYwMDUyLCJleHAiOjE3NzMwNjQ4NTJ9.-AtkF2uhbvuqrJIle5ZFiYLCtipdq4_4ck5z2w_skTY');
-        }
-        await loadMissions();
-    };
-
-    // Charge la liste des missions depuis l'API
+    // Charge les missions depuis l'API
     const loadMissions = async () => {
         setIsLoading(true);
+        setError(null);
+        
         try {
             const data = await getMissions();
             setMissions(data);
-            setError(null);
         } catch (err: any) {
-            setError(err?.response?.data?.message || 'Erreur de connexion');
+            const message = err?.response?.data?.message || 'Impossible de charger les missions';
+            setError(message);
+            console.error('Erreur chargement missions:', err);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     // Formate la date au format français
@@ -67,6 +61,7 @@ export default function MissionScreen() {
                     <Ionicons name="briefcase" size={40} color={colors.primary || "#007AFF"} />
                     {item.status === 'OPEN' && <View style={styles.openBadge} />}
                 </View>
+                
                 <View style={styles.missionContent}>
                     <View style={styles.headerRow}>
                         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
@@ -76,6 +71,7 @@ export default function MissionScreen() {
                             {item.salary}€/h
                         </Text>
                     </View>
+                    
                     {item.description && (
                         <Text 
                             style={[styles.description, { color: colors.textSecondary || "#666" }]}
@@ -84,12 +80,14 @@ export default function MissionScreen() {
                             {item.description}
                         </Text>
                     )}
+                    
                     <View style={styles.infoRow}>
                         <Ionicons name="location-outline" size={14} color={colors.textSecondary || "#666"} />
                         <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]} numberOfLines={1}>
                             {item.address}
                         </Text>
                     </View>
+                    
                     <View style={styles.infoRow}>
                         <Ionicons name="calendar-outline" size={14} color={colors.textSecondary || "#666"} />
                         <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]}>
@@ -101,12 +99,16 @@ export default function MissionScreen() {
         </DefaultCard>
     );
 
-    if (isLoading) {
+    // Affichage du chargement
+    if (isLoading && missions.length === 0) {
         return (
             <View style={{ flex: 1 }}>
                 <Header />
-                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
-                    <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={{ marginTop: 50 }} />
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                    <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={styles.loader} />
+                    <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                        Chargement des missions...
+                    </Text>
                 </SafeAreaView>
             </View>
         );
@@ -115,22 +117,23 @@ export default function MissionScreen() {
     return (
         <View style={{ flex: 1 }}> 
             <Header />
-            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
-                <Text style={{ color: colors.text, fontSize: 24, fontWeight: "bold", marginBottom: 20, alignSelf: "center" }}>
-                    Missions
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                <Text style={[styles.pageTitle, { color: colors.text }]}>
+                    Missions disponibles
                 </Text>
                 
                 {error && (
-                    <View style={[styles.errorContainer, { backgroundColor: '#FF3B30' }]}>
+                    <View style={styles.errorContainer}>
+                        <Ionicons name="alert-circle" size={20} color="#fff" />
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 )}
 
-                {missions.length === 0 ? (
+                {missions.length === 0 && !isLoading ? (
                     <View style={styles.emptyState}>
                         <Ionicons name="briefcase-outline" size={60} color={colors.textSecondary || "#666"} />
                         <Text style={[styles.emptyText, { color: colors.textSecondary || "#666" }]}>
-                            Aucune mission disponible
+                            Aucune mission disponible pour le moment
                         </Text>
                     </View>
                 ) : (
@@ -139,9 +142,14 @@ export default function MissionScreen() {
                         renderItem={renderMissionCard}
                         keyExtractor={(item) => item.id.toString()}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                        refreshing={isLoading}
-                        onRefresh={loadMissions}
+                        contentContainerStyle={styles.listContent}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isLoading}
+                                onRefresh={loadMissions}
+                                tintColor={colors.primary}
+                            />
+                        }
                     />
                 )}
             </SafeAreaView>
@@ -153,6 +161,23 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    pageTitle: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 20,
+        textAlign: "center",
+    },
+    loader: {
+        marginTop: 50,
+    },
+    loadingText: {
+        textAlign: 'center',
+        marginTop: 12,
+        fontSize: 14,
+    },
+    listContent: {
+        paddingBottom: 20,
     },
     card: {
         marginBottom: 15,
@@ -220,15 +245,21 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         marginTop: 12,
+        textAlign: 'center',
     },
     errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
         padding: 12,
         borderRadius: 8,
         marginBottom: 16,
+        backgroundColor: '#FF3B30',
     },
     errorText: {
         color: '#fff',
-        textAlign: 'center',
         fontSize: 14,
+        flex: 1,
     },
 });
