@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native"; 
+import { StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native"; 
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
@@ -127,7 +127,7 @@ export default function Mission() {
     };
 
     const renderMissionCard = ({ item }: { item: Mission }) => (
-        <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#fff" }]}>
+        <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#ffffff" }]}>
             <View style={styles.cardHeader}>
                 <Ionicons name="briefcase" size={24} color={colors.primary || "#007AFF"} />
                 <Text style={[styles.missionTitle, { color: colors.text }]}>
