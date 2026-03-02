@@ -6,7 +6,7 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
 
-interface Mission {
+interface MissionData {
     id: number;
     title: string;
     start_time: string;
@@ -17,7 +17,7 @@ interface Mission {
 
 export default function Mission() {
     const colors = useThemeColors();
-    const [missions, setMissions] = useState<Mission[]>([]);
+    const [missions, setMissions] = useState<MissionData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
