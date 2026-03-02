@@ -15,13 +15,22 @@ export default function MissionScreen() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        loadMissions();
+        initAndLoad();
     }, []);
+	// Fonction pour initialiser le token et charger les missions POUR LES TESTS UNIQUEMENT, À SUPPRIMER EN PRODUCTION
+    const initAndLoad = async () => {
+        const token = await SecureStore.getItemAsync('token');
+        if (!token) {
+            await SecureStore.setItemAsync('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndvcmtlcjFAdGVzdC5jb20iLCJzdWIiOjE3LCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzcyNDYwMDUyLCJleHAiOjE3NzMwNjQ4NTJ9.-AtkF2uhbvuqrJIle5ZFiYLCtipdq4_4ck5z2w_skTY');
+        }
+        await loadMissions();
+    };
 
     const loadMissions = async () => {
         setIsLoading(true);
         try {
-            setMissions(await getMissions());
+            const data = await getMissions();
+            setMissions(data);
             setError(null);
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Erreur de connexion');
@@ -33,8 +42,8 @@ export default function MissionScreen() {
         const date = new Date(dateString);
         return date.toLocaleDateString('fr-FR', { 
             day: '2-digit', 
-            month: 'long', 
-            year: 'numeric' 
+            month: 'short',
+            year: 'numeric'
         });
     };
 
@@ -47,54 +56,42 @@ export default function MissionScreen() {
     };
 
     const renderMissionCard = ({ item }: { item: Mission }) => (
-        <DefaultCard style={styles.card}>
+        <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#ffffff" }]}>
             <View style={styles.cardHeader}>
-                <Ionicons name="briefcase" size={24} color={colors.primary} />
-                <Text style={[styles.missionTitle, { color: colors.primary }]}>
-                    {item.title}
-                </Text>
-            </View>
-            
-            {item.description && (
-                <Text style={[styles.description, { color: colors.inactive }]} numberOfLines={2}>
-                    {item.description}
-                </Text>
-            )}
-
-            <View style={styles.infoRow}>
-                <Ionicons name="time-outline" size={18} color={colors.inactive} />
-                <Text style={[styles.infoText, { color: colors.inactive }]}>
-                    {formatTime(item.start_time)} - {formatTime(item.end_time)}
-                </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={18} color={colors.inactive} />
-                <Text style={[styles.infoText, { color: colors.inactive }]}>
-                    {formatDate(item.start_time)}
-                </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={18} color={colors.inactive} />
-                <Text style={[styles.infoText, { color: colors.inactive }]} numberOfLines={1}>
-                    {item.address}
-                </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-                <Ionicons name="cash-outline" size={18} color={colors.secondary} />
-                <Text style={[styles.salaryText, { color: colors.secondary }]}>
-                    {item.salary}€/h
-                </Text>
-            </View>
-
-            <View style={[styles.statusBadge, { 
-                backgroundColor: item.status === 'OPEN' ? '#4CAF50' : '#FFA500' 
-            }]}>
-                <Text style={styles.statusText}>
-                    {item.status === 'OPEN' ? 'Ouvert' : item.status}
-                </Text>
+                <View style={styles.iconContainer}>
+                    <Ionicons name="briefcase" size={40} color={colors.primary || "#007AFF"} />
+                    {item.status === 'OPEN' && <View style={styles.openBadge} />}
+                </View>
+                <View style={styles.missionContent}>
+                    <View style={styles.headerRow}>
+                        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+                            {item.title}
+                        </Text>
+                        <Text style={[styles.salary, { color: colors.primary || "#007AFF" }]}>
+                            {item.salary}€/h
+                        </Text>
+                    </View>
+                    {item.description && (
+                        <Text 
+                            style={[styles.description, { color: colors.textSecondary || "#666" }]}
+                            numberOfLines={1}
+                        >
+                            {item.description}
+                        </Text>
+                    )}
+                    <View style={styles.infoRow}>
+                        <Ionicons name="location-outline" size={14} color={colors.textSecondary || "#666"} />
+                        <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]} numberOfLines={1}>
+                            {item.address}
+                        </Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <Ionicons name="calendar-outline" size={14} color={colors.textSecondary || "#666"} />
+                        <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]}>
+                            {formatDate(item.start_time)} • {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                        </Text>
+                    </View>
+                </View>
             </View>
         </DefaultCard>
     );
@@ -103,11 +100,8 @@ export default function MissionScreen() {
         return (
             <View style={{ flex: 1 }}>
                 <Header />
-                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-                    <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
-                    <Text style={{ color: colors.inactive, textAlign: 'center', marginTop: 20 }}>
-                        Chargement des missions...
-                    </Text>
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
+                    <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={{ marginTop: 50 }} />
                 </SafeAreaView>
             </View>
         );
@@ -116,22 +110,22 @@ export default function MissionScreen() {
     return (
         <View style={{ flex: 1 }}> 
             <Header />
-            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={[styles.pageTitle, { color: colors.primary }]}>
-                    Missions disponibles
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
+                <Text style={{ color: colors.text, fontSize: 24, fontWeight: "bold", marginBottom: 20, alignSelf: "center" }}>
+                    Missions
                 </Text>
                 
                 {error && (
-                    <View style={[styles.errorContainer, { backgroundColor: colors.secondary }]}>
+                    <View style={[styles.errorContainer, { backgroundColor: '#FF3B30' }]}>
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 )}
 
                 {missions.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Ionicons name="briefcase-outline" size={60} color={colors.inactive} />
-                        <Text style={[styles.emptyText, { color: colors.inactive }]}>
-                            Aucune mission disponible pour le moment
+                        <Ionicons name="briefcase-outline" size={60} color={colors.textSecondary || "#666"} />
+                        <Text style={[styles.emptyText, { color: colors.textSecondary || "#666" }]}>
+                            Aucune mission disponible
                         </Text>
                     </View>
                 ) : (
@@ -155,59 +149,62 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
     },
-    pageTitle: {
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 20,
-        textAlign: "center",
-    },
     card: {
         marginBottom: 15,
         width: '100%',
-        position: 'relative',
     },
     cardHeader: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-        gap: 10,
+        alignItems: 'flex-start',
+        gap: 12,
     },
-    missionTitle: {
-        fontSize: 18,
-        fontWeight: "700",
+    iconContainer: {
+        position: 'relative',
+        paddingTop: 5,
+    },
+    openBadge: {
+        position: 'absolute',
+        top: 5,
+        right: -2,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#4CAF50',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    missionContent: {
         flex: 1,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    title: {
+        fontSize: 16,
+        fontWeight: "600",
+        flex: 1,
+        marginRight: 8,
+    },
+    salary: {
+        fontSize: 16,
+        fontWeight: "700",
     },
     description: {
         fontSize: 14,
-        marginBottom: 12,
-        lineHeight: 20,
+        marginBottom: 8,
     },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
-        gap: 8,
+        marginTop: 4,
+        gap: 6,
     },
     infoText: {
-        fontSize: 14,
+        fontSize: 13,
         flex: 1,
-    },
-    salaryText: {
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    statusBadge: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-    },
-    statusText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '600',
     },
     emptyState: {
         flex: 1,
@@ -218,7 +215,6 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         marginTop: 12,
-        textAlign: 'center',
     },
     errorContainer: {
         padding: 12,
