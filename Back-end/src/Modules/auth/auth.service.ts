@@ -68,11 +68,6 @@ export class AuthService {
 			throw new UnauthorizedException('Invalid credentials');
 		}
 
-		// Vérifie que le rôle demandé correspond au rôle du user
-		if (loginDto.role !== user.role) {
-			throw new UnauthorizedException('Invalid role for this user');
-		}
-
 		// si le user est une COMPANY, vérifie qu'elle a bien créé son profil company avant de pouvoir se connecter
 		if (user.role === 'COMPANY') {
 			const company = await this.prisma.company.findUnique({
