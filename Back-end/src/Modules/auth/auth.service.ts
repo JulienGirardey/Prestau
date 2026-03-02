@@ -118,4 +118,63 @@ export class AuthService {
 			}
 		});
 	}
+
+	// DECONNEXION
+	async logout(userId: number) {
+		// vérifie que le user existe toujours dans la DB avec l'id du token (userId)
+		const user = await this.prisma.users.findUnique({
+			where: { id: userId },
+		});
+
+		if (!user) {
+			throw new UnauthorizedException('User not found');
+		}
+		// supprime le refresh token de la DB pour ce user
+		// le user ne pourra plus rafraîchir son token et devra se reconnecter pour obtenir un nouveau token d'accès
+		await this.prisma.users.update({
+			where: { id: userId },
+			data: { refreshToken: null },
+		});
+
+		return { message: 'Logout successful' };
+	}
+
+	// REFRESH TOKEN
+	async refreshToken(refreshToken: string) {
+		try {
+			// Vérifie que le refresh token est valide et correspond à celui stocké dans la DB
+			const payload = this.jwtService.verify(refreshToken);
+			// Récupère le user depuis la DB avec l'id du token (payload.sub)
+			const user = await this.prisma.users.findUnique({
+				where: { id: payload.sub },
+			});
+
+			if (!user || user.refreshToken !== refreshToken) {
+				throw new UnauthorizedException('Invalid refresh token');
+			}
+
+			// genère un nouveau token d'accès et un nouveau refresh token
+			const newAccessToken = this.jwtService.sign({
+				email: user.email,
+				sub: user.id,
+				role: user.role,
+			});
+			const newRefreshToken = this.jwtService.sign({
+				sub: user.id,
+			}, { expiresIn: '7d' });
+
+			// met à jour le refresh token dans la DB
+			await this.prisma.users.update({
+				where: { id: user.id },
+				data: { refreshToken: newRefreshToken },
+			});
+
+			return {
+				accessToken: newAccessToken,
+				refreshToken: newRefreshToken,
+			};
+		} catch (error) {
+			throw new UnauthorizedException('Invalid refresh token');
+		}
+	}
 };

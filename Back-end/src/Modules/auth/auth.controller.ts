@@ -25,4 +25,9 @@ export class AuthController {
 	logout(@Req() req: CurrentUserRequest) {
 		return this.authService.logout(req.user.id);
 	}
+
+	@Post('refresh-token') // un utilisateur doit pouvoir rafraîchir son token
+	refreshToken(@Body('refreshToken') refreshToken: string) {
+		return this.authService.refreshToken(refreshToken);
+	}
 }
