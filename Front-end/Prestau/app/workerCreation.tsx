@@ -10,6 +10,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { View, ScrollView, StyleSheet, TouchableOpacity, Image, useWindowDimensions, } from "react-native";
 import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 
 // Hook responsive : 
 // Toutes les valeurs de l'UI sont calculées à partir de la largeur réelle
@@ -133,9 +134,10 @@ function WorkerCreationInner() {
 		);
 	};
 
-	// Fonction appelée lors de la création du profil (à compléter avec appel API)
+	// Fonction appelée lors de la création du profil
 	const handleCreate = () => {
 		console.log({ ...form, photoURL: photo, availability: true });
+		router.push("/(tabs)/ProfileWorker");
 	};
 
 	// Définition des champs du formulaire (label, clé, placeholder, requis)
