@@ -5,6 +5,7 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { getJobs } from "@/src/api/job";
 import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
+import { NewButton } from "@/components/Button";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -92,6 +93,9 @@ export default function DashboardCompany() {
                     ))}
                 </ScrollView>
             </DefaultCard>
+            <View style={styles.buttonContainer}>
+                <NewButton title="Avis" onPress={() => console.log("Voir les avis")} />
+            </View>
         </View>
     );
 }
@@ -184,5 +188,10 @@ const styles = StyleSheet.create({
     addressText: {
         color: "#888",
         fontStyle: "italic",
+    },
+    buttonContainer: {
+        paddingHorizontal: 25,
+        paddingBottom: 20,
+        alignItems: "center",
     },
 });
