@@ -6,7 +6,6 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getJobs } from "@/src/api/job";
-import { Ionicons } from '@expo/vector-icons';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
 
@@ -136,7 +135,7 @@ export default function DashboardWorker() {
         }
 
         return marks;
-    }, [freeDays, busyDays, colors.primary]);
+    }, [freeDays, busyDays]);
 
     // --- LOGIQUE DES MISSIONS ---
     // Calcul des 5 dernières missions publiées (triées par ID décroissant)
