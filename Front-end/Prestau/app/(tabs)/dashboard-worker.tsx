@@ -25,8 +25,7 @@ export default function DashboardWorker() {
         const fetchMissions = async () => {
             setIsLoading(true);
             try {
-                const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndvcmtlckBwcmVzdGF1LmNvbSIsInN1YiI6MTQsInJvbGUiOiJXT1JLRVIiLCJpYXQiOjE3NzIxOTE3MzcsImV4cCI6MTc3Mjc5NjUzN30.-K2-kYrT1cv0hmINokH0SOGw8GjK73042ZH6B4MLZGA"; // Жестко заданный (хардкод) токен аутентификации (JWT - JSON Web Token) для тестирования
-                // const token = await SecureStore.getItemAsync('token');
+                const token = await SecureStore.getItemAsync('token');
                 
                 if (!token) {
                     console.error("Please log in!");
@@ -99,6 +98,7 @@ export default function DashboardWorker() {
 
                     <DefaultCard style={{ width: '95%' }}> 
                         <Text style={styles.titleCard}>Mes disponibilités</Text> 
+						
                     </DefaultCard>
                     
                     <DefaultCard style={{ width: '95%' }}> 
