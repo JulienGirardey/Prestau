@@ -20,17 +20,22 @@ export default function Register() {
 	const { width, height } = useWindowDimensions();
 	const handleRegister = async () => {
 		if (!role) return;
-		    try {
-        const result = await register(inputEmail, inputPassword, role);
-        // Redicrection selon le rôle choisi
-        if (role === 'WORKER') {
-            router.push('/workerCreation');
-        } 
-			console.log('succès', result);
+		try {
+			const result = await register(inputEmail, inputPassword, role);
+			// Redirection selon le rôle choisi
+			if (role === 'WORKER') {
+				router.push('/workerCreation');
+				console.log('succès', result);
+			} else if (role === 'COMPANY') {
+				router.push('/companyCreation');
+				console.log('succès', result);
+			}
 		} catch (error) {
-			console.log('erreur', error);
+			alert('Erreur lors de l\'inscription');
+			console.error(error);
 		}
 	};
+
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
