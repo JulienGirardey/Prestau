@@ -11,7 +11,14 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
         }}
-      />
+      >
+        <Stack.Screen name="login" />
+        <Stack.Screen name="(tabs-company)/dashboard-company" />
+        <Stack.Screen name="(tabs-company)/create-mission" />
+        <Stack.Screen name="(tabs-company)/profile-company" />
+        <Stack.Screen name="(tabs-worker)/dashboard-worker" />
+        <Stack.Screen name="(tabs-worker)/profile-worker" />
+      </Stack>
     </View>
   );
 }
