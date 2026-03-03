@@ -1,39 +1,43 @@
 import api from './axios';
 import * as SecureStore from 'expo-secure-store';
 
-export interface AuthResponse {
-    access_token: string;
-    user: {
-        id: number;
-        email: string;
-        role: string;
-    };
-}
-
-export const register = async (email: string, password: string, role: 'WORKER' | 'COMPANY'): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', { email, password, role });
-    await SecureStore.setItemAsync('token', response.data.access_token);
-    await SecureStore.setItemAsync('user', JSON.stringify(response.data.user));
-    return response.data;
+export const register = async (email: string, password: string, role: 'WORKER' | 'COMPANY') => {
+  const response = await api.post('/auth/register', { email, password, role });
+  console.log('Réponse register:', response.data);
+  await SecureStore.setItemAsync('access_token', response.data.access_token);
+  if (response.data.refresh_token) {
+    await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
+  }
+  return response.data;
 };
 
-export const login = async (email: string, password: string, role: 'WORKER' | 'COMPANY'): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', { email, password, role });
-    await SecureStore.setItemAsync('token', response.data.access_token);
-    await SecureStore.setItemAsync('user', JSON.stringify(response.data.user));
-    return response.data;
+
+export const login = async (email: string, password: string) => {
+  const response = await api.post('/auth/login', { email, password });
+  await SecureStore.setItemAsync('access_token', response.data.access_token);
+  if (response.data.refresh_token) {
+    await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
+  }
+  return response.data;
 };
 
 export const logout = async () => {
-    await SecureStore.deleteItemAsync('token');
-    await SecureStore.deleteItemAsync('user');
+  try {
+    await api.post('/auth/logout'); // invalide le refresh token en base
+  } catch (error) {
+    // on logout quand même si le back est inaccessible
+  } finally {
+    await SecureStore.deleteItemAsync('access_token');
+    await SecureStore.deleteItemAsync('refresh_token');
+  }
 };
 
-export const getCurrentUser = async () => {
-    const userStr = await SecureStore.getItemAsync('user');
-    return userStr ? JSON.parse(userStr) : null;
-};
-
-export const getToken = async () => {
-    return await SecureStore.getItemAsync('token');
+export const refreshToken = async () => {
+  const token = await SecureStore.getItemAsync('refresh_token');
+  const response = await api.post('/auth/refresh-token', { refreshToken: token });
+  await SecureStore.setItemAsync('access_token', response.data.access_token);
+  if (response.data.refresh_token) {
+    await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
+  }
+  return response.data;
 };

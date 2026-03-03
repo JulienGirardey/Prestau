@@ -5,6 +5,8 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from "react";
+import { logout } from "@/src/api/auth";
+import { router } from "expo-router";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -50,9 +52,10 @@ export default function ProfileWorker() {
         }, 500);
     }, []);
 
-    const handleLogout = () => {
-        console.log("Déconnexion");
-        // Logique de déconnexion
+    const handleLogout = async () => {
+        await logout();
+        // Redirige vers la page de login après déconnexion
+        router.replace("/login");
     };
 
     const handleSettings = () => {
@@ -124,7 +127,7 @@ export default function ProfileWorker() {
 
             <View style={[styles.actionsContainer, { marginHorizontal: scale(25) }]}>
                 <ThemedText
-                    variant="body"
+                    variant="body3"
                     color="primary"
                     style={[styles.sectionTitle, { fontSize: scaleFont(20), marginBottom: scale(15) }]}>
                     Missions passées : ...

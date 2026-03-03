@@ -22,7 +22,7 @@ export class CreateWorkerDto {
 	postalCode!: number;
 
 	@IsOptional()
-	@IsUrl({}, { message: 'Le champ photoURL doit être une URL valide.' })
+	@IsString()
 	photoURL?: string;
 
 	@IsString()
