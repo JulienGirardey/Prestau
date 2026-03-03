@@ -16,6 +16,7 @@ export default function Index() {
         <Link href="/Message" style={styles.link}><Text style={styles.linkText}>Message</Text></Link>
         <Link href="/ProfileWorker" style={styles.link}><Text style={styles.linkText}>Profile Worker</Text></Link>
         <Link href="/create-mission" style={styles.link}><Text style={styles.linkText}>Create Mission</Text></Link>
+				<Link href="/companyCreation" style={styles.link}><Text style={styles.linkText}>Company Creation</Text></Link>
       </View>
     </SafeAreaView>
   );
