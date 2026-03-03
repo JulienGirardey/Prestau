@@ -11,6 +11,7 @@ import { View, ScrollView, StyleSheet, TouchableOpacity, Image, useWindowDimensi
 import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import { createWorkerProfile } from "@/src/api/worker";
 
 // Hook responsive : 
 // Toutes les valeurs de l'UI sont calculées à partir de la largeur réelle
@@ -29,6 +30,14 @@ function useResponsive() {
 	};
 }
 
+// Styles pour les champs du formulaire (fonction de la taille de l'écran)
+const fieldStyles = (scale: (n: number) => number) => StyleSheet.create({
+	wrapper: {},
+	labelRow: {
+		flexDirection: "row" as const,
+		marginBottom: scale(-3),
+	},
+});
 // FormField : composant pour un champ de formulaire avec label et indication de champ obligatoire
 function FormField({
 	label,
@@ -135,9 +144,32 @@ function WorkerCreationInner() {
 	};
 
 	// Fonction appelée lors de la création du profil
-	const handleCreate = () => {
-		console.log({ ...form, photoURL: photo, availability: true });
-		router.push("/(tabs)/ProfileWorker");
+	const handleCreate = async () => {
+		if (!form.firstName || !form.lastName || !form.phoneNumber || !form.city || !form.postalCode || !form.profession || !form.languages || !form.skills) {
+			alert('Merci de remplir tous les champs obligatoires');
+			return;
+		}
+		try {
+			await createWorkerProfile({
+				firstName: form.firstName,
+				lastName: form.lastName,
+				dateOfBirth: new Date(form.dateOfBirth),
+				phoneNumber: form.phoneNumber,
+				city: form.city,
+				postalCode: Number(form.postalCode),
+				profession: form.profession,
+				languages: form.languages,
+				skills: form.skills,
+				experience_years: Number(form.experience_years),
+				qualifications: form.qualifications || undefined,
+				cv_url: form.cv_url || undefined,
+				photoURL: photo || undefined,
+			});
+			router.push("/(tabs)/ProfileWorker");
+		} catch (error) {
+			alert('Erreur lors de la création du profil');
+			console.error(error);
+		}
 	};
 
 	// Définition des champs du formulaire (label, clé, placeholder, requis)
@@ -274,12 +306,4 @@ const getButtonStyle = (scale: (n: number) => number) => ({
 	alignSelf: "center" as const,
 	width: scale(300),
 	marginBottom: scale(40),
-});
-
-const fieldStyles = (scale: (n: number) => number) => StyleSheet.create({
-	wrapper: {},
-	labelRow: {
-		flexDirection: "row" as const,
-		marginBottom: scale(-3),
-	},
 });
