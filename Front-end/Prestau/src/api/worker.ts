@@ -1,42 +1,27 @@
 import api from './axios';
 
+interface CreateWorkerData {
+	firstName: string;
+	lastName: string;
+	dateOfBirth: Date;
+	phoneNumber: string;
+	city: string;
+	postalCode: number;
+	profession: string;
+	languages: string;
+	skills: string;
+	experience_years?: number;
+	qualifications?: string;
+	cv_url?: string;
+	photoURL?: string;
+}
+
 // ------------------------------------------------------------------
 // CRÉATION DU PROFIL
 // ------------------------------------------------------------------
-export const createWorkerProfile = async (
-	firstName: string,
-	lastName: string,
-	dateOfBirth: Date,
-	phoneNumber: string,
-	city: string,
-	postalCode: number,
-	profession: string,
-	languages: string,
-	skills: string,
-	experience_years?: number,
-	qualifications?: string,
-	cv_url?: string,
-	photoURL?: string,
-) => {
-	const profileData = {
-		firstName,
-		lastName,
-		dateOfBirth,
-		phoneNumber,
-		city,
-		postalCode,
-		profession,
-		languages,
-		skills,
-		experience_years,
-		qualifications,
-		cv_url,
-		photoURL,
-	};
-
+export const createWorkerProfile = async (data: CreateWorkerData) => {
 	// Stocke le profil dans le stockage sécurisé côté serveur
-	const response = await api.post('/worker', profileData); 
-	return response.data;
+	return api.post('/worker', data);
 };
 
 // ------------------------------------------------------------------
