@@ -22,6 +22,7 @@ export class UserService {
         role: true,
         createdAt: true,
         updatedAt: true,
+        refreshToken: true,
       },
     });
 
@@ -59,13 +60,14 @@ export class UserService {
         ...updateUserDto,
         role: updateUserDto.role as Role,
       },
-	  select: {
-		id: true,
-		email: true,
-		role: true,
-		createdAt: true,
-		updatedAt: true,
-	  },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        refreshToken: true,
+      },
     });
   }
 
@@ -86,6 +88,7 @@ export class UserService {
         role: true,
         createdAt: true,
         updatedAt: true,
+        refreshToken: true,
       },
     });
   }

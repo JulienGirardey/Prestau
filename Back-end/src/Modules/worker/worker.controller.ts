@@ -9,38 +9,54 @@ import { Role } from '../auth/enums/role.enum';
 import { CurrentUserRequest } from '../auth/interfaces/jwt-payload.interface';
 
 @Controller('worker')
-@UseGuards(JwtAuthGuard, RolesGuard) // Applique le guard d'authentification JWT à tous les endpoints de ce contrôleur
-// guard de rôle pour vérifier que l'utilisateur a le rôle de worker
+@UseGuards(JwtAuthGuard, RolesGuard) // Applique le guard d'authentification JWT à tous les endpoints
 export class WorkerController {
-	constructor(private readonly workerService: WorkerService) { }
+    constructor(private readonly workerService: WorkerService) { }
 
-	@Post() // Créer son profil worker
-	@Roles(Role.WORKER) // seulement un worker peut créer son profil worker
-	create(@Body() createWorkerDto: CreateWorkerDto, @Req() req: CurrentUserRequest) {
-		return this.workerService.create(createWorkerDto, req.user.id);
-	}
+    @Post() // Créer son profil worker
+    @Roles(Role.WORKER) 
+    create(@Body() createWorkerDto: CreateWorkerDto, @Req() req: CurrentUserRequest) {
+        return this.workerService.create(createWorkerDto, req.user.id);
+    }
 
-	@Get('MyProfile') // un worker peut voir son profil
-	@Roles(Role.WORKER)
-	findMyProfile(@Req() req: CurrentUserRequest) {
-		return this.workerService.findOneByUserId(req.user.id);
-	}
+    @Get('MyProfile') // Un worker peut voir son propre profil
+    @Roles(Role.WORKER)
+    findMyProfile(@Req() req: CurrentUserRequest) {
+        return this.workerService.findOneByUserId(req.user.id);
+    }
 
-	@Get(':id') // une company peut voir un worker par ID
-	@Roles(Role.COMPANY) // seulement une company peut voir un worker par ID
-	findOne(@Param('id', ParseIntPipe) id: number) {
-		return this.workerService.findOne(id);
-	}
+    @Get('availability') 
+    @Roles(Role.WORKER) // Seul le worker peut récupérer ses propres disponibilités
+    getAvailability(@Req() req: CurrentUserRequest) {
+        // Appel de la méthode du service en passant l'ID de l'utilisateur extrait du token JWT
+        return this.workerService.getAvailability(req.user.id);
+    }
 
-	@Patch('MyProfile') // un worker peut mettre à jour son profil worker
-	@Roles(Role.WORKER)
-	update(@Body() updateWorkerDto: UpdateWorkerDto, @Req() req: CurrentUserRequest) {
-		return this.workerService.update(req.user.id, updateWorkerDto);
-	}
+    @Patch('availability')
+    @Roles(Role.WORKER) // Seul le worker peut modifier son propre calendrier
+    updateAvailability(
+        @Body() body: { date: string; status: string }, 
+        @Req() req: CurrentUserRequest
+    ) {
+        // Transmission de l'ID utilisateur, de la date ciblée et du nouveau statut ('free', 'busy', 'neutral')
+        return this.workerService.updateAvailability(req.user.id, body.date, body.status);
+    }
 
-	@Delete('MyProfile') // un worker peut supprimer son profil worker
-	@Roles(Role.WORKER)
-	remove(@Req() req: CurrentUserRequest) {
-		return this.workerService.remove(req.user.id);
-	}
+    @Get(':id') // Une company peut voir un worker spécifique par son ID
+    @Roles(Role.COMPANY) 
+    findOne(@Param('id', ParseIntPipe) id: number) {
+        return this.workerService.findOne(id);
+    }
+
+    @Patch('MyProfile') // Un worker peut mettre à jour son propre profil
+    @Roles(Role.WORKER)
+    update(@Body() updateWorkerDto: UpdateWorkerDto, @Req() req: CurrentUserRequest) {
+        return this.workerService.update(req.user.id, updateWorkerDto);
+    }
+
+    @Delete('MyProfile') // Un worker peut supprimer son propre profil
+    @Roles(Role.WORKER)
+    remove(@Req() req: CurrentUserRequest) {
+        return this.workerService.remove(req.user.id);
+    }
 }

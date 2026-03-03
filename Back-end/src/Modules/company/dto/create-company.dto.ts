@@ -14,6 +14,10 @@ export class CreateCompanyDto {
 	siret!: string;
 
 	@IsString()
+	@IsNotEmpty({ message: 'Le numéro de téléphone est obligatoire.' })
+	phoneNumber!: string;
+
+	@IsString()
 	@IsNotEmpty({ message: 'Le type d\'établissement est obligatoire.' })
 	establishment_type!: string;
 

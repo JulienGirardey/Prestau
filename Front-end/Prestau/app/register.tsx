@@ -8,6 +8,7 @@ import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
 import { register } from "@/src/api/auth";
 import { Colors } from "@/constants/Colors";
+import { router } from "expo-router";
 
 
 export default function Register() {
@@ -21,11 +22,20 @@ export default function Register() {
 		if (!role) return;
 		try {
 			const result = await register(inputEmail, inputPassword, role);
-			console.log('succès', result);
+			// Redirection selon le rôle choisi
+			if (role === 'WORKER') {
+				router.push('/workerCreation');
+				console.log('succès', result);
+			} else if (role === 'COMPANY') {
+				router.push('/companyCreation');
+				console.log('succès', result);
+			}
 		} catch (error) {
-			console.log('erreur', error);
+			alert('Erreur lors de l\'inscription');
+			console.error(error);
 		}
 	};
+
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
