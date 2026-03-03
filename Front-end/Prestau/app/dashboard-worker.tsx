@@ -19,20 +19,11 @@ LocaleConfig.locales['fr'] = {
 };
 LocaleConfig.defaultLocale = 'fr';
 
-interface Mission {
-    id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    salary: number;
-    address: string;
-}
-
 export default function DashboardWorker() {
     const colors = useThemeColors();
     
     // --- ÉTATS (STATES) ---
-    const [missions, setMissions] = useState<Mission[]>([]);
+    const [missions, setMissions] = useState<[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     // Les dates seront chargées depuis la base de données, tableaux vides par défaut
