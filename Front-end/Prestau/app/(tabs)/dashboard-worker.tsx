@@ -137,12 +137,6 @@ export default function DashboardWorker() {
         return marks;
     }, [freeDays, busyDays]);
 
-    // --- LOGIQUE DES MISSIONS ---
-    // Calcul des 5 dernières missions publiées (triées par ID décroissant)
-    const recentMissions = useMemo(() => {
-        return [...missions].sort((a, b) => b.id - a.id).slice(0, 5);
-    }, [missions]);
-
     // --- FONCTIONS UTILITAIRES (CODE PROPRE) ---
     const formatMissionDate = (start: string, end: string) => {
         const options: Intl.DateTimeFormatOptions = { dateStyle: 'short', timeStyle: 'short' };
@@ -235,25 +229,6 @@ export default function DashboardWorker() {
                                 </View>
                             </View>
                         </View>
-                    </DefaultCard>
-                    
-                    {/* SECTION 3 : MISSIONS RÉCENTES */}
-                    <DefaultCard style={styles.cardWrapper}> 
-                        <Text style={styles.titleCard}>Dernières missions postées</Text> 
-                        {isLoading ? (
-                            <ActivityIndicator size="large" color="#F5F2D9" style={{ marginTop: 20 }} /> 
-                        ) : recentMissions.length === 0 ? (
-                            <Text style={styles.emptyText}>Aucune mission récente</Text> 
-                        ) : (
-                            <FlatList
-                                data={recentMissions}
-                                keyExtractor={(item) => String(item.id)}
-                                horizontal={true}
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.flatListContent}
-                                renderItem={renderMissionCard}
-                            />
-                        )}
                     </DefaultCard>
                     
                     <View style={styles.buttonCreateAccount}> 
