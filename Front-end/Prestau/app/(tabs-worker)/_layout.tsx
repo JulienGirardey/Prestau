@@ -28,6 +28,17 @@ export default function WorkerTabLayout() {
                     ),
                 }}
             />
+
+			<Tabs.Screen
+				name="jobs-worker"
+				options={{
+					tabBarLabel: "Jobs",
+					tabBarIcon: ({ color, size }) => (
+						<FontAwesome name="briefcase" color={color} size={size} />
+					),
+				}}
+			/>
+			
             <Tabs.Screen
                 name="profile-worker"
                 options={{
