@@ -266,11 +266,25 @@ export default function DashboardWorker() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  body: { flex: 1 },
-  scrollContent: { alignItems: "center", gap: 20, paddingBottom: 40 },
-  cardWrapper: { width: "95%" },
-  flatListContent: { paddingVertical: 10, paddingHorizontal: 15, gap: 10 },
+  container: {
+	flex: 1
+},
+  body: {
+	flex: 1
+},
+  scrollContent: {
+	alignItems: "center",
+	gap: 20,
+	paddingBottom: 40
+},
+  cardWrapper: {
+	width: "95%" 
+	},
+  flatListContent: {
+	paddingVertical: 10,
+	paddingHorizontal: 45,
+	gap: 10
+},
   buttonCreateAccount: {
     marginTop: 20,
     paddingBottom: 20,
@@ -333,7 +347,18 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(245, 242, 217, 0.2)",
     paddingTop: 10,
   },
-  legendItem: { flexDirection: "row", alignItems: "center" },
-  legendDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
-  legendText: { color: "#F5F2D9", fontSize: 12, fontWeight: "500" },
+  legendItem: {
+	flexDirection: "row",
+	alignItems: "center"
+},
+  legendDot: { width: 12,
+	height: 12,
+	borderRadius: 6,
+	marginRight: 6
+},
+  legendText: {
+	color: "#F5F2D9",
+	fontSize: 12,
+	fontWeight: "500"
+},
 });
