@@ -7,6 +7,8 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { View, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import React, { useState } from "react";
 import { createCompanyProfile } from "@/src/api/company";
+import { router } from "expo-router";
+
 // import { router } from "expo-router";
 // import { createCompanyProfile } from "@/src/api/company";
 
@@ -98,8 +100,7 @@ export default function CompanyCreation() {
 				website: form.website || undefined,
 				social_media: form.social_media || undefined,
 			});
-
-			//router.push('/(tabs)/ProfileCompany');
+			router.push('/(tabs)/dashboard-company');
 		} catch (error) {
 			alert('Erreur lors de la création du profil');
 			console.error(error);

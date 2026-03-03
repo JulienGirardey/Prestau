@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-n
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
-import { getJobs } from "@/src/api/job";
+import { getMyJobs } from "@/src/api/job";
 import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
@@ -26,7 +26,7 @@ export default function DashboardCompany() {
     const { scale, scaleFont } = useResponsive();
 
     useEffect(() => {
-        getJobs()
+        getMyJobs()
             .then((response) => setJobs(response.data))
             .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
     }, []);

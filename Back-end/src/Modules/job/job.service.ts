@@ -24,6 +24,20 @@ export class JobService {
 		});
 	}
 
+  async findByUserId(userId: number) {
+    const company = await this.prisma.company.findUnique({
+      where: { userId }
+    });
+    
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+    return this.prisma.job.findMany({
+      where: { companyId: company.id },
+    });
+  }
+
 	async findAll(user: { id: number; role: Role }) {
 		if (user.role === Role.COMPANY) {
 			const company = await this.prisma.company.findUnique({
