@@ -97,8 +97,22 @@ export class AuthService {
 			role: user.role
 		});
 
+		// Génère un refresh token avec une durée de vie plus longue (ex: 7 jours)
+		const refreshToken = this.jwtService.sign({
+			sub: user.id,
+		}, { expiresIn: '7d' });
+
+		const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+		//mise à jour du refresh token dans la DB pour ce user
+		const updatedUser = await this.prisma.users.update({
+			where: { id: user.id },
+			data: { refreshToken: hashedRefreshToken },
+		});
+
 		return {
 			access_token,
+			refreshToken: updatedUser.refreshToken, // on retourne le refresh token en clair pour le stocker côté client, mais on stocke sa version hashée en DB pour plus de sécurité
 			user: {
 				id: user.id,
 				email: user.email,
