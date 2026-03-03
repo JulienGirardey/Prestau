@@ -8,6 +8,8 @@ import React from "react";
 import { NewButton } from "@/components/Button";
 import { login } from "@/src/api/auth";
 import { router } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
 	const colors = useThemeColors();
@@ -17,10 +19,19 @@ export default function Login() {
 	const handleLogin = async () => {
 		try {
 			const result = await login(inputEmail, inputPassword);
-			console.log('succès', result);
-			router.push('/(tabs)/ProfileWorker');
+			const token = result.access_token;
+
+			const decoded: any = jwtDecode(token);
+			const role = decoded.role;
+
+			console.log('succès, rôle:', role);
+			if (role === 'COMPANY') {
+				router.replace('/(tabs-company)/dashboard-company');
+			} else {
+				router.replace('/(tabs-worker)/dashboard-worker');
+			}
 		} catch (error) {
-			console.log('erreur', error);
+			console.error('erreur', error);
 		}
 	};
 	return (
