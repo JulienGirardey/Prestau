@@ -65,6 +65,8 @@ model Worker {
   skills       String  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  freeDays     String[] @default([])
+  busyDays     String[] @default([])
 
 	userId       Int       @unique
   user         Users     @relation(fields: [userId], references: [id])
