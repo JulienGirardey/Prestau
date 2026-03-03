@@ -56,7 +56,7 @@ export class WorkerService {
         let freeDays = worker.freeDays ? [...worker.freeDays] : [];
         let busyDays = worker.busyDays ? [...worker.busyDays] : [];
 
-        // 1. Nettoyage : On retire la date des deux tableaux pour éviter les doublons
+        // Nettoyage : On retire la date des deux tableaux pour éviter les doublons
         freeDays = freeDays.filter(d => d !== date);
         busyDays = busyDays.filter(d => d !== date);
 
