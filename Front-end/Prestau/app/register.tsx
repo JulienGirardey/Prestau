@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View, Image, useWindowDimensions, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
@@ -6,8 +6,9 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { InputBar } from "@/components/InputBar";
 import { useState } from "react";
-import { TouchableOpacity } from "react-native";
+import { register } from "@/src/api/auth";
 import { Colors } from "@/constants/Colors";
+import { router } from "expo-router";
 
 
 export default function Register() {
@@ -15,13 +16,24 @@ export default function Register() {
 	const [inputEmail, setEmail] = useState("");
 	const [inputPassword, setInputPassword] = useState("");
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
-	const [role, setRole] = useState<'worker' | 'company' | null>(null);
-	const handleRegister = () => {
+	const [role, setRole] = useState<'WORKER' | 'COMPANY' | null>(null);
+	const { width, height } = useWindowDimensions();
+	const handleRegister = async () => {
 		if (!role) return;
+		    try {
+        const result = await register(inputEmail, inputPassword, role);
+        // Redicrection selon le rôle choisi
+        if (role === 'WORKER') {
+            router.push('/workerCreation');
+        } 
+			console.log('succès', result);
+		} catch (error) {
+			console.log('erreur', error);
+		}
 	};
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<DefaultCard>
+			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
 				<View style={styles.form}>
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Create Account</ThemedText>
@@ -29,15 +41,15 @@ export default function Register() {
 					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setInputPassword} />
 					<InputBar style={inputStyle.inputVerifyPassword} placeholder="Verify password" value={inputVerifyPassword} onChange={setInputVerifyPassword} />
 				</View>
-				<View style={{ flexDirection: "row", gap: 7, marginTop: 48 }}>
+				<View style={{ flexDirection: "row", gap: "3%", marginTop: 48 }}>
 					<TouchableOpacity
-						onPress={() => setRole('worker')}
-						style={[buttonRoleStyle.form, { backgroundColor: role === 'worker' ? Colors.light.secondary : 'transparent' }]}>
+						onPress={() => setRole('WORKER')}
+						style={[buttonRoleStyle.form, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}>
 						<ThemedText style={buttonRoleStyle.Text}>Worker</ThemedText>
 					</TouchableOpacity>
 					<TouchableOpacity
-						onPress={() => setRole('company')}
-						style={[buttonRoleStyle.form, { backgroundColor: role === 'company' ? Colors.light.secondary : 'transparent' }]}>
+						onPress={() => setRole('COMPANY')}
+						style={[buttonRoleStyle.form, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}>
 						<ThemedText style={buttonRoleStyle.Text}>Company</ThemedText>
 					</TouchableOpacity>
 				</View>
@@ -92,17 +104,17 @@ const inputStyle = StyleSheet.create({
 });
 
 const buttonRoleStyle = StyleSheet.create({
-		form: {
+	form: {
 		flex: 1,
 		padding: 7,
 		borderRadius: 13,
 		borderWidth: 2,
 		borderColor: Colors.light.secondary,
 		alignItems: 'center'
-		},
+	},
 
-		Text: {
-			color: '#ffffff',
-			fontSize: 13.5,
-		},
+	Text: {
+		color: '#ffffff',
+		fontSize: 13.5,
+	},
 });
