@@ -7,6 +7,7 @@ import { InputBar } from "@/components/InputBar";
 import React from "react";
 import { NewButton } from "@/components/Button";
 import { login } from "@/src/api/auth";
+import { router } from "expo-router";
 
 export default function Login() {
 	const colors = useThemeColors();
@@ -17,6 +18,7 @@ export default function Login() {
 		try {
 			const result = await login(inputEmail, inputPassword);
 			console.log('succès', result);
+			router.push('/(tabs)/ProfileWorker');
 		} catch (error) {
 			console.log('erreur', error);
 		}
