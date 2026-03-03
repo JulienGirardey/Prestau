@@ -10,14 +10,6 @@ const api = axios.create({
 	},
 });
 
-// Intercepteur pour ajouter le token JWT automatiquement
-api.interceptors.request.use(async (config) => {
-	// config = objet qui contient toute la config de la requête qui va partir (l'URL, les headers, le body...)
-	const token = await SecureStore.getItemAsync('token'); // Récupère le token JWT stocké de manière sécurisée
-	if (token) config.headers.Authorization = `Bearer ${token}`; // Ajoute le token dans les en-têtes de la requête
-	return config; // Retourne la configuration modifiée pour que la requête puisse être envoyée
-});
-
 // Injecte le token JWT automatiquement dans chaque requête
 api.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync('access_token');
