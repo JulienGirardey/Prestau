@@ -18,6 +18,30 @@ export class JobofferController {
     return this.jobofferService.create(createJobofferDto, req.user.id, jobId); // Associer l'offre d'emploi créée à l'utilisateur qui l'a créée (même token)
   }
 
+  @Post(':id/accept')
+  @Roles(Role.COMPANY) // seulement une Company peut accepter une offre d'emploi
+  accept(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
+    return this.jobofferService.accept(id, req.user.id); // Associer l'offre d'emploi acceptée à l'utilisateur qui l'accepte (même token)
+  }
+
+  @Post(':id/reject')
+  @Roles(Role.COMPANY) // seulement une Company peut rejeter une offre d'emploi
+  reject(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
+    return this.jobofferService.reject(id, req.user.id); // Associer l'offre d'emploi rejetée à l'utilisateur qui la rejette (même token)
+  }
+
+  @Post(':id/complete')
+  @Roles(Role.COMPANY) // seulement une Company peut compléter une offre d'emploi
+  complete(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
+    return this.jobofferService.complete(id, req.user.id); // Associer l'offre d'emploi complétée à l'utilisateur qui la complète (même token)
+  }
+
+  @Get('my-offers')
+  @Roles(Role.COMPANY)
+  findMyOffers(@Req() req: CurrentUserRequest) {
+    return this.jobofferService.findByCompany(req.user.id);
+  }
+
   @Get()
   findAll() {
     return this.jobofferService.findAll();

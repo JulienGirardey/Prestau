@@ -2,15 +2,22 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateJobofferDto } from './dto/create-joboffer.dto';
 import { PrismaService } from '../../prisma.service';
 import { JobOffer } from '@prisma/client';
-import { worker } from 'node:cluster';
 
 @Injectable()
 export class JobofferService {
 	constructor(private Prisma: PrismaService) { }
 
 	async create(createJobofferDto: CreateJobofferDto, userId: number, jobId: number): Promise<JobOffer> {
+		const worker = await this.Prisma.worker.findUnique({
+			where: { userId },
+		});
+
+		if (!worker) {
+			throw new NotFoundException('Worker not found');
+		}
+
 		const existingJobOffer = await this.Prisma.jobOffer.findFirst({
-			where: { workerId: userId },
+			where: { workerId: worker.id, jobId: jobId },
 		});
 
 		if (existingJobOffer) {
@@ -20,8 +27,120 @@ export class JobofferService {
 		return this.Prisma.jobOffer.create({
 			data: {
 				...createJobofferDto,
-				workerId: userId, // association de l'offre d'emploi avec l'utilisateur qui l'a créée (même token)
-				jobId: jobId, // association de l'offre d'emploi avec le job auquel elle est liée
+				workerId: worker.id,
+				jobId: jobId,
+			},
+		});
+	}
+
+	async accept(id: number, userId: number): Promise<JobOffer> {
+		const jobOffer = await this.Prisma.jobOffer.findUnique({
+			where: { id },
+			include: { job: { include: { company: true } } },
+		});
+
+		if (!jobOffer) {
+			throw new NotFoundException(`JobOffer with ID ${id} not found`);
+		}
+
+		if (jobOffer.job.company.userId !== userId) {
+			throw new NotFoundException('You are not authorized to accept this offer');
+		}
+
+		const updatedOffer = await this.Prisma.jobOffer.update({
+			where: { id },
+			data: {
+				status: 'ACCEPTED',
+				selected_by_company: true,
+				response_at: new Date(),
+			},
+		});
+
+		await this.Prisma.job.update({
+			where: { id: jobOffer.jobId },
+			data: { status: 'IN_PROGRESS' },
+		});
+
+		await this.Prisma.jobOffer.updateMany({
+			where: {
+				jobId: jobOffer.jobId,
+				id: { not: id },
+			},
+			data: {
+				status: 'REJECTED',
+				response_at: new Date(),
+			},
+		});
+
+		return updatedOffer;
+	}
+
+	async reject(id: number, userId: number): Promise<JobOffer> {
+		const jobOffer = await this.Prisma.jobOffer.findUnique({
+			where: { id },
+			include: { job: { include: { company: true } } },
+		});
+
+		if (!jobOffer) {
+			throw new NotFoundException(`JobOffer with ID ${id} not found`);
+		}
+
+		if (jobOffer.job.company.userId !== userId) {
+			throw new NotFoundException('You are not authorized to reject this offer');
+		}
+
+		return this.Prisma.jobOffer.update({
+			where: { id },
+			data: {
+				status: 'REJECTED',
+				response_at: new Date(),
+			},
+		});
+	}
+
+	async complete(id: number, userId: number): Promise<JobOffer> {
+		const jobOffer = await this.Prisma.jobOffer.findUnique({
+			where: { id },
+			include: { job: { include: { company: true } } },
+		});
+
+		if (!jobOffer) {
+			throw new NotFoundException(`JobOffer with ID ${id} not found`);
+		}
+
+		if (jobOffer.job.company.userId !== userId) {
+			throw new NotFoundException('You are not authorized to complete this offer');
+		}
+
+		const updatedOffer = await this.Prisma.jobOffer.update({
+			where: { id },
+			data: { status: 'COMPLETED' },
+		});
+
+		await this.Prisma.job.update({
+			where: { id: jobOffer.jobId },
+			data: { status: 'COMPLETED' },
+		});
+
+		return updatedOffer;
+	}
+
+	async findByCompany(userId: number): Promise<JobOffer[]> {
+		const company = await this.Prisma.company.findUnique({
+			where: { userId },
+		});
+
+		if (!company) {
+			throw new NotFoundException('Company not found');
+		}
+
+		return this.Prisma.jobOffer.findMany({
+			where: {
+				job: { companyId: company.id },
+			},
+			include: {
+				job: true,
+				worker: true,
 			},
 		});
 	}

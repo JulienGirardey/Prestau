@@ -15,3 +15,8 @@ export const createCompanyProfile = async (data: CreateCompanyProfileDto) => {
 	const response = await api.post('/company', data);
 	return response.data;
 };
+
+export const getCompanyProfile = async () => {
+	const response = await api.get('/company/MyCompany');
+	return response.data;
+};
