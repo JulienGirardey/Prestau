@@ -6,6 +6,7 @@ import { getMyJobs, Job } from "@/src/api/job";
 import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
+import { useFocusEffect } from "expo-router";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -25,11 +26,11 @@ export default function DashboardCompany() {
     const { scale, scaleFont } = useResponsive();
 		const [jobs, setJobs] = useState<Job[]>([]);
 
-		useEffect(() => {
+		useFocusEffect(() => {
 			 getMyJobs()
             .then((response) => setJobs(response))
             .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
-    }, []);
+    },);
 
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>

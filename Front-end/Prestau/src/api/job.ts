@@ -11,11 +11,10 @@ export interface Job {
     start_time: string;
     end_time: string;
     status: JobStatus;
-		companyId: number;
 }
 
 // créer un job (seulement pour les companies)
-export const createJob = async (jobData: Omit<Job, 'id' | 'status' | 'companyId'>) => {
+export const createJob = async (jobData: Omit<Job, 'id' | 'status'>) => {
 		const response = await api.post('/job', jobData);
 		return response.data;
 };
