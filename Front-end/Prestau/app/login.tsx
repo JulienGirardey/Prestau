@@ -8,7 +8,6 @@ import React from "react";
 import { NewButton } from "@/components/Button";
 import { login } from "@/src/api/auth";
 import { router } from "expo-router";
-import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
