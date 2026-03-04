@@ -40,6 +40,25 @@ export default function JobDetailScreen() {
         );
     }
 
+	// Formate la date au format français
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('fr-FR', { 
+            day: '2-digit', 
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+
+    // Formate l'heure au format français
+    const formatTime = (timeString: string) => {
+        const date = new Date(timeString);
+        return date.toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    };
+
     return (
 		<View style={{ flex: 1 }}>
 			<Header />
@@ -50,9 +69,8 @@ export default function JobDetailScreen() {
 					<View style={[styles.card, { backgroundColor: "#ffffff" }]}>
 						<Text style={[styles.salary, { color: colors.primary }]}>{job.salary} €</Text>
 						<Text style={[styles.description, { color: colors.text }]}>{job.description}</Text>
-						<Text style={{ color: colors.text, fontWeight: 'bold' }}>Date de debut: <Text style={{ fontWeight: 'normal' }}>{new Date(job.startDate).toLocaleDateString('fr-FR')}</Text></Text>
-						<Text style={{ color: colors.text, fontWeight: 'bold' }}>Date de fin: <Text style={{ fontWeight: 'normal' }}>{new Date(job.endDate).toLocaleDateString('fr-FR')}</Text></Text>
-						
+						<Text style={{ color: colors.text }}>Date: {formatDate(job.start_time)}</Text>
+						<Text style={{ color: colors.text }}>Heure: {formatTime(job.start_time)} - {formatTime(job.end_time)}</Text>
 						
 						<View style={styles.infoRow}>
 							<Text style={{ color: colors.text, fontWeight: 'bold' }}>Adresse: </Text>
