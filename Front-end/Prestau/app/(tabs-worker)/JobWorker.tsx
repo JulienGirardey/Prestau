@@ -5,26 +5,26 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
-import { getMissions, Mission } from "@/src/api/mission";
+import { getJobs, Job } from "@/src/api/job";
 
 export default function MissionScreen() {
     const colors = useThemeColors();
-    const [missions, setMissions] = useState<Mission[]>([]);
+    const [jobs, setJobs] = useState<Job[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        loadMissions();
+        loadJobs();
     }, []);
 
-    // Charge les missions depuis l'API
-    const loadMissions = async () => {
+    // Charge les jobs depuis l'API
+    const loadJobs = async () => {
         setIsLoading(true);
         setError(null);
         
         try {
-            const data = await getMissions();
-            setMissions(data);
+            const data = await getJobs();
+            setJobs(data);
         } catch (err: any) {
             const message = err?.response?.data?.message || 'Impossible de charger les missions';
             setError(message);
@@ -54,7 +54,7 @@ export default function MissionScreen() {
     };
 
     // Rendu d'une carte de mission
-    const renderMissionCard = ({ item }: { item: Mission }) => (
+    const renderJobCard = ({ item }: { item: Job }) => (
         <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#ffffff" }]}>
             <View style={styles.cardHeader}>
                 <View style={styles.iconContainer}>
@@ -62,7 +62,7 @@ export default function MissionScreen() {
                     {item.status === 'OPEN' && <View style={styles.openBadge} />}
                 </View>
                 
-                <View style={styles.missionContent}>
+                <View style={styles.jobContent}>
                     <View style={styles.headerRow}>
                         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
                             {item.title}
@@ -74,7 +74,7 @@ export default function MissionScreen() {
                     
                     {item.description && (
                         <Text 
-                            style={[styles.description, { color: colors.textSecondary || "#666" }]}
+                            style={[styles.description, { color: "#666" }]}
                             numberOfLines={1}
                         >
                             {item.description}
@@ -83,7 +83,7 @@ export default function MissionScreen() {
                     
                     <View style={styles.infoRow}>
                         <Ionicons name="location-outline" size={14} color={colors.textSecondary || "#666"} />
-                        <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]} numberOfLines={1}>
+                        <Text style={[styles.infoText, { color: "#666" }]} numberOfLines={1}>
                             {item.address}
                         </Text>
                     </View>
@@ -100,7 +100,7 @@ export default function MissionScreen() {
     );
 
     // Affichage du chargement
-    if (isLoading && missions.length === 0) {
+    if (isLoading && jobs.length === 0) {
         return (
             <View style={{ flex: 1 }}>
                 <Header />
@@ -129,7 +129,7 @@ export default function MissionScreen() {
                     </View>
                 )}
 
-                {missions.length === 0 && !isLoading ? (
+                {jobs.length === 0 && !isLoading ? (
                     <View style={styles.emptyState}>
                         <Ionicons name="briefcase-outline" size={60} color={colors.textSecondary || "#666"} />
                         <Text style={[styles.emptyText, { color: colors.textSecondary || "#666" }]}>
@@ -138,15 +138,15 @@ export default function MissionScreen() {
                     </View>
                 ) : (
                     <FlatList
-                        data={missions}
-                        renderItem={renderMissionCard}
+                        data={jobs}
+                        renderItem={renderJobCard}
                         keyExtractor={(item) => item.id.toString()}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.listContent}
                         refreshControl={
                             <RefreshControl
                                 refreshing={isLoading}
-                                onRefresh={loadMissions}
+                                onRefresh={loadJobs}
                                 tintColor={colors.primary}
                             />
                         }
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#fff',
     },
-    missionContent: {
+    jobContent: {
         flex: 1,
     },
     headerRow: {

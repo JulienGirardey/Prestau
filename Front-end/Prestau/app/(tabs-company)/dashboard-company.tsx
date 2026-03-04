@@ -27,7 +27,7 @@ export default function DashboardCompany() {
 
     useEffect(() => {
         getMyJobs()
-            .then((response) => setJobs(response.data))
+            .then((response) => setJobs(response))
             .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
     }, []);
 
@@ -45,7 +45,7 @@ export default function DashboardCompany() {
                     style={styles.scroll}
                     showsVerticalScrollIndicator={false}
                 >
-                    {jobs.map((job: any) => (
+                    {jobs?.map((job: any) => (
                         <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                             {/* Header de la carte */}
                             <View style={styles.jobHeader}>

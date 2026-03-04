@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getJobs } from "@/src/api/job";
+import { getJobs, Job } from "@/src/api/job";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
 
@@ -19,20 +19,11 @@ LocaleConfig.locales['fr'] = {
 };
 LocaleConfig.defaultLocale = 'fr';
 
-interface Mission {
-    id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    salary: number;
-    address: string;
-}
-
 export default function DashboardWorker() {
     const colors = useThemeColors();
     
     // --- ÉTATS (STATES) ---
-    const [missions, setMissions] = useState<Mission[]>([]);
+    const [missions, setMissions] = useState<Job[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     // Les dates seront chargées depuis la base de données, tableaux vides par défaut
@@ -46,11 +37,11 @@ export default function DashboardWorker() {
             try {
                 // Chargement des missions
                 const jobsResponse = await getJobs();
-                setMissions(jobsResponse.data);
+                setMissions(jobsResponse || []);
 
                 const availabilityResponse = await getWorkerAvailability();
-                setFreeDays(availabilityResponse.data.freeDays);
-                setBusyDays(availabilityResponse.data.busyDays);
+                setFreeDays(availabilityResponse.data?.freeDays || []);
+                setBusyDays(availabilityResponse.data?.busyDays || []);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement du dashboard:", error);
