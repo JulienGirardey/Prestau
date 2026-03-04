@@ -77,7 +77,7 @@ function MissionCreationInner() {
     // Fonction appelée lors de la création du profil
     const handleCreate = () => {
         console.log({ ...form, availability: true });
-        router.push("/(tabs)/dashboard-company");
+        router.push("/(tabs-company)/dashboard-company");
     };
 
     // Définition des champs du formulaire (label, clé, placeholder, requis)

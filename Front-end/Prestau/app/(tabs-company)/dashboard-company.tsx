@@ -6,6 +6,7 @@ import { getMyJobs } from "@/src/api/job";
 import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
+import { Job } from "@/src/api/job";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -22,12 +23,12 @@ function useResponsive() {
 
 export default function DashboardCompany() {
     const colors = useThemeColors();
-    const [jobs, setJobs] = useState([]);
     const { scale, scaleFont } = useResponsive();
+		const [jobs, setJobs] = useState<Job[]>([]);
 
-    useEffect(() => {
-        getMyJobs()
-            .then((response) => setJobs(response.data))
+		useEffect(() => {
+			 getMyJobs()
+            .then((response) => setJobs(response))
             .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
     }, []);
 
@@ -45,7 +46,7 @@ export default function DashboardCompany() {
                     style={styles.scroll}
                     showsVerticalScrollIndicator={false}
                 >
-                    {jobs.map((job: any) => (
+                    {jobs.map((job) => (
                         <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                             {/* Header de la carte */}
                             <View style={styles.jobHeader}>
