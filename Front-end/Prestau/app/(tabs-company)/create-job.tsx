@@ -124,6 +124,8 @@ function MissionCreationInner() {
 				address: form.adress,
 				salary: parseFloat(form.salary),
 			});
+			Alert.alert("Succès", "Mission créée avec succès");
+			router.push("/dashboard-company");
 		} catch (err: any) {
 			console.error('Erreur création mission:', err?.response?.data?.message);
 		}
