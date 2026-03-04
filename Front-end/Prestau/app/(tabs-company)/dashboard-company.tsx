@@ -2,11 +2,10 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-n
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
-import { getMyJobs } from "@/src/api/job";
+import { getMyJobs, Job } from "@/src/api/job";
 import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
-import { Job } from "@/src/api/job";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();

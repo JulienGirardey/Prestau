@@ -55,7 +55,7 @@ export default function MissionScreen() {
 
     // Rendu d'une carte de mission
     const renderJobCard = ({ item }: { item: Job }) => (
-        <DefaultCard style={[styles.card, { backgroundColor: colors.background || "#ffffff" }]}>
+        <DefaultCard style={[styles.card, { backgroundColor: "#ffffff" }]}>
             <View style={styles.cardHeader}>
                 <View style={styles.iconContainer}>
                     <Ionicons name="briefcase" size={40} color={colors.primary || "#007AFF"} />
@@ -90,7 +90,7 @@ export default function MissionScreen() {
                     
                     <View style={styles.infoRow}>
                         <Ionicons name="calendar-outline" size={14} color={colors.secondary || "#666"} />
-                        <Text style={[styles.infoText, { color: colors.secondary || "#666" }]}>
+                        <Text style={[styles.infoText, { color: colors.primary || "#666" }]}>
                             {formatDate(item.start_time)} • {formatTime(item.start_time)} - {formatTime(item.end_time)}
                         </Text>
                     </View>
