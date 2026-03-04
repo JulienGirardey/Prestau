@@ -36,28 +36,6 @@ export default function MissionScreen() {
 		}
 	};
 
-	const handleCreateJob = async () => {
-		setIsLoading(true);
-		setError(null);
-		try {
-			const newJob = await createJob({
-            title: 'Serveur extra',
-            description: 'Service du soir',
-            salary: 12,
-            address: 'Paris 8e',
-            start_time: '2026-03-10T18:00:00',
-            end_time: '2026-03-10T23:00:00',
-        });
-				console.log('Job créé :', newJob);
-			await loadJob(); // recharge la liste après création
-		} catch (err: any) {
-			const message = err?.response?.data?.message || 'Erreur lors de la création';
-			setError(message);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
 	// Formate la date au format français
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString);

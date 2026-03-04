@@ -165,7 +165,7 @@ function WorkerCreationInner() {
 				cv_url: form.cv_url || undefined,
 				photoURL: photo || undefined,
 			});
-			router.push("/(tabs)/ProfileWorker");
+			router.push("/(tabs-worker)/dashboard-worker");
 		} catch (error) {
 			alert('Erreur lors de la création du profil');
 			console.error(error);
