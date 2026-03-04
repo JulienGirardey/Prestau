@@ -12,10 +12,10 @@ export default function Index() {
         <Link href="/dashboard-company" style={styles.link}><Text style={styles.linkText}>Dashboard Company</Text></Link>
         <Link href="/dashboard-worker" style={styles.link}><Text style={styles.linkText}>Dashboard Worker</Text></Link>
         <Link href="/workerCreation" style={styles.link}><Text style={styles.linkText}>Worker Creation</Text></Link>
-        <Link href="/Job" style={styles.link}><Text style={styles.linkText}>Job</Text></Link>
+        <Link href="/JobWorker" style={styles.link}><Text style={styles.linkText}>Job Worker</Text></Link>
         <Link href="/Message" style={styles.link}><Text style={styles.linkText}>Message</Text></Link>
         <Link href="/ProfileWorker" style={styles.link}><Text style={styles.linkText}>Profile Worker</Text></Link>
-        <Link href="/create-mission" style={styles.link}><Text style={styles.linkText}>Create Mission</Text></Link>
+        <Link href="/create-job" style={styles.link}><Text style={styles.linkText}>Create Job</Text></Link>
 		<Link href="/companyCreation" style={styles.link}><Text style={styles.linkText}>Company Creation</Text></Link>
       </View>
     </SafeAreaView>

@@ -9,6 +9,10 @@ import { InputBar } from "@/components/InputBar";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { router } from "expo-router";
 import { createJob } from "@/src/api/job";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import { Alert } from "react-native";
+dayjs.extend(customParseFormat)
 
 // Hook responsive : 
 // Toutes les valeurs de l'UI sont calculées à partir de la largeur réelle
@@ -65,8 +69,10 @@ function MissionCreationInner() {
 	const [form, setForm] = useState({
 		title: "",
 		description: "",
-		start_time: "",
-		end_time: "",
+		start_date: "",
+		start_hour: "",
+		end_date: "",
+		end_hour: "",
 		adress: "",
 		salary: ""
 	});
@@ -78,13 +84,45 @@ function MissionCreationInner() {
 	// Fonction appelée lors de la création du profil
 	const handleCreate = async () => {
 		try {
+
+			if (!form.title || !form.description || !form.adress || !form.salary) {
+				Alert.alert("Erreur", "Tous les champs sont obligatoires");
+				return;
+			}
+			const startDate = dayjs(form.start_date, "DD/MM/YYYY", true);
+			const startHour = dayjs(form.start_hour, "HH:mm", true);
+			const endDate = dayjs(form.end_date, "DD/MM/YYYY", true);
+			const endHour = dayjs(form.end_hour, "HH:mm", true);
+
+			if (!startDate.isValid() || !startHour.isValid() || !endDate.isValid() || !endHour.isValid()) {
+				Alert.alert("Erreur", "Date ou heure invalide");
+				return;
+			}
+
+			if (startDate.isBefore(dayjs(), "day")) {
+				Alert.alert("Erreur", "La date de début ne peut pas être antérieure à aujourd'hui");
+				return;
+			}
+
+			if (endDate.isBefore(dayjs(), "day")) {
+				Alert.alert("Erreur", "La date de fin ne peut pas être antérieure à aujourd'hui");
+				return;
+			}
+
+			const start_time = startDate.hour(startHour.hour()).minute(startHour.minute()).second(0).toISOString();
+			const end_time = endDate.hour(endHour.hour()).minute(endHour.minute()).second(0).toISOString();
+
+			if (dayjs(end_time).isBefore(dayjs(start_time))) {
+				Alert.alert("Erreur", "La date de fin ne peut pas être antérieure à la date de début");
+				return;
+			}
 			await createJob({
 				title: form.title,
 				description: form.description,
-				start_time: form.start_time,
-				end_time: form.end_time,
+				start_time,
+				end_time,
 				address: form.adress,
-				salary: parseFloat(form.salary), // salary est un string dans ton form, à convertir en number
+				salary: parseFloat(form.salary),
 			});
 		} catch (err: any) {
 			console.error('Erreur création mission:', err?.response?.data?.message);
@@ -95,8 +133,10 @@ function MissionCreationInner() {
 	const fields = [
 		{ label: "Titre", key: "title", placeholder: "Mission de service", required: true },
 		{ label: "Description", key: "description", placeholder: "Description de la mission", required: true },
-		{ label: "start", key: "start_time", placeholder: "09:00", required: true },
-		{ label: "end", key: "end_time", placeholder: "18:00", required: true },
+		{ label: "Date de début", key: "start_date", placeholder: "15/06/2026", required: true },
+		{ label: "Heure de début", key: "start_hour", placeholder: "09:00", required: true },
+		{ label: "Date de fin", key: "end_date", placeholder: "15/06/2026", required: true },
+		{ label: "Heure de fin", key: "end_hour", placeholder: "18:00", required: true },
 		{ label: "Adress", key: "adress", placeholder: "123 Rue de la Paix", required: true },
 		{ label: "Salaire", key: "salary", placeholder: "10 €/heure", required: true },
 	] as const;
