@@ -135,7 +135,7 @@ export default function DashboardWorker() {
     };
 
     // COMPOSANT DE CARTE EXTERNALISÉ : pour éviter la duplication de code
-    const renderMissionCard = useCallback(({ item }: { item: Mission }) => (
+    const renderMissionCard = useCallback(({ item }: { item: Job }) => (
         <View style={styles.innerMissionCard}> 
             <Text style={styles.missionTitle}>{item.title}</Text> 
             <Text style={styles.missionDate}> 
