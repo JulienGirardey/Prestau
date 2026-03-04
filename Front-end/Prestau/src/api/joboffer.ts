@@ -1,4 +1,4 @@
-import { api } from "./axios";
+import api from "./axios";
 
 export interface JobOffer {
     id: number;
@@ -21,10 +21,6 @@ export interface JobOffer {
 }
 
 export const getMyJobOffers = async (): Promise<JobOffer[]> => {
-	const response = await api.get<JobOffer[]>('/job-offer/my-offers');
+	const response = await api.get<JobOffer[]>('/joboffer/my-offers');
 	return response.data;
-};
-
-export const acceptJobOffer = async (offerId: number) => {
-	await api.post(`/job-offer/${offerId}/accept`);
 };

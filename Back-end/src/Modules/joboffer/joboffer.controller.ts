@@ -18,6 +18,13 @@ export class JobofferController {
     return this.jobofferService.create(createJobofferDto, req.user.id, jobId); // Associer l'offre d'emploi créée à l'utilisateur qui l'a créée (même token)
   }
 
+  @Get('my-offers')
+  @Roles(Role.WORKER)
+  async getMyJobOffers(@Req() req: CurrentUserRequest) {
+    const userId = req.user.id; 
+    return this.jobofferService.findByUserId(userId);
+  }
+
   @Get()
   findAll() {
     return this.jobofferService.findAll();
