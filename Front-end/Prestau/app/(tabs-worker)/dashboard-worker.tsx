@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getJobs } from "@/src/api/job";
+import { getJobs, Job } from "@/src/api/job";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
 
@@ -19,20 +19,11 @@ LocaleConfig.locales['fr'] = {
 };
 LocaleConfig.defaultLocale = 'fr';
 
-interface Mission {
-    id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    salary: number;
-    address: string;
-}
-
 export default function DashboardWorker() {
     const colors = useThemeColors();
     
     // --- ÉTATS (STATES) ---
-    const [missions, setMissions] = useState<Mission[]>([]);
+    const [missions, setMissions] = useState<Job[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     // Les dates seront chargées depuis la base de données, tableaux vides par défaut
@@ -46,11 +37,11 @@ export default function DashboardWorker() {
             try {
                 // Chargement des missions
                 const jobsResponse = await getJobs();
-                setMissions(jobsResponse.data);
+                setMissions(jobsResponse || []);
 
                 const availabilityResponse = await getWorkerAvailability();
-                setFreeDays(availabilityResponse.data.freeDays);
-                setBusyDays(availabilityResponse.data.busyDays);
+                setFreeDays(availabilityResponse.data?.freeDays || []);
+                setBusyDays(availabilityResponse.data?.busyDays || []);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement du dashboard:", error);
@@ -136,12 +127,6 @@ export default function DashboardWorker() {
 
         return marks;
     }, [freeDays, busyDays]);
-
-    // --- LOGIQUE DES MISSIONS ---
-    // Calcul des 5 dernières missions publiées (triées par ID décroissant)
-    const recentMissions = useMemo(() => {
-        return [...missions].sort((a, b) => b.id - a.id).slice(0, 5);
-    }, [missions]);
 
     // --- FONCTIONS UTILITAIRES (CODE PROPRE) ---
     const formatMissionDate = (start: string, end: string) => {
@@ -237,25 +222,6 @@ export default function DashboardWorker() {
                         </View>
                     </DefaultCard>
                     
-                    {/* SECTION 3 : MISSIONS RÉCENTES */}
-                    <DefaultCard style={styles.cardWrapper}> 
-                        <Text style={styles.titleCard}>Dernières missions postées</Text> 
-                        {isLoading ? (
-                            <ActivityIndicator size="large" color="#F5F2D9" style={{ marginTop: 20 }} /> 
-                        ) : recentMissions.length === 0 ? (
-                            <Text style={styles.emptyText}>Aucune mission récente</Text> 
-                        ) : (
-                            <FlatList
-                                data={recentMissions}
-                                keyExtractor={(item) => String(item.id)}
-                                horizontal={true}
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.flatListContent}
-                                renderItem={renderMissionCard}
-                            />
-                        )}
-                    </DefaultCard>
-                    
                     <View style={styles.buttonCreateAccount}> 
                         <NewButton title="Avis Professionnels" onPress={() => console.log("Avis cliqué")} /> 
                     </View>
@@ -266,11 +232,25 @@ export default function DashboardWorker() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  body: { flex: 1 },
-  scrollContent: { alignItems: "center", gap: 20, paddingBottom: 40 },
-  cardWrapper: { width: "95%" },
-  flatListContent: { paddingVertical: 10, paddingHorizontal: 15, gap: 10 },
+  container: {
+	flex: 1
+},
+  body: {
+	flex: 1
+},
+  scrollContent: {
+	alignItems: "center",
+	gap: 20,
+	paddingBottom: 40
+},
+  cardWrapper: {
+	width: "95%" 
+	},
+  flatListContent: {
+	paddingVertical: 10,
+	paddingHorizontal: 45,
+	gap: 10
+},
   buttonCreateAccount: {
     marginTop: 20,
     paddingBottom: 20,
@@ -333,7 +313,18 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(245, 242, 217, 0.2)",
     paddingTop: 10,
   },
-  legendItem: { flexDirection: "row", alignItems: "center" },
-  legendDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
-  legendText: { color: "#F5F2D9", fontSize: 12, fontWeight: "500" },
+  legendItem: {
+	flexDirection: "row",
+	alignItems: "center"
+},
+  legendDot: { width: 12,
+	height: 12,
+	borderRadius: 6,
+	marginRight: 6
+},
+  legendText: {
+	color: "#F5F2D9",
+	fontSize: 12,
+	fontWeight: "500"
+},
 });

@@ -60,7 +60,7 @@ export class WorkerService {
         freeDays = freeDays.filter(d => d !== date);
         busyDays = busyDays.filter(d => d !== date);
 
-        // 2. Assignation : On ajoute la date dans le bon tableau selon le nouveau statut
+        // Assignation : On ajoute la date dans le bon tableau selon le nouveau statut
         if (status === 'free') {
             freeDays.push(date);
         } else if (status === 'busy') {
@@ -68,7 +68,7 @@ export class WorkerService {
         }
         // Si le statut est 'neutral', la date est simplement retirée (étape 1) et n'est pas réajoutée
 
-        // 3. Sauvegarde dans la base de données via Prisma
+        // Sauvegarde dans la base de données via Prisma
         const updatedWorker = await this.prisma.worker.update({
             where: { userId },
             data: {

@@ -7,11 +7,15 @@ export default function RootLayout() {
       Keyboard.dismiss();
       return false;  // ← false = ne capture PAS le geste, laisse passer le scroll
     }}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="companyCreation" />
+        <Stack.Screen name="workerCreation" />
+        <Stack.Screen name="(tabs-company)" />
+        <Stack.Screen name="(tabs-worker)" />
+      </Stack>
     </View>
   );
 }

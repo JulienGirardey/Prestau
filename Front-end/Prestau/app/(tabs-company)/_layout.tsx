@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
-export default function TabLayout() {
+export default function CompanyTabLayout() {
     const Colors = useThemeColors();
     return (
         <Tabs
@@ -25,6 +25,24 @@ export default function TabLayout() {
                     tabBarLabel: "Dashboard",
                     tabBarIcon: ({ color, size }) => (
                         <FontAwesome name="dashboard" color={color} size={size} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="create-mission"
+                options={{
+                    tabBarLabel: "Create Mission",
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="plus" color={color} size={size} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="profile-company"
+                options={{
+                    tabBarLabel: "Profile",
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="user" color={color} size={size} />
                     ),
                 }}
             />
