@@ -3,7 +3,8 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { getMyJobs } from "@/src/api/job";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
 
@@ -25,11 +26,13 @@ export default function DashboardCompany() {
     const [jobs, setJobs] = useState([]);
     const { scale, scaleFont } = useResponsive();
 
-    useEffect(() => {
-        getMyJobs()
-            .then((response) => setJobs(response.data))
-            .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            getMyJobs()
+                .then((response) => setJobs(response.data))
+                .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
+        }, [])
+    );
 
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>
@@ -45,7 +48,7 @@ export default function DashboardCompany() {
                     style={styles.scroll}
                     showsVerticalScrollIndicator={false}
                 >
-                    {jobs.map((job: any) => (
+                    {jobs?.map((job: any) => (
                         <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                             {/* Header de la carte */}
                             <View style={styles.jobHeader}>

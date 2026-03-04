@@ -30,7 +30,7 @@ export default function WorkerTabLayout() {
             />
 
 			<Tabs.Screen
-				name="jobs-worker"
+				name="JobWorker"
 				options={{
 					tabBarLabel: "Jobs",
 					tabBarIcon: ({ color, size }) => (
@@ -40,7 +40,7 @@ export default function WorkerTabLayout() {
 			/>
 			
             <Tabs.Screen
-                name="profile-worker"
+                name="ProfileWorker"
                 options={{
                     tabBarLabel: "Profile",
                     tabBarIcon: ({ color, size }) => (
