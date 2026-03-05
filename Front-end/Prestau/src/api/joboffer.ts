@@ -1,4 +1,5 @@
-import api from "./axios";
+import api from './axios';
+import { Job } from './job';
 
 export interface JobOffer {
     id: number;
@@ -7,6 +8,7 @@ export interface JobOffer {
     status: string;
     createdAt: string;
     updatedAt: string;
+		job : Job; // pour accéder aux détails du job directement depuis l'offre
     job: {
         id: number;
         title: string;
