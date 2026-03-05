@@ -10,7 +10,6 @@ import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worke
 import { JobOffer } from "@/src/api/joboffer";
 import { useQuery } from "@tanstack/react-query";
 import { getJobOffersByWorker } from "@/src/api/joboffer";
-import { getJobs, Job } from "@/src/api/job";
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
@@ -35,14 +34,8 @@ export default function DashboardWorker() {
 		queryFn: () => getJobOffersByWorker(),
 	});
 
-	const { data: job = [], isLoading: isLoadingJob, error: errorJob } = useQuery<Job[]>({
-		queryKey: ["dashboard-worker-jobs"],
-		queryFn: () => getJobs(),
-	})
-
-
-	if (isLoadingAvailability || isLoadingJoboffer || isLoadingJob) return <Text>Chargement...</Text>;
-	if (errorAvailability || errorJoboffer || errorJob) return <Text>Erreur lors de la récupération des données</Text>;
+	if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
+	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
 
 
 	// --- ÉTATS DU CALENDRIER (garde les states pour la mise à jour optimiste) ---
