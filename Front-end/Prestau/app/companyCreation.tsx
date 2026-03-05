@@ -100,7 +100,7 @@ export default function CompanyCreation() {
 				website: form.website || undefined,
 				social_media: form.social_media || undefined,
 			});
-			router.push('/(tabs)/dashboard-company');
+			router.push('/(tabs-company)/dashboard-company');
 		} catch (error) {
 			alert('Erreur lors de la création du profil');
 			console.error(error);

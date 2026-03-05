@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateJobofferDto } from './dto/create-joboffer.dto';
 import { PrismaService } from '../../prisma.service';
 import { JobOffer } from '@prisma/client';

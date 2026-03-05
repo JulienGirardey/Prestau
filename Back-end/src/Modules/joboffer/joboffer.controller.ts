@@ -35,11 +35,11 @@ export class JobofferController {
   complete(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
     return this.jobofferService.complete(id, req.user.id); // Associer l'offre d'emploi complétée à l'utilisateur qui la complète (même token)
   }
-
   @Get('my-offers')
-  @Roles(Role.COMPANY)
-  findMyOffers(@Req() req: CurrentUserRequest) {
-    return this.jobofferService.findByCompany(req.user.id);
+  @Roles(Role.WORKER)
+  async getMyJobOffers(@Req() req: CurrentUserRequest) {
+    const userId = req.user.id; 
+    return this.jobofferService.findByUserId(userId);
   }
 
   @Get()
