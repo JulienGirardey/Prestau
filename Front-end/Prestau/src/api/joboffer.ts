@@ -1,4 +1,5 @@
 import api from './axios';
+import { Job } from './job';
 
 export interface JobOffer {
     id: number;
@@ -13,6 +14,7 @@ export interface JobOffer {
     requested_at?: string;
     createdAt: string;
     updatedAt: string;
+		job : Job; // pour accéder aux détails du job directement depuis l'offre
 }
 
 export const getJobOfferById = async (id: number) => {
