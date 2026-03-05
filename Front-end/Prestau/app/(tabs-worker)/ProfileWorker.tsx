@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from "react";
 import { logout } from "@/src/api/auth";
 import { router } from "expo-router";
+import { getWorkerProfile } from "@/src/api/worker";
+import { getJobOffersByWorker } from "@/src/api/joboffer";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -21,35 +23,30 @@ function useResponsive() {
 }
 
 interface WorkerProfile {
-    name: string;
+    id: number;
+    firstName: string;
+    lastName: string;
     city: string;
-    completedMissions: number;
-    rating: number;
-    yearsOnApp: number;
 }
 
 export default function ProfileWorker() {
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
-    const [profile, setProfile] = useState<WorkerProfile>({
-        name: "Nom",
-        city: "Ville",
-        completedMissions: 0,
-        rating: 0,
-        yearsOnApp: 0
-    });
+    const [profile, setProfile] = useState<WorkerProfile | null>(null);
+    const [jobCount, setJobCount] = useState(0);
 
     useEffect(() => {
         // Simuler le chargement des données du profil
-        setTimeout(() => {
-            setProfile({
-                name: "Jean Dupont",
-                city: "Paris",
-                completedMissions: 45,
-                rating: 4.8,
-                yearsOnApp: 2
-            });
-        }, 500);
+        getWorkerProfile()
+            .then((data) => setProfile(data))
+            .catch((error) => console.error("Erreur lors de la récupération du profil:", error));
+
+        getJobOffersByWorker()
+            .then((data) => {
+                const completed = data.filter((offer: any) => offer.status === 'COMPLETED');
+                setJobCount(completed.length);
+            })
+            .catch((error) => console.error("Erreur lors de la récupération des offres de travail:", error));
     }, []);
 
     const handleLogout = async () => {
@@ -93,10 +90,10 @@ export default function ProfileWorker() {
                     
                     <View style={styles.profileInfo}>
                         <Text style={[styles.profileName, { fontSize: scaleFont(24) }]}>
-                            {profile.name}
+                            {profile?.firstName} {profile?.lastName}
                         </Text>
                         <Text style={[styles.profileCity, { fontSize: scaleFont(18) }]}>
-                            {profile.city}
+                            {profile?.city}
                         </Text>
                     </View>
                 </View>
@@ -105,21 +102,21 @@ export default function ProfileWorker() {
                     <View style={styles.statItem}>
                         <Ionicons name="checkmark-circle" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {profile.completedMissions} Missions
+                            {jobCount} Missions
                         </Text>
                     </View>
                     
                     <View style={styles.statItem}>
                         <Ionicons name="star" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {profile.rating} Évaluation
+                            {} Évaluation
                         </Text>
                     </View>
                     
                     <View style={styles.statItem}>
                         <Ionicons name="calendar" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {profile.yearsOnApp} Année sur l&apos;app
+                            {} Année sur l&apos;app
                         </Text>
                     </View>
                 </View>
@@ -129,7 +126,7 @@ export default function ProfileWorker() {
                 <ThemedText
                     variant="body3"
                     color="primary"
-                    style={[styles.sectionTitle, { fontSize: scaleFont(20), marginBottom: scale(15) }]}>
+                    style={[styles.sectionTitle, { fontSize: scaleFont(20), marginBottom: scale(15), paddingTop: scale(5) }]}>
                     Missions passées : ...
                 </ThemedText>
 
