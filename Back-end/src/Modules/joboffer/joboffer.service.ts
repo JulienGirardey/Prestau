@@ -21,7 +21,7 @@ export class JobofferService {
 		});
 
 		if (existingJobOffer) {
-			throw new NotFoundException('A job offer already exists for this worker.');
+			throw new ConflictException('A job offer already exists for this worker.');
 		}
 
 		return this.Prisma.jobOffer.create({
@@ -144,6 +144,25 @@ export class JobofferService {
 			},
 		});
 	}
+
+	async findByWorker(userId: number): Promise<JobOffer[]> {
+    const worker = await this.Prisma.worker.findUnique({
+        where: { userId },
+    });
+
+    if (!worker) {
+        throw new NotFoundException('Worker not found');
+    }
+
+    return this.Prisma.jobOffer.findMany({
+        where: { workerId: worker.id },
+        include: {
+            job: {
+                include: { company: true }
+            }
+        },
+    });
+}
 
 	async findAll(): Promise<JobOffer[]> {
 		return this.Prisma.jobOffer.findMany({

@@ -29,3 +29,8 @@ export const getJobOffersByCompany = async () => {
     const response = await api.get('/joboffer/my-offers');
     return response.data;
 };
+
+export const createJobOffer = async (jobId: number) => {
+	const response = await api.post(`/joboffer/${jobId}`);
+	return response.data;
+};

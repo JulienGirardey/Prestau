@@ -42,6 +42,10 @@ export default function DashboardWorker() {
                 const availabilityResponse = await getWorkerAvailability();
                 setFreeDays(availabilityResponse.data?.freeDays || []);
                 setBusyDays(availabilityResponse.data?.busyDays || []);
+
+				const acceptedMissions = (jobsResponse || []).filter(
+        		(offer) => offer.status === 'ACCEPTED');
+				setmisions(acceptedMissions);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement du dashboard:", error);

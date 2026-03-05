@@ -1,8 +1,9 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState } from "react";
 import { getJobById } from "@/src/api/job";
+import { createJobOffer } from "@/src/api/joboffer";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 
@@ -22,9 +23,11 @@ export default function JobDetailScreen() {
     const { id } = useLocalSearchParams();
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
-    
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+	const router = useRouter();
+	const [isApplying, setIsApplying] = useState(false);
+
 
     useEffect(() => {
         if (id) {
@@ -39,6 +42,34 @@ export default function JobDetailScreen() {
     }, [id]);
 
     if (loading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    if (!job) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+                <Text style={{ color: colors.text }}>Job non trouvé</Text>
+            </View>
+        );
+    }
+
+	const handleApply = async () => {
+		setIsApplying(true);
+		try {
+			await createJobOffer(Number(id));
+			router.push('/(tabs-worker)/dashboard-worker');
+		} catch (err) {
+			console.error("Erreur lors de la candidature :", err);
+		} finally {
+			setIsApplying(false);
+		}
+	};
+	
+	if (loading) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -104,7 +135,9 @@ export default function JobDetailScreen() {
                     </View>
                 </View>
 					<View style={styles.buttonCreateAccount}> 
-                    	<NewButton title="Postule" onPress={() => console.log("Postule cliqué")} /> 
+                    	<NewButton 
+                        title={isApplying ? "En cours..." : "Postuler"} 
+                        onPress={handleApply} /> 
                     </View>
             </ScrollView>
         </View>
