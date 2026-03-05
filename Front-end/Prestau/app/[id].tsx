@@ -4,6 +4,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState } from "react";
 import { getJobById } from "@/src/api/job";
 import { Header } from "@/components/Header";
+import { NewButton } from "@/components/Button";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -102,6 +103,9 @@ export default function JobDetailScreen() {
                         </View>
                     </View>
                 </View>
+					<View style={styles.buttonCreateAccount}> 
+                    	<NewButton title="Postule" onPress={() => console.log("Postule cliqué")} /> 
+                    </View>
             </ScrollView>
         </View>
     );
@@ -185,4 +189,9 @@ const styles = StyleSheet.create({
         color: "#888",
         fontStyle: "italic",
     },
+  buttonCreateAccount: {
+	marginTop: "1%",
+    width: "100%",
+    paddingHorizontal: "5%",
+  },
 });
