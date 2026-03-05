@@ -38,11 +38,20 @@ export default function CompanyTabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="profile-company"
+                name="ProfileCompany"
                 options={{
                     tabBarLabel: "Profile",
                     tabBarIcon: ({ color, size }) => (
                         <FontAwesome name="user" color={color} size={size} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="Message"
+                options={{
+                    tabBarLabel: "Messages",
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="envelope" color={color} size={size} />
                     ),
                 }}
             />
