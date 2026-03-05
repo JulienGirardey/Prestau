@@ -1,4 +1,12 @@
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, RefreshControl } from "react-native"; 
+import { 
+	StyleSheet,
+	Text,
+	View,
+	ActivityIndicator,
+	FlatList,
+	RefreshControl,
+	Pressable
+} from "react-native"; 
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
@@ -6,12 +14,14 @@ import { DefaultCard } from "@/components/DefaultCard";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { getJobs, Job } from "@/src/api/job";
+import { useRouter } from "expo-router";
 
 export default function MissionScreen() {
     const colors = useThemeColors();
     const [jobs, setJobs] = useState<Job[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+	const router = useRouter();
 
     useEffect(() => {
         loadJobs();
@@ -55,6 +65,14 @@ export default function MissionScreen() {
 
     // Rendu d'une carte de mission
     const renderJobCard = ({ item }: { item: Job }) => (
+		<Pressable 
+			onPress={() => {
+				router.push({
+					pathname: '../[id]',
+					params: { id: item.id }
+				});
+			}}
+		>
         <DefaultCard style={[styles.card, { backgroundColor: "#ffffff" }]}>
             <View style={styles.cardHeader}>
                 <View style={styles.iconContainer}>
@@ -97,6 +115,7 @@ export default function MissionScreen() {
                 </View>
             </View>
         </DefaultCard>
+		</Pressable>
     );
 
     // Affichage du chargement

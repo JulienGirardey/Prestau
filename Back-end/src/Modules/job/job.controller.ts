@@ -25,10 +25,10 @@ export class JobController {
 		return this.jobService.findAll(req.user);
 	}
 
-  @Get('my-jobs') // Endpoint pour récupérer les jobs d'une entreprise spécifique
-  findMyJobs(@Req() req: CurrentUserRequest) {
-    return this.jobService.findByUserId(req.user.id);
-  }
+  	@Get('my-jobs') // Endpoint pour récupérer les jobs d'une entreprise spécifique
+	findMyJobs(@Req() req: CurrentUserRequest) {
+		return this.jobService.findByUserId(req.user.id);
+	}
 
 	@Get(':id')
 	findOne(@Param('id', ParseIntPipe) id: number) {

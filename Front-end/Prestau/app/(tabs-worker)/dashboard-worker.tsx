@@ -5,9 +5,9 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getJobs, Job } from "@/src/api/job";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
+import { getMyJobOffers, JobOffer } from "@/src/api/joboffer";
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
@@ -23,7 +23,7 @@ export default function DashboardWorker() {
     const colors = useThemeColors();
     
     // --- ÉTATS (STATES) ---
-    const [missions, setMissions] = useState<Job[]>([]);
+    const [missions, setMissions] = useState<JobOffer[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     // Les dates seront chargées depuis la base de données, tableaux vides par défaut
@@ -36,7 +36,7 @@ export default function DashboardWorker() {
             setIsLoading(true);
             try {
                 // Chargement des missions
-                const jobsResponse = await getJobs();
+                const jobsResponse = await getMyJobOffers();
                 setMissions(jobsResponse || []);
 
                 const availabilityResponse = await getWorkerAvailability();
@@ -135,14 +135,15 @@ export default function DashboardWorker() {
     };
 
     // COMPOSANT DE CARTE EXTERNALISÉ : pour éviter la duplication de code
-    const renderMissionCard = useCallback(({ item }: { item: Job }) => (
+    const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => (
         <View style={styles.innerMissionCard}> 
-            <Text style={styles.missionTitle}>{item.title}</Text> 
+            <Text style={styles.missionTitle}>{item.job.title}</Text> 
             <Text style={styles.missionDate}> 
-                {formatMissionDate(item.start_time, item.end_time)}
+                {formatMissionDate(item.job.start_time, item.job.end_time)}
             </Text>
-            <Text style={styles.missionSalary}>Salaire: {item.salary}€</Text> 
-            <Text style={styles.missionAddress}>📍 {item.address}</Text>
+            <Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text> 
+            <Text style={styles.missionAddress}>📍 {item.job.address}</Text>
+            <Text style={styles.missionStatus}>Statut: {item.status}</Text>
         </View>
     ), []);
 
@@ -302,6 +303,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginTop: 5,
+  },
+  missionStatus: {
+    color: "#264D84",
+    fontSize: 14,
+    textAlign: "center",
+    fontWeight: "600",
   },
   calendarWrapper: { marginTop: 10, width: "100%", paddingHorizontal: 5 },
   legendContainer: {
