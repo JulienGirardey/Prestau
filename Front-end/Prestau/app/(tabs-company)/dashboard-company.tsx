@@ -3,10 +3,9 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { getMyJobs, Job } from "@/src/api/job";
-import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
-import { useFocusEffect } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -24,13 +23,13 @@ function useResponsive() {
 export default function DashboardCompany() {
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
-		const [jobs, setJobs] = useState<Job[]>([]);
+    const { data: jobs = [], isLoading, error } = useQuery<Job[]>({
+        queryKey: ["dashboard-company-jobs"],
+        queryFn: () => getMyJobs(),
+    });
 
-		useFocusEffect(() => {
-			 getMyJobs()
-            .then((response) => setJobs(response))
-            .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
-    },);
+    if (isLoading) return <Text>Chargement...</Text>;
+    if (error) return <Text>Erreur lors de la récupération des missions</Text>;
 
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>

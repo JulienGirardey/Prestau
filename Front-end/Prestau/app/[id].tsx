@@ -35,7 +35,7 @@ export default function JobDetailScreen() {
     if (!job) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={{ color: colors.text }}>Job non trouve</Text>
+                <Text style={{ color: "#000000" }}>Job non trouve</Text>
             </View>
         );
     }
@@ -64,17 +64,17 @@ export default function JobDetailScreen() {
 			<Header />
 			<ScrollView style={[styles.main, { backgroundColor: colors.background }]}>
 				<View style={styles.content}>
-					<Text style={[styles.title, { color: colors.text }]}>{job.title}</Text>
+					<Text style={[styles.title, { color: colors.primary }]}>{job.title}</Text>
 					
 					<View style={[styles.card, { backgroundColor: "#ffffff" }]}>
-						<Text style={[styles.salary, { color: colors.primary }]}>{job.salary} €</Text>
-						<Text style={[styles.description, { color: colors.text }]}>{job.description}</Text>
-						<Text style={{ color: colors.text }}>Date: {formatDate(job.start_time)}</Text>
-						<Text style={{ color: colors.text }}>Heure: {formatTime(job.start_time)} - {formatTime(job.end_time)}</Text>
+						<Text style={[styles.salary, { color: colors.secondary }]}>{job.salary} €</Text>
+						<Text style={[styles.description, { color: "#000000" }]}>{job.description}</Text>
+						<Text style={{ color: "#000000" }}>Date: {formatDate(job.start_time)}</Text>
+						<Text style={{ color: "#000000" }}>Heure: {formatTime(job.start_time)} - {formatTime(job.end_time)}</Text>
 						
 						<View style={styles.infoRow}>
-							<Text style={{ color: colors.text, fontWeight: 'bold' }}>Adresse: </Text>
-							<Text style={{ color: colors.text }}>{job.address}</Text>
+							<Text style={{ color: "#000000", fontWeight: 'bold' }}>Adresse: </Text>
+							<Text style={{ color: "#000000" }}>{job.address}</Text>
 						</View>
 					</View>
 				</View>

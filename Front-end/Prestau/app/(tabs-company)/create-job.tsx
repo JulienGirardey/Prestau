@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Alert } from "react-native";
 dayjs.extend(customParseFormat)
+import { useQueryClient } from "@tanstack/react-query";
 
 // Hook responsive : 
 // Toutes les valeurs de l'UI sont calculées à partir de la largeur réelle
@@ -66,6 +67,7 @@ function FormField({
 function MissionCreationInner() {
 	const colors = useThemeColors();
 	const { scale, scaleFont, columns } = useResponsive();
+	const queryClient = useQueryClient();
 	const [form, setForm] = useState({
 		title: "",
 		description: "",
@@ -125,9 +127,11 @@ function MissionCreationInner() {
 				salary: parseFloat(form.salary),
 			});
 			Alert.alert("Succès", "Mission créée avec succès");
+			// Invalide les données du dashboard pour forcer le rafraîchissement
+			queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] });
 			router.push("/dashboard-company");
 		} catch (err: any) {
-			console.error('Erreur création mission:', err?.response?.data?.message);
+			console.error('Erreur création mission:', err?.message ?? err);
 		}
 	};
 
