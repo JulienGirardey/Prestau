@@ -10,7 +10,7 @@ import { CurrentUserRequest } from '../auth/interfaces/jwt-payload.interface';
 @Controller('joboffer')
 @UseGuards(JwtAuthGuard, RolesGuard) // Appliquer le guard d'authentification JWT à toutes les routes de ce contrôleur
 export class JobofferController {
-  constructor(private readonly jobofferService: JobofferService) {}
+  constructor(private readonly jobofferService: JobofferService) { }
 
   @Post(':jobId')
   @Roles(Role.WORKER) // seulement un Worker peut créer une offre d'emploi
@@ -37,8 +37,14 @@ export class JobofferController {
   }
   @Get('my-offers')
   async getMyJobOffers(@Req() req: CurrentUserRequest) {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     return this.jobofferService.findByCompany(userId);
+  }
+
+  @Get('my-applications')
+  @Roles(Role.WORKER) // Seul le worker peut récupérer ses propres candidatures
+  findMyApplications(@Req() req: CurrentUserRequest) {
+    return this.jobofferService.findMyApplications(req.user.id);
   }
 
   @Get()

@@ -25,6 +25,12 @@ export const getWorkerAvailability = async () => {
     return response; 
 
 };
+
+export const getWorkerProfile = async () => {
+	const response = await api.get('/worker/MyProfile');
+	return response.data;
+};
+
 export const updateWorkerAvailability = async (date: string, status: string) => {
     const response = await api.patch('/worker/availability', {
         date,
