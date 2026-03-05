@@ -11,7 +11,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 @Controller('job')
 @UseGuards(JwtAuthGuard) // Applique le guard d'authentification à toutes les routes de ce contrôleur
 export class JobController {
-	constructor(private readonly jobService: JobService) { }
+    constructor(private readonly jobService: JobService) { }
 
 	@Post()
 	@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company
@@ -30,10 +30,10 @@ export class JobController {
 		return this.jobService.findByUserId(req.user.id);
 	}
 
-	@Get(':id')
-	findOne(@Param('id', ParseIntPipe) id: number) {
-		return this.jobService.findOne(id);
-	}
+    @Get(':id')
+    findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
+        return this.jobService.findOne(id, req.user.id);
+    }
 
 	@Patch(':id')
 	@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company

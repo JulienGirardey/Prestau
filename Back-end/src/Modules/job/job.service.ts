@@ -56,14 +56,43 @@ export class JobService {
 		return this.prisma.job.findMany()
 	}
 
-	async findOne(id: number) {
+	async findOne(id: number, userId?: number) {
 		const job = await this.prisma.job.findUnique({
 			where: { id },
+			include: { company: true }
 		});
+
 		if (!job) {
-			throw new NotFoundException(`Job not found`);
+			throw new NotFoundException('Job not found');
 		}
-		return job;
+
+		let alreadyApplied = false;
+		let isWorker = false;
+
+		if (userId) {
+			const worker = await this.prisma.worker.findUnique({
+				where: { userId }
+			});
+
+			if (worker) {
+				isWorker = true;
+				// Vérifier si une candidature existe déjà
+				const existingOffer = await this.prisma.jobOffer.findFirst({
+					where: {
+						jobId: id,
+						workerId: worker.id
+					}
+				});
+				alreadyApplied = !!existingOffer;
+			}
+		}
+
+		return {
+			...job,
+			isWorker,
+			alreadyApplied,
+			canApply: isWorker && !alreadyApplied
+		};
 	}
 
 	async update(id: number, updateJobDto: UpdateJobDto, userId: number) {

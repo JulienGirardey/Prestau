@@ -25,9 +25,8 @@ export default function JobDetailScreen() {
     const { scale, scaleFont } = useResponsive();
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-	const router = useRouter();
-	const [isApplying, setIsApplying] = useState(false);
-
+    const router = useRouter();
+    const [isApplying, setIsApplying] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -58,16 +57,20 @@ export default function JobDetailScreen() {
     }
 
 	const handleApply = async () => {
-		setIsApplying(true);
-		try {
-			await createJobOffer(Number(id));
-			router.push('/(tabs-worker)/dashboard-worker');
-		} catch (err) {
-			console.error("Erreur lors de la candidature :", err);
-		} finally {
-			setIsApplying(false);
-		}
-	};
+        setIsApplying(true);
+        try {
+            await createJobOffer(Number(id));
+            setJob({ ...job, alreadyApplied: true, canApply: false });
+            router.push('/(tabs-worker)/dashboard-worker');
+        } catch (err: any) {
+            if (err.response?.status === 409) {
+                alert("Vous avez déjà postulé à cette offre.");
+            }
+            console.error("Erreur lors de la candidature :", err);
+        } finally {
+            setIsApplying(false);
+        }
+    };
 	
 	if (loading) {
         return (
@@ -134,11 +137,21 @@ export default function JobDetailScreen() {
                         </View>
                     </View>
                 </View>
-					<View style={styles.buttonCreateAccount}> 
-                    	<NewButton 
-                        title={isApplying ? "En cours..." : "Postuler"} 
-                        onPress={handleApply} /> 
-                    </View>
+					<View style={styles.buttonCreateAccount}>
+                    {job.isWorker && job.alreadyApplied ? (
+                        <View style={styles.alreadyAppliedBadge}>
+                            <Text style={styles.alreadyAppliedText}>
+                                Vous avez déjà postulé pour cette offre
+                            </Text>
+                        </View>
+                    ) : job.canApply ? (
+                        <NewButton 
+                            title={isApplying ? "En cours..." : "Postuler"} 
+                            onPress={handleApply}
+                            disabled={isApplying}
+                        />
+                    ) : null}
+                </View>
             </ScrollView>
         </View>
     );
@@ -155,6 +168,20 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+    },
+	alreadyAppliedText: {
+        color: "#666",
+        fontWeight: "600",
+        fontSize: 16,
+		alignSelf: "center",
+    },
+	alreadyAppliedBadge: {
+        backgroundColor: "#f0f0f0",
+        padding: 15,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        alignItems: "center",
     },
     jobHeader: {
         flexDirection: "row",

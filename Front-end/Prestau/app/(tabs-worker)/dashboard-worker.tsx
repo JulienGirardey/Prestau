@@ -44,8 +44,8 @@ export default function DashboardWorker() {
                 setBusyDays(availabilityResponse.data?.busyDays || []);
 
 				const acceptedMissions = (jobsResponse || []).filter(
-        		(offer) => offer.status === 'ACCEPTED');
-				setmisions(acceptedMissions);
+        		(offer) => offer.status === 'ACCEPTED' || offer.status === 'PENDING');
+				setMissions(acceptedMissions);
                 
             } catch (error) {
                 console.error("Erreur lors du chargement du dashboard:", error);
