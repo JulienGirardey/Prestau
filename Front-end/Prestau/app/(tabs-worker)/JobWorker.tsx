@@ -82,7 +82,7 @@ export default function MissionScreen() {
                 
                 <View style={styles.jobContent}>
                     <View style={styles.headerRow}>
-                        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+                        <Text style={[styles.title, { color: colors.primary}]} numberOfLines={1}>
                             {item.title}
                         </Text>
                         <Text style={[styles.salary, { color: colors.primary || "#007AFF" }]}>
@@ -100,15 +100,15 @@ export default function MissionScreen() {
                     )}
                     
                     <View style={styles.infoRow}>
-                        <Ionicons name="location-outline" size={14} color={colors.textSecondary || "#666"} />
+                        <Ionicons name="location-outline" size={14} color={colors.secondary || "#666"} />
                         <Text style={[styles.infoText, { color: "#666" }]} numberOfLines={1}>
                             {item.address}
                         </Text>
                     </View>
                     
                     <View style={styles.infoRow}>
-                        <Ionicons name="calendar-outline" size={14} color={colors.textSecondary || "#666"} />
-                        <Text style={[styles.infoText, { color: colors.textSecondary || "#666" }]}>
+                        <Ionicons name="calendar-outline" size={14} color={colors.secondary || "#666"} />
+                        <Text style={[styles.infoText, { color: colors.primary || "#666" }]}>
                             {formatDate(item.start_time)} • {formatTime(item.start_time)} - {formatTime(item.end_time)}
                         </Text>
                     </View>
@@ -125,7 +125,7 @@ export default function MissionScreen() {
                 <Header />
                 <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                     <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={styles.loader} />
-                    <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                    <Text style={[styles.loadingText, { color: colors.secondary }]}>
                         Chargement des missions...
                     </Text>
                 </SafeAreaView>
@@ -137,7 +137,7 @@ export default function MissionScreen() {
         <View style={{ flex: 1 }}> 
             <Header />
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={[styles.pageTitle, { color: colors.text }]}>
+                <Text style={[styles.pageTitle, { color: colors.primary }]}>
                     Missions disponibles
                 </Text>
                 
@@ -150,8 +150,8 @@ export default function MissionScreen() {
 
                 {jobs.length === 0 && !isLoading ? (
                     <View style={styles.emptyState}>
-                        <Ionicons name="briefcase-outline" size={60} color={colors.textSecondary || "#666"} />
-                        <Text style={[styles.emptyText, { color: colors.textSecondary || "#666" }]}>
+                        <Ionicons name="briefcase-outline" size={60} color={colors.secondary || "#666"} />
+                        <Text style={[styles.emptyText, { color: colors.secondary || "#666" }]}>
                             Aucune mission disponible pour le moment
                         </Text>
                     </View>

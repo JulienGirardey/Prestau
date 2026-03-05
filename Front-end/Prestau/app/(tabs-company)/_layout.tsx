@@ -29,9 +29,9 @@ export default function CompanyTabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="create-mission"
+                name="create-job"
                 options={{
-                    tabBarLabel: "Create Mission",
+                    tabBarLabel: "Create Job",
                     tabBarIcon: ({ color, size }) => (
                         <FontAwesome name="plus" color={color} size={size} />
                     ),

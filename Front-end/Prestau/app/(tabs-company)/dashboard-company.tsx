@@ -2,10 +2,11 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-n
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
-import { getMyJobs } from "@/src/api/job";
+import { getMyJobs, Job } from "@/src/api/job";
 import { useState, useEffect } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
+import { useFocusEffect } from "expo-router";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -22,14 +23,14 @@ function useResponsive() {
 
 export default function DashboardCompany() {
     const colors = useThemeColors();
-    const [jobs, setJobs] = useState([]);
     const { scale, scaleFont } = useResponsive();
+		const [jobs, setJobs] = useState<Job[]>([]);
 
-    useEffect(() => {
-        getMyJobs()
+		useFocusEffect(() => {
+			 getMyJobs()
             .then((response) => setJobs(response))
             .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
-    }, []);
+    },);
 
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>
@@ -45,7 +46,7 @@ export default function DashboardCompany() {
                     style={styles.scroll}
                     showsVerticalScrollIndicator={false}
                 >
-                    {jobs?.map((job: any) => (
+                    {jobs.map((job) => (
                         <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                             {/* Header de la carte */}
                             <View style={styles.jobHeader}>
