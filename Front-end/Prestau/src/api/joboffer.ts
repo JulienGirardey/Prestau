@@ -29,3 +29,8 @@ export const getJobOffersByCompany = async () => {
     const response = await api.get('/joboffer/my-offers');
     return response.data;
 };
+
+export const getJobOffersByWorker = async () => {
+    const response = await api.get('/joboffer/my-applications');
+    return response.data;
+};

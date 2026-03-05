@@ -145,6 +145,23 @@ export class JobofferService {
 		});
 	}
 
+	async findMyApplications(userId: number) {
+        const worker = await this.Prisma.worker.findUnique({
+            where: { userId },
+        });
+
+        if (!worker) {
+            throw new NotFoundException('Worker not found');
+        }
+
+        return this.Prisma.jobOffer.findMany({
+            where: { workerId: worker.id },
+            include: {
+                job: true,
+            },
+        });
+    }
+
 	async findAll(): Promise<JobOffer[]> {
 		return this.Prisma.jobOffer.findMany({
 			include: {
