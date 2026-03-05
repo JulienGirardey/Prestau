@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { logout } from "@/src/api/auth";
 import { router } from "expo-router";
 import { getCompanyProfile } from "@/src/api/company";
-import { getJobOffersByCompany } from "@/src/api/jobOffer";
+import { getJobOffersByCompany } from "@/src/api/joboffer";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
