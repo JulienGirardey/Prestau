@@ -7,7 +7,7 @@ import { NewButton } from "@/components/Button";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
-import { getMyJobOffers, JobOffer } from "@/src/api/joboffer";
+import { getJobOffersByWorker, JobOffer } from "@/src/api/joboffer";
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
@@ -36,7 +36,7 @@ export default function DashboardWorker() {
             setIsLoading(true);
             try {
                 // Chargement des missions
-                const jobsResponse = await getMyJobOffers();
+                const jobsResponse = await getJobOffersByWorker();
                 setMissions(jobsResponse || []);
 
                 const availabilityResponse = await getWorkerAvailability();
