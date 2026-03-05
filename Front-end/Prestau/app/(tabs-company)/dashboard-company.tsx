@@ -1,12 +1,12 @@
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions, Pressable } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { getMyJobs, Job } from "@/src/api/job";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -25,12 +25,15 @@ export default function DashboardCompany() {
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
 		const [jobs, setJobs] = useState<Job[]>([]);
+		const router = useRouter();
 
-		useFocusEffect(() => {
-			 getMyJobs()
-            .then((response) => setJobs(response))
-            .catch((error) => console.error("Erreur lors de la récupération des jobs:", error));
-    },);
+		useFocusEffect(
+    		useCallback(() => {
+        		getMyJobs()
+					.then((response) => setJobs(response))
+					.catch((error) => console.error("Erreur API:", error));
+    }, [])
+);
 
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>
@@ -48,6 +51,13 @@ export default function DashboardCompany() {
                 >
                     {jobs.map((job) => (
                         <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
+							<Pressable 
+								key={job.id}
+								onPress={() => router.push({
+									pathname: '../[id]',
+									params: { id: job.id }
+								})}
+							>
                             {/* Header de la carte */}
                             <View style={styles.jobHeader}>
                                 <Text style={[styles.jobTitle, { fontSize: scaleFont(17) }]}>{job.title}</Text>
@@ -90,6 +100,7 @@ export default function DashboardCompany() {
                                     </Text>
                                 </View>
                             </View>
+							</Pressable>
                         </View>
                     ))}
                 </ScrollView>
