@@ -75,7 +75,6 @@ export default function DashboardWorker() {
             await updateWorkerAvailability(dateStr, newStatus);
         } catch (error) {
             console.error("Erreur de mise à jour de la date", error);
-            // En cas d'erreur, ajouter la logique de rollback ici
         }
 
     };
