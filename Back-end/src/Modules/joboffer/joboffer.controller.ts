@@ -75,8 +75,13 @@ export class JobofferController {
     return this.jobofferService.findAll();
   }
 
-  @Get(":id")
-  findOne(@Param("id", ParseIntPipe) id: number) {
+  @Get('history')
+  findHistory(@Req() req: any) {
+    return this.jobofferService.findHistory(req.user.id, req.user.role);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.jobofferService.findOne(id);
   }
 
