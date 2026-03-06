@@ -1,269 +1,311 @@
 import {
-	StyleSheet,
-	Text,
-	View,
-	ActivityIndicator,
-	FlatList,
-	RefreshControl,
-	Pressable
+    StyleSheet,
+    Text,
+    View,
+    ActivityIndicator,
+    ScrollView,
+    RefreshControl,
+    Pressable,
+    useWindowDimensions,
+    SafeAreaView
 } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
-import { useState, useEffect } from "react";
-import { Ionicons } from '@expo/vector-icons';
+import { ThemedText } from "@/components/ThemedText";
 import { getJobs, Job } from "@/src/api/job";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
+
+// Hook pour la gestion de l'adaptabilité (Responsive)
+function useResponsive() {
+    const { width, height } = useWindowDimensions();
+    const scale = (size: number) => (width / 390) * size;
+    const scaleFont = (size: number) => Math.min(scale(size), size * 1.4);
+    return {
+        width,
+        height,
+        scale,
+        scaleFont,
+    };
+}
 
 export default function MissionScreen() {
-	const colors = useThemeColors();
-	const router = useRouter();
+    const colors = useThemeColors();
+    const { scale, scaleFont } = useResponsive();
+    const router = useRouter();
 
+    // Récupération des missions via React Query
+    const { data: jobs = [], isLoading: isLoadingJob, error: errorJob, refetch } = useQuery<Job[]>({
+        queryKey: ["dashboard-worker-jobs"],
+        queryFn: () => getJobs(),
+    });
 
-	const { data: job = [], isLoading: isLoadingJob, error: errorJob, refetch } = useQuery<Job[]>({
-		queryKey: ["dashboard-worker-jobs"],
-		queryFn: () => getJobs(),
-	})
-	if (isLoadingJob) return <Text>Chargement...</Text>;
-	if (errorJob) return <Text>Erreur lors de la récupération des missions</Text>;
+    // Formate la date au format français
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
 
-	// Formate la date au format français
-	const formatDate = (dateString: string) => {
-		const date = new Date(dateString);
-		return date.toLocaleDateString('fr-FR', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric'
-		});
-	};
+    // Formate l'heure au format français
+    const formatTime = (timeString: string) => {
+        const date = new Date(timeString);
+        return date.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
-	// Formate l'heure au format français
-	const formatTime = (timeString: string) => {
-		const date = new Date(timeString);
-		return date.toLocaleTimeString('fr-FR', {
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	};
+    // Affichage de l'état de chargement initial
+    if (isLoadingJob && jobs.length === 0) {
+        return (
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
+                <Header />
+                <SafeAreaView style={styles.container}>
+                    <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+                    <Text style={[styles.loadingText, { color: colors.secondary }]}>
+                        Chargement des missions...
+                    </Text>
+                </SafeAreaView>
+            </View>
+        );
+    }
 
-	// Rendu d'une carte de mission
-	const renderJobCard = ({ item }: { item: Job }) => (
-		<Pressable
-			onPress={() => {
-				router.push({
-					pathname: '../[id]',
-					params: { id: item.id }
-				});
-			}}
-		>
-			<DefaultCard style={[styles.card, { backgroundColor: "#ffffff" }]}>
-				<View style={styles.cardHeader}>
-					<View style={styles.iconContainer}>
-						<Ionicons name="briefcase" size={40} color={colors.primary || "#007AFF"} />
-						{item.status === 'OPEN' && <View style={styles.openBadge} />}
-					</View>
+    return (
+        <View style={[styles.page, { backgroundColor: colors.background }]}>
+            <Header />
+            <ThemedText
+                variant="headline"
+                color="primary"
+                style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>
+                Missions disponibles
+            </ThemedText>
+            
+            <DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
+                <ScrollView
+                    style={styles.scroll}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isLoadingJob}
+                            onRefresh={refetch}
+                            tintColor={colors.primary}
+                        />
+                    }
+                >
+                    {errorJob && (
+                        <View style={styles.errorContainer}>
+                            <Ionicons name="alert-circle" size={20} color="#fff" />
+                            <Text style={styles.errorText}>Erreur lors de la récupération des missions</Text>
+                        </View>
+                    )}
 
-					<View style={styles.jobContent}>
-						<View style={styles.headerRow}>
-							<Text style={[styles.title, { color: colors.primary }]} numberOfLines={1}>
-								{item.title}
-							</Text>
-							<Text style={[styles.salary, { color: colors.primary || "#007AFF" }]}>
-								{item.salary}€/h
-							</Text>
-						</View>
+                    {jobs.length === 0 && !isLoadingJob ? (
+                        <View style={styles.emptyState}>
+                            <Ionicons name="briefcase-outline" size={60} color={colors.secondary || "#666"} />
+                            <Text style={[styles.emptyText, { color: colors.secondary || "#666" }]}>
+                                Aucune mission disponible pour le moment
+                            </Text>
+                        </View>
+                    ) : (
+                        jobs.map((job) => (
+                            <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
+                                <Pressable 
+                                    onPress={() => router.push({
+                                        pathname: '/[id]', // Chemin corrigé pour Expo Router
+                                        params: { id: job.id }
+                                    })}
+                                >
+                                    {/* Header de la carte */}
+                                    <View style={styles.jobHeader}>
+                                        <Text style={[styles.jobTitle, { fontSize: scaleFont(17) }]}>{job.title}</Text>
+                                        <View style={styles.salaryBadge}>
+                                            <Text style={[styles.salaryText, { fontSize: scaleFont(13) }]}>{job.salary}€</Text>
+                                        </View>
+                                    </View>
 
-						{item.description && (
-							<Text
-								style={[styles.description, { color: "#666" }]}
-								numberOfLines={1}
-							>
-								{item.description}
-							</Text>
-						)}
+                                    {/* Adresse */}
+                                    <View style={styles.addressRow}>
+                                        <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
+                                        <Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
+                                    </View>
 
-						<View style={styles.infoRow}>
-							<Ionicons name="location-outline" size={14} color={colors.secondary || "#666"} />
-							<Text style={[styles.infoText, { color: "#666" }]} numberOfLines={1}>
-								{item.address}
-							</Text>
-						</View>
+                                    {/* Description */}
+                                    {job.description && (
+                                        <View style={{ marginTop: 4 }}>
+                                            <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
+                                            <Text
+                                                style={[styles.jobDescription, { fontSize: scaleFont(13) }]}
+                                                numberOfLines={2}
+                                            >
+                                                {job.description}
+                                            </Text>
+                                        </View>
+                                    )}
 
-						<View style={styles.infoRow}>
-							<Ionicons name="calendar-outline" size={14} color={colors.secondary || "#666"} />
-							<Text style={[styles.infoText, { color: colors.primary || "#666" }]}>
-								{formatDate(item.start_time)} • {formatTime(item.start_time)} - {formatTime(item.end_time)}
-							</Text>
-						</View>
-					</View>
-				</View>
-			</DefaultCard>
-		</Pressable>
-	);
+                                    {/* Séparateur */}
+                                    <View style={styles.separator} />
 
-	// Affichage du chargement
-	if (isLoadingJob && job.length === 0) {
-		return (
-			<View style={{ flex: 1 }}>
-				<Header />
-				<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-					<ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={styles.loader} />
-					<Text style={[styles.loadingText, { color: colors.secondary }]}>
-						Chargement des missions...
-					</Text>
-				</SafeAreaView>
-			</View>
-		);
-	}
-
-	return (
-		<View style={{ flex: 1 }}>
-			<Header />
-			<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-				<Text style={[styles.pageTitle, { color: colors.primary }]}>
-					Missions disponibles
-				</Text>
-
-				{errorJob && (
-					<View style={styles.errorContainer}>
-						<Ionicons name="alert-circle" size={20} color="#fff" />
-						<Text style={styles.errorText}>{errorJob}</Text>
-					</View>
-				)}
-
-				{job.length === 0 && !isLoadingJob ? (
-					<View style={styles.emptyState}>
-						<Ionicons name="briefcase-outline" size={60} color={colors.secondary || "#666"} />
-						<Text style={[styles.emptyText, { color: colors.secondary || "#666" }]}>
-							Aucune mission disponible pour le moment
-						</Text>
-					</View>
-				) : (
-					<FlatList
-						data={job}
-						renderItem={renderJobCard}
-						keyExtractor={(item) => item.id.toString()}
-						showsVerticalScrollIndicator={false}
-						contentContainerStyle={styles.listContent}
-						refreshControl={
-							<RefreshControl
-								refreshing={isLoadingJob}
-								onRefresh={refetch}
-								tintColor={colors.primary}
-							/>
-						}
-					/>
-				)}
-			</SafeAreaView>
-		</View>
-	);
+                                    {/* Dates et Horaires */}
+                                    <View style={styles.dateRow}>
+                                        <View style={styles.dateItem}>
+                                            <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
+                                            <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+                                                {formatDate(job.start_time)}
+                                            </Text>
+                                            <Text style={{ fontSize: scaleFont(10), color: '#666' }}>{formatTime(job.start_time)}</Text>
+                                        </View>
+                                        <View style={styles.dateSeparator} />
+                                        <View style={styles.dateItem}>
+                                            <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
+                                            <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+                                                {formatDate(job.end_time)}
+                                            </Text>
+                                            <Text style={{ fontSize: scaleFont(10), color: '#666' }}>{formatTime(job.end_time)}</Text>
+                                        </View>
+                                    </View>
+                                </Pressable>
+                            </View>
+                        ))
+                    )}
+                </ScrollView>
+            </DefaultCard>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 20,
-	},
-	pageTitle: {
-		fontSize: 24,
-		fontWeight: "bold",
-		marginBottom: 20,
-		textAlign: "center",
-	},
-	loader: {
-		marginTop: 50,
-	},
-	loadingText: {
-		textAlign: 'center',
-		marginTop: 12,
-		fontSize: 14,
-	},
-	listContent: {
-		paddingBottom: 20,
-	},
-	card: {
-		marginBottom: 15,
-		width: '100%',
-	},
-	cardHeader: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		gap: 12,
-	},
-	iconContainer: {
-		position: 'relative',
-		paddingTop: 5,
-	},
-	openBadge: {
-		position: 'absolute',
-		top: 5,
-		right: -2,
-		width: 12,
-		height: 12,
-		borderRadius: 6,
-		backgroundColor: '#4CAF50',
-		borderWidth: 2,
-		borderColor: '#fff',
-	},
-	jobContent: {
-		flex: 1,
-	},
-	headerRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 4,
-	},
-	title: {
-		fontSize: 16,
-		fontWeight: "600",
-		flex: 1,
-		marginRight: 8,
-	},
-	salary: {
-		fontSize: 16,
-		fontWeight: "700",
-	},
-	description: {
-		fontSize: 14,
-		marginBottom: 8,
-	},
-	infoRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginTop: 4,
-		gap: 6,
-	},
-	infoText: {
-		fontSize: 13,
-		flex: 1,
-	},
-	emptyState: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginTop: 100,
-	},
-	emptyText: {
-		fontSize: 16,
-		marginTop: 12,
-		textAlign: 'center',
-	},
-	errorContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 8,
-		padding: 12,
-		borderRadius: 8,
-		marginBottom: 16,
-		backgroundColor: '#FF3B30',
-	},
-	errorText: {
-		color: '#fff',
-		fontSize: 14,
-		flex: 1,
-	},
+    container: {
+        flex: 1,
+        padding: 20,
+    },
+    page: {
+        flex: 1,
+    },
+    pageTitle: {
+        fontWeight: "bold",
+        textAlign: "center",
+    },
+    loader: {
+        marginTop: 50,
+    },
+    loadingText: {
+        textAlign: 'center',
+        marginTop: 12,
+        fontSize: 14,
+    },
+    card: {
+        flex: 1,
+        alignSelf: "stretch",
+    },
+    scroll: {
+        flex: 1,
+        paddingHorizontal: 10,
+    },
+    jobCard: {
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    jobHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    jobTitle: {
+        fontWeight: "bold",
+        flex: 1,
+        marginRight: 10,
+    },
+    salaryBadge: {
+        backgroundColor: "#4a90d9",
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 20,
+    },
+    salaryText: {
+        color: "#fff",
+        fontWeight: "600",
+    },
+    jobDescription: {
+        color: "#666",
+        lineHeight: 20,
+    },
+    separator: {
+        height: 1,
+        backgroundColor: "#e0e0e0",
+        marginVertical: 10,
+    },
+    dateRow: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    dateItem: {
+        flex: 1,
+        alignItems: "center",
+    },
+    dateLabel: {
+        color: "#999",
+        fontWeight: "500",
+        marginBottom: 2,
+    },
+    dateValue: {
+        color: "#333",
+        fontWeight: "600",
+    },
+    dateSeparator: {
+        width: 1,
+        height: 30,
+        backgroundColor: "#e0e0e0",
+    },
+    addressRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    addressTitle: {
+        marginRight: 6,
+        fontWeight: "500",
+    },
+    addressText: {
+        color: "#888",
+        fontStyle: "italic",
+    },
+    emptyState: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 60,
+    },
+    emptyText: {
+        fontSize: 16,
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+        backgroundColor: '#FF3B30',
+    },
+    errorText: {
+        color: '#fff',
+        fontSize: 14,
+        flex: 1,
+    },
 });
