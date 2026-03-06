@@ -61,6 +61,7 @@ export default function DashboardCompany() {
                                     pathname: '/[id]',
                                     params: { id: job.id }
                                 })}
+								style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
 							>
 							{/* Header de la carte */}
 							<View style={styles.jobHeader}>

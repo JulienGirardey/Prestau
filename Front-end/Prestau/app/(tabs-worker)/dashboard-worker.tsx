@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, FlatList } from "react-native";
+import { ScrollView, StyleSheet, Text, View, FlatList, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
@@ -9,6 +9,7 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
 import { JobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
@@ -22,6 +23,7 @@ LocaleConfig.defaultLocale = 'fr';
 
 export default function DashboardWorker() {
     const colors = useThemeColors();
+	const router = useRouter();
 
     // Récupération des disponibilités via React Query
     const { data: availability, isLoading: isLoadingAvailability, error: errorAvailability } = useQuery({
@@ -126,7 +128,7 @@ export default function DashboardWorker() {
 	};
 
 	// COMPOSANT DE CARTE EXTERNALISÉ : pour éviter la duplication de code
-	const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
+const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
     const getBorderColor = (status: string) => {
         if (status === 'PENDING') return '#FF9500';
         if (status === 'ACCEPTED') return '#34C759';
@@ -134,23 +136,33 @@ export default function DashboardWorker() {
     };
 
     return (
-        <View style={[
-            styles.innerMissionCard,
-            { 
-                borderColor: getBorderColor(item.status), 
-                borderWidth: 4.5,
-            }
-        ]}>
-            <Text style={styles.missionTitle}>{item.job.title}</Text>
-            <Text style={styles.missionDate}>
-                {formatMissionDate(item.job.start_time, item.job.end_time)}
-            </Text>
-            <Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text>
-            <Text style={styles.missionAddress}>📍 {item.job.address}</Text>
-            <Text style={styles.missionStatus}>Statut: {item.status}</Text>
-        </View>
+        <Pressable 
+            onPress={() => {
+                router.push({
+                    pathname: '/[id]', 
+                    params: { id: item.job.id }
+                });
+            }}
+            style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+        >
+            <View style={[
+                styles.innerMissionCard,
+                { 
+                    borderColor: getBorderColor(item.status), 
+                    borderWidth: 4.5,
+                }
+            ]}>
+                <Text style={styles.missionTitle}>{item.job.title}</Text>
+                <Text style={styles.missionDate}>
+                    {formatMissionDate(item.job.start_time, item.job.end_time)}
+                </Text>
+                <Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text>
+                <Text style={styles.missionAddress}>📍 {item.job.address}</Text>
+                <Text style={styles.missionStatus}>Statut: {item.status}</Text>
+            </View>
+        </Pressable>
     );
-}, []);
+}, [router]);
 
     if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
 	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
@@ -167,7 +179,7 @@ export default function DashboardWorker() {
 
 					{ /* MISSIONS À VENIR */}
 					<DefaultCard style={styles.cardWrapper}>
-                        <Text style={styles.titleCard}>Missions à venir</Text>
+                        <Text style={styles.titleCard}>Missions</Text>
                         {joboffers.length === 0 ? (
                             <Text style={styles.emptyText}>Aucune mission pour le moment</Text>
                         ) : (
@@ -219,10 +231,6 @@ export default function DashboardWorker() {
                             </View>
                         </View>
                     </DefaultCard>
-
-                    <View style={styles.buttonCreateAccount}>
-                        <NewButton title="Avis Professionnels" onPress={() => console.log("Avis cliqué")} />
-                    </View>
                 </ScrollView>
             </SafeAreaView>
         </View>
