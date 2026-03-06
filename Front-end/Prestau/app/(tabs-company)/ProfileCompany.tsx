@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, useWindowDimensions } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, useWindowDimensions, Modal } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
@@ -8,7 +8,8 @@ import { useState, useEffect } from "react";
 import { logout } from "@/src/api/auth";
 import { router } from "expo-router";
 import { getCompanyProfile } from "@/src/api/company";
-import { getJobOffersByCompany } from "@/src/api/joboffer";
+import { getJobOffersByCompany, getMissionHistory } from "@/src/api/joboffer";
+import { MissionHistory } from "@/components/MissionHistory";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -33,6 +34,8 @@ export default function ProfileCompany() {
     const { scale, scaleFont } = useResponsive();
     const [profile, setProfile] = useState<CompanyProfile | null>(null);
     const [jobCount, setJobCount] = useState(0);
+    const [history, setHistory] = useState<any[]>([]);
+    const [showHistory, setShowHistory] = useState(false);
 
     useEffect(() => {
         // Simuler le chargement des données du profil
@@ -52,11 +55,6 @@ export default function ProfileCompany() {
         // Navigation vers les paramètres
     };
 
-    const handleVacationMode = () => {
-        console.log("Mode vacances");
-        // Toggle mode vacances
-    };
-
     useEffect(() => {
         if (profile?.id) {
             getJobOffersByCompany()
@@ -65,12 +63,16 @@ export default function ProfileCompany() {
                     setJobCount(completed.length);
                 })
                 .catch((error) => console.error("Erreur lors de la récupération du nombre de missions:", error));
+            
+            getMissionHistory()
+            .then((data) => setHistory(data))
+            .catch((error) => console.error("Erreur lors de la récupération de l'historique des missions:", error));
         }
     }, [profile?.id]);
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>
             <Header />
-            
+
             <ThemedText
                 variant="headline"
                 color="primary"
@@ -78,7 +80,7 @@ export default function ProfileCompany() {
                 Profile
             </ThemedText>
 
-            <DefaultCard style={[styles.profileCard, { 
+            <DefaultCard style={[styles.profileCard, {
                 marginHorizontal: scale(25),
                 marginTop: scale(20),
                 marginBottom: scale(15),
@@ -89,7 +91,7 @@ export default function ProfileCompany() {
                     <View style={styles.avatarContainer}>
                         <Ionicons name="person-circle" size={scale(80)} color="#fff" />
                     </View>
-                    
+
                     <View style={styles.profileInfo}>
                         <Text style={[styles.profileName, { fontSize: scaleFont(24) }]}>
                             {profile?.companyName}
@@ -107,32 +109,34 @@ export default function ProfileCompany() {
                             {jobCount} Missions
                         </Text>
                     </View>
-                    
+
                     <View style={styles.statItem}>
                         <Ionicons name="star" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {} Évaluation
+                            { } Évaluation
                         </Text>
                     </View>
-                    
+
                     <View style={styles.statItem}>
                         <Ionicons name="calendar" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {} Année sur l&apos;app
+                            { } Année sur l&apos;app
                         </Text>
                     </View>
                 </View>
             </DefaultCard>
 
             <View style={[styles.actionsContainer, { marginHorizontal: scale(25) }]}>
-                <ThemedText
-                    variant="body3"
-                    color="primary"
-                    style={[styles.sectionTitle, { fontSize: scaleFont(20), marginBottom: scale(15), paddingTop: scale(5) }]}>
-                    Missions passées : ...
-                </ThemedText>
+                <TouchableOpacity
+                    style={[styles.actionButton, styles.historyButton, { marginBottom: scale(15) }]}
+                    onPress={() => setShowHistory(true)}>
+                    <Ionicons name="time-outline" size={scale(20)} color="#fff" style={{ marginRight: scale(10) }} />
+                    <Text style={[styles.buttonText, { fontSize: scaleFont(18) }]}>
+                        Historique des missions
+                    </Text>
+                </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[styles.actionButton, styles.settingsButton, { marginBottom: scale(15) }]}
                     onPress={handleSettings}>
                     <Text style={[styles.buttonText, { fontSize: scaleFont(18) }]}>
@@ -140,15 +144,7 @@ export default function ProfileCompany() {
                     </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
-                    style={[styles.actionButton, styles.vacationButton, { marginBottom: scale(15) }]}
-                    onPress={handleVacationMode}>
-                    <Text style={[styles.buttonText, { fontSize: scaleFont(18) }]}>
-                        Mode vacance
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[styles.actionButton, styles.logoutButton]}
                     onPress={handleLogout}>
                     <Text style={[styles.buttonText, { fontSize: scaleFont(18) }]}>
@@ -156,6 +152,29 @@ export default function ProfileCompany() {
                     </Text>
                 </TouchableOpacity>
             </View>
+
+            <Modal
+                visible={showHistory}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowHistory(false)}
+            >
+                <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                    <View style={styles.modalHeader}>
+                        <ThemedText
+                            variant="headline"
+                            color="primary"
+                            style={{ fontSize: scaleFont(24), fontWeight: "bold" }}>
+                            Missions passées
+                        </ThemedText>
+                        <TouchableOpacity onPress={() => setShowHistory(false)}>
+                            <Ionicons name="close-circle" size={scale(32)} color={colors.primary} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <MissionHistory missions={history} role="WORKER" />
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -220,11 +239,11 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
+    historyButton: {
+        backgroundColor: "#C9A961",
+    },
     settingsButton: {
         backgroundColor: "#8B9DC3",
-    },
-    vacationButton: {
-        backgroundColor: "#C9A961",
     },
     logoutButton: {
         backgroundColor: "#D86B6B",
@@ -232,5 +251,16 @@ const styles = StyleSheet.create({
     buttonText: {
         color: "#fff",
         fontWeight: "600",
+    },
+    modalContainer: {
+        flex: 1,
+        paddingTop: 60,
+    },
+    modalHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        marginBottom: 20,
     },
 });
