@@ -68,7 +68,7 @@ export default function MissionScreen() {
                 <Header />
                 <SafeAreaView style={styles.container}>
                     <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
-                    <Text style={[styles.loadingText, { color: colors.secondary }]}>
+                    <Text style={[styles.loadingText, { color: "#666" }]}>
                         Chargement des missions...
                     </Text>
                 </SafeAreaView>
@@ -107,8 +107,8 @@ export default function MissionScreen() {
 
                     {jobs.length === 0 && !isLoadingJob ? (
                         <View style={styles.emptyState}>
-                            <Ionicons name="briefcase-outline" size={60} color={colors.secondary || "#666"} />
-                            <Text style={[styles.emptyText, { color: colors.secondary || "#666" }]}>
+                            <Ionicons name="briefcase-outline" size={60} color={"#666"} />
+                            <Text style={[styles.emptyText, { color: "#666" }]}>
                                 Aucune mission disponible pour le moment
                             </Text>
                         </View>

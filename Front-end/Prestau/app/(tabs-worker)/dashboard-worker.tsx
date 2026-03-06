@@ -126,17 +126,31 @@ export default function DashboardWorker() {
 	};
 
 	// COMPOSANT DE CARTE EXTERNALISÉ : pour éviter la duplication de code
-	const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => (
-		<View style={styles.innerMissionCard}>
-			<Text style={styles.missionTitle}>{item.job.title}</Text>
-			<Text style={styles.missionDate}>
-				{formatMissionDate(item.job.start_time, item.job.end_time)}
-			</Text>
-			<Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text>
-			<Text style={styles.missionAddress}>📍 {item.job.address}</Text>
-			<Text style={styles.missionStatus}>Statut: {item.status}</Text>
-		</View>
-	), []);
+	const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
+    const getBorderColor = (status: string) => {
+        if (status === 'PENDING') return '#FF9500';
+        if (status === 'ACCEPTED') return '#34C759';
+        return '#E5E5E5';
+    };
+
+    return (
+        <View style={[
+            styles.innerMissionCard,
+            { 
+                borderColor: getBorderColor(item.status), 
+                borderWidth: 4.5,
+            }
+        ]}>
+            <Text style={styles.missionTitle}>{item.job.title}</Text>
+            <Text style={styles.missionDate}>
+                {formatMissionDate(item.job.start_time, item.job.end_time)}
+            </Text>
+            <Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text>
+            <Text style={styles.missionAddress}>📍 {item.job.address}</Text>
+            <Text style={styles.missionStatus}>Statut: {item.status}</Text>
+        </View>
+    );
+}, []);
 
     if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
 	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
@@ -216,39 +230,85 @@ export default function DashboardWorker() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    body: { flex: 1 },
-    scrollContent: { alignItems: "center", gap: 20, paddingBottom: 40 },
-    cardWrapper: { width: "95%" },
-    flatListContent: { paddingVertical: 10, paddingHorizontal: 45, gap: 10 },
-    buttonCreateAccount: { marginTop: 20, paddingBottom: 20, width: "100%", paddingHorizontal: 10 },
-    titleCard: { fontSize: 25, textAlign: "center", color: "#F5F2D9", marginTop: -10 },
-    emptyText: { color: "#F5F2D9", textAlign: "center", marginTop: 15, fontSize: 16 },
-    innerMissionCard: {
-        backgroundColor: "#F5F2D9",
-        borderRadius: 15,
-        padding: 15,
-        marginVertical: 8,
-        width: 260,
-        alignSelf: "center",
-        alignItems: "center",
+  container: { flex: 1 },
+  body: { flex: 1 },
+  scrollContent: { alignItems: "center", gap: 20, paddingBottom: 40 },
+  cardWrapper: { width: "95%" },
+  flatListContent: { paddingVertical: 10, paddingHorizontal: 45, gap: 10 },
+  buttonCreateAccount: {
+    marginTop: 20,
+    paddingBottom: 20,
+    width: "100%",
+    paddingHorizontal: 10,
+  },
+  missionCard: {
+        borderRadius: 8,
+        padding: 16,
+        marginRight: 12,
     },
-    missionTitle: { color: "#264D84", fontSize: 18, fontWeight: "bold", textAlign: "center", marginBottom: 5 },
-    missionDate: { color: "#264D84", fontSize: 14, textAlign: "center", marginBottom: 3 },
-    missionSalary: { color: "#264D84", fontSize: 14, textAlign: "center", fontWeight: "600" },
-    missionAddress: { color: "#555", fontSize: 12, textAlign: "center", marginTop: 5 },
-    missionStatus: { color: "#264D84", fontSize: 14, textAlign: "center", fontWeight: "600" },
-    calendarWrapper: { marginTop: 10, width: "100%", paddingHorizontal: 5 },
-    legendContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 15,
-        paddingHorizontal: 10,
-        borderTopWidth: 1,
-        borderTopColor: "rgba(245, 242, 217, 0.2)",
-        paddingTop: 10,
-    },
-    legendItem: { flexDirection: "row", alignItems: "center" },
-    legendDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
-    legendText: { color: "#F5F2D9", fontSize: 12, fontWeight: "500" },
+  titleCard: {
+    fontSize: 25,
+    textAlign: "center",
+    color: "#F5F2D9",
+    marginTop: -10,
+  },
+  emptyText: {
+    color: "#F5F2D9",
+    textAlign: "center",
+    marginTop: 15,
+    fontSize: 16,
+  },
+  innerMissionCard: {
+    backgroundColor: "#F5F2D9",
+    borderRadius: 15,
+    padding: 15,
+    marginVertical: 8,
+    width: 260,
+    alignSelf: "center",
+    alignItems: "center",
+  },
+  missionTitle: {
+    color: "#264D84",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  missionDate: {
+    color: "#264D84",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 3,
+  },
+  missionSalary: {
+    color: "#264D84",
+    fontSize: 14,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  missionAddress: {
+    color: "#555",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 5,
+  },
+  missionStatus: {
+    color: "#264D84",
+    fontSize: 14,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  calendarWrapper: { marginTop: 10, width: "100%", paddingHorizontal: 5 },
+  legendContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 15,
+    paddingHorizontal: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(245, 242, 217, 0.2)",
+    paddingTop: 10,
+  },
+  legendItem: { flexDirection: "row", alignItems: "center" },
+  legendDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
+  legendText: { color: "#F5F2D9", fontSize: 12, fontWeight: "500" },
 });
