@@ -25,6 +25,11 @@ export const getMyJobOffers = async (): Promise<JobOffer[]> => {
 	return response.data;
 };
 
+export const getMissionHistory = async () => {
+    const response = await api.get('/joboffer/history');
+    return response.data;
+};
+
 export const getJobOffersByCompany = async () => {
     const response = await api.get('/joboffer/my-offers');
     return response.data;

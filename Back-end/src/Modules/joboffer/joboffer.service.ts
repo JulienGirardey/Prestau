@@ -171,6 +171,55 @@ export class JobofferService {
 		});
 	}
 
+	async findHistory(userId: number, role: string): Promise<JobOffer[]> {
+		if (role === 'WORKER') {
+			const worker = await this.Prisma.worker.findUnique({
+				where: { userId },
+			});
+
+			if (!worker) {
+				throw new NotFoundException('Worker not found');
+			}
+
+			return this.Prisma.jobOffer.findMany({
+				where: {
+					workerId: worker.id,
+					status: 'COMPLETED',
+				},
+				include: {
+					job: {
+						include: { company: true },
+					},
+				},
+				orderBy: { updatedAt: 'desc' },
+			});
+		}
+		
+		if (role === 'COMPANY') {
+			const company = await this.Prisma.company.findUnique({
+				where: { userId },
+			});
+
+			if (!company) {
+				throw new NotFoundException('Company not found');
+			}
+
+			return this.Prisma.jobOffer.findMany({
+				where: {
+					job: { companyId: company.id },
+					status: 'COMPLETED',
+				},
+				include: {
+					job: true,
+					worker: true,
+				},
+				orderBy: { updatedAt: 'desc' },
+			});
+		}
+
+		return [];
+	}
+
 	async findOne(id: number): Promise<JobOffer> {
 		const jobOffer = await this.Prisma.jobOffer.findUnique({
 			where: { id },
