@@ -34,13 +34,12 @@ export default function DashboardWorker() {
 		queryFn: () => getJobOffersByWorker(),
 	});
 
-	if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
-	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
-
-
 	// --- ÉTATS DU CALENDRIER (garde les states pour la mise à jour optimiste) ---
 	const [freeDays, setFreeDays] = useState<string[]>(availability?.data?.freeDays ?? []);
 	const [busyDays, setBusyDays] = useState<string[]>(availability?.data?.busyDays ?? []);
+
+	if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
+	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
 
 	// --- LOGIQUE DU CALENDRIER ---
 	// Envoi des données à la BDD au clic sur un jour (Changement de statut : Disponible -> Occupé -> Neutre)
