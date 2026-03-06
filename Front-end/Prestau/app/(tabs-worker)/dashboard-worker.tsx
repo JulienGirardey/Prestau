@@ -38,9 +38,6 @@ export default function DashboardWorker() {
 	const [freeDays, setFreeDays] = useState<string[]>(availability?.data?.freeDays ?? []);
 	const [busyDays, setBusyDays] = useState<string[]>(availability?.data?.busyDays ?? []);
 
-	if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
-	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
-
 	// --- LOGIQUE DU CALENDRIER ---
 	// Envoi des données à la BDD au clic sur un jour (Changement de statut : Disponible -> Occupé -> Neutre)
 	const handleDayPress = async (day: any) => {
@@ -135,6 +132,9 @@ export default function DashboardWorker() {
 			<Text style={styles.missionStatus}>Statut: {item.status}</Text>
 		</View>
 	), []);
+
+    if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
+	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
 
 	// --- RENDU UI ---
 	return (
