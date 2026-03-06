@@ -1,12 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getJobById } from "@/src/api/job";
-import { createJobOffer } from "@/src/api/joboffer";
+import { createJobOffer, deleteJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 
+// Hook pour la gestion du design adaptatif
 function useResponsive() {
     const { width, height } = useWindowDimensions();
     const scale = (size: number) => (width / 390) * size;
@@ -23,22 +24,58 @@ export default function JobDetailScreen() {
     const { id } = useLocalSearchParams();
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
+    const router = useRouter();
+
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
     const [isApplying, setIsApplying] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false); // État pour l'annulation
 
-    useEffect(() => {
-        if (id) {
-            setLoading(true);
-            getJobById(Number(id))
-                .then((data) => {
-                    setJob(data);
-                })
-                .catch((err) => console.error("Error :", err))
-                .finally(() => setLoading(false));
+    // Récupération des détails de la mission
+    const fetchJobDetails = useCallback(() => {
+		setLoading(true);
+		getJobById(Number(id))
+			.then((data) => setJob(data))
+			.catch((err) => console.error(err))
+			.finally(() => setLoading(false));
+	}, [id]);
+
+	useEffect(() => {
+		if (id) {
+			fetchJobDetails();
+		}
+	}, [id, fetchJobDetails]);
+
+    // Fonction pour postuler à une mission
+    const handleApply = async () => {
+        setIsApplying(true);
+        try {
+            await createJobOffer(Number(id));
+            // Mise à jour locale pour un retour visuel immédiat
+            setJob({ ...job, alreadyApplied: true, canApply: false });
+			router.push('/(tabs-worker)/dashboard-worker');
+        } catch (err: any) {
+            console.error("Erreur lors de la candidature :", err);
+            Alert.alert("Erreur", "Impossible de postuler à cette offre.");
+        } finally {
+            setIsApplying(false);
         }
-    }, [id]);
+    };
+
+    // Fonction pour annuler la candidature
+    const handleCancelApply = async () => {
+        setIsCancelling(true);
+        try {
+            await deleteJobOffer(Number(id));
+            setJob({ ...job, alreadyApplied: false, canApply: true });
+			router.push('/(tabs-worker)/dashboard-worker');
+        } catch (err: any) {
+            console.error("Erreur lors de l'annulation :", err);
+            Alert.alert("Erreur", "Impossible d'annuler la candidature.");
+        } finally {
+            setIsCancelling(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -51,47 +88,15 @@ export default function JobDetailScreen() {
     if (!job) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={{ color: "#000000" }}>Job non trouve</Text>
-            </View>
-        );
-    }
-
-	const handleApply = async () => {
-        setIsApplying(true);
-        try {
-            await createJobOffer(Number(id));
-            setJob({ ...job, alreadyApplied: true, canApply: false });
-            router.push('/(tabs-worker)/dashboard-worker');
-        } catch (err: any) {
-            if (err.response?.status === 409) {
-                alert("Vous avez déjà postulé à cette offre.");
-            }
-            console.error("Erreur lors de la candidature :", err);
-        } finally {
-            setIsApplying(false);
-        }
-    };
-	
-	if (loading) {
-        return (
-            <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (!job) {
-        return (
-            <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={{ color: colors.text }}>Job non trouvé</Text>
+                <Text style={{ color: colors.text }}>Mission non trouvée</Text>
             </View>
         );
     }
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
             <Header />
-            <ScrollView style={[styles.main, { backgroundColor: colors.background }]}>
+            <ScrollView style={styles.main}>
                 <View style={[styles.jobCard, { backgroundColor: 'white', margin: scale(25) }]}>
                     {/* Header de la carte */}
                     <View style={styles.jobHeader}>
@@ -108,20 +113,20 @@ export default function JobDetailScreen() {
                     </View>
 
                     {/* Description */}
-                    <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
+                    <Text style={[styles.addressTitle, { fontSize: scaleFont(14), marginTop: 10 }]}>Description:</Text>
                     <Text style={[styles.jobDescription, { fontSize: scaleFont(13) }]}>{job.description}</Text>
 
                     {/* Séparateur */}
                     <View style={styles.separator} />
 
-                    {/* Dates */}
+                    {/* Dates et Horaires */}
                     <View style={styles.dateRow}>
                         <View style={styles.dateItem}>
                             <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
                             <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
                                 {new Date(job.start_time).toLocaleDateString('fr-FR')}
                             </Text>
-                            <Text style={[styles.dateValue, { fontSize: scaleFont(11), color: "#666" }]}>
+                            <Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>
                                 {new Date(job.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                         </View>
@@ -131,26 +136,44 @@ export default function JobDetailScreen() {
                             <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
                                 {new Date(job.end_time).toLocaleDateString('fr-FR')}
                             </Text>
-                            <Text style={[styles.dateValue, { fontSize: scaleFont(11), color: "#666" }]}>
+                            <Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>
                                 {new Date(job.end_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                         </View>
                     </View>
                 </View>
-					<View style={styles.buttonCreateAccount}>
-                    {job.isWorker && job.alreadyApplied ? (
-                        <View style={styles.alreadyAppliedBadge}>
-                            <Text style={styles.alreadyAppliedText}>
-                                Vous avez déjà postulé pour cette offre
-                            </Text>
-                        </View>
-                    ) : job.canApply ? (
-                        <NewButton 
-                            title={isApplying ? "En cours..." : "Postuler"} 
-                            onPress={handleApply}
-                            disabled={isApplying}
-                        />
-                    ) : null}
+
+                {/* Section des boutons d'action */}
+                <View style={styles.buttonContainer}>
+                    {job.isWorker && (
+                        <>
+                            {job.alreadyApplied ? (
+                                <View>
+                                    <View style={styles.alreadyAppliedBadge}>
+                                        <Text style={styles.alreadyAppliedText}>
+                                            Vous avez déjà postulé pour cette offre
+                                        </Text>
+                                    </View>
+                                    {/* Bouton pour ANNULER la candidature */}
+                                    <View style={{ marginTop: 15 }}>
+                                        <NewButton 
+                                            title={isCancelling ? "Annulation..." : "Annuler ma candidature"} 
+                                            onPress={handleCancelApply}
+                                            disabled={isCancelling}
+                                            // Style rouge pour l'annulation
+                                            style={{ backgroundColor: '#FF3B30' }} 
+                                        />
+                                    </View>
+                                </View>
+                            ) : job.canApply ? (
+                                <NewButton 
+                                    title={isApplying ? "En cours..." : "Postuler"} 
+                                    onPress={handleApply}
+                                    disabled={isApplying}
+                                />
+                            ) : null}
+                        </>
+                    )}
                 </View>
             </ScrollView>
         </View>
@@ -169,20 +192,6 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
-	alreadyAppliedText: {
-        color: "#666",
-        fontWeight: "600",
-        fontSize: 16,
-		alignSelf: "center",
-    },
-	alreadyAppliedBadge: {
-        backgroundColor: "#f0f0f0",
-        padding: 15,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: "#ccc",
-        alignItems: "center",
-    },
     jobHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -193,6 +202,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         flex: 1,
         marginRight: 10,
+        color: "#264D84"
     },
     salaryBadge: {
         backgroundColor: "#4a90d9",
@@ -207,12 +217,24 @@ const styles = StyleSheet.create({
     jobDescription: {
         color: "#666",
         lineHeight: 20,
-        marginBottom: 10,
+    },
+    addressRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    addressTitle: {
+        marginRight: 6,
+        fontWeight: "600",
+    },
+    addressText: {
+        color: "#888",
+        fontStyle: "italic",
     },
     separator: {
         height: 1,
         backgroundColor: "#e0e0e0",
-        marginVertical: 10,
+        marginVertical: 15,
     },
     dateRow: {
         flexDirection: "row",
@@ -231,27 +253,31 @@ const styles = StyleSheet.create({
         color: "#333",
         fontWeight: "600",
     },
+    timeText: {
+        color: "#666",
+    },
     dateSeparator: {
         width: 1,
-        height: 30,
+        height: 40,
         backgroundColor: "#e0e0e0",
     },
-    addressRow: {
-        flexDirection: "row",
+    buttonContainer: {
+        width: "100%",
+        paddingHorizontal: "6.5%",
+        paddingBottom: 30,
+    },
+    alreadyAppliedBadge: {
+        backgroundColor: "#f0f0f0",
+        padding: 15,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#ccc",
         alignItems: "center",
-        marginBottom: 8,
     },
-    addressTitle: {
-        marginRight: 6,
-        fontWeight: "500",
+    alreadyAppliedText: {
+        color: "#666",
+        fontWeight: "600",
+        fontSize: 14,
+        textAlign: "center",
     },
-    addressText: {
-        color: "#888",
-        fontStyle: "italic",
-    },
-  buttonCreateAccount: {
-	marginTop: "1%",
-    width: "100%",
-    paddingHorizontal: "5%",
-  },
 });
