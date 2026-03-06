@@ -66,6 +66,12 @@ export default function DashboardCompany() {
 							{/* Header de la carte */}
 							<View style={styles.jobHeader}>
 								<Text style={[styles.jobTitle, { fontSize: scaleFont(17) }]}>{job.title}</Text>
+								<Text style={[
+									styles.Status,
+									{ fontSize: scaleFont(12),  color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
+								]}>
+									● {job.status}
+								</Text>
 								<View style={styles.salaryBadge}>
 									<Text style={[styles.salaryText, { fontSize: scaleFont(13) }]}>{job.salary}€</Text>
 								</View>
@@ -159,6 +165,11 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 20,
     },
+	Status: {
+		fontSize: 12,
+		fontWeight: "600",
+		marginRight: 55,
+	},
     salaryText: {
         color: "#fff",
         fontWeight: "600",
