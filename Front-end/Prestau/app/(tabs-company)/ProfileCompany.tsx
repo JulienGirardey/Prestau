@@ -63,10 +63,10 @@ export default function ProfileCompany() {
                     setJobCount(completed.length);
                 })
                 .catch((error) => console.error("Erreur lors de la récupération du nombre de missions:", error));
-            
+
             getMissionHistory()
-            .then((data) => setHistory(data))
-            .catch((error) => console.error("Erreur lors de la récupération de l'historique des missions:", error));
+                .then((data) => setHistory(data))
+                .catch((error) => console.error("Erreur lors de la récupération de l'historique des missions:", error));
         }
     }, [profile?.id]);
     return (
@@ -113,14 +113,14 @@ export default function ProfileCompany() {
                     <View style={styles.statItem}>
                         <Ionicons name="star" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            { } Évaluation
+                            {profile?.rating || 0} Évaluation
                         </Text>
                     </View>
 
                     <View style={styles.statItem}>
                         <Ionicons name="calendar" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            { } Année sur l&apos;app
+                            {profile?.yearsOfExperience || 0} Année sur l&apos;app
                         </Text>
                     </View>
                 </View>
