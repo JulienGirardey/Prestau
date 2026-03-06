@@ -12,10 +12,10 @@ const api = axios.create({
 
 // Injecte le token JWT automatiquement dans chaque requête
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('access_token');
-	console.log('Token envoyé:', token);
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+    const token = await SecureStore.getItemAsync('access_token');
+    console.log('Token envoyé:', token);
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
 });
 
 api.interceptors.response.use(
