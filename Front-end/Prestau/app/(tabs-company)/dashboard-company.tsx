@@ -3,7 +3,6 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { getMyJobs, Job } from "@/src/api/job";
-import { useState, useCallback } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { NewButton } from "@/components/Button";
 import { useQuery } from "@tanstack/react-query";
