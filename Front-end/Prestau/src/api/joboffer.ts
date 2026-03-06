@@ -1,5 +1,4 @@
 import api from './axios';
-import { Job } from './job';
 
 export interface JobOffer {
     id: number;
