@@ -21,7 +21,7 @@ export class JobofferService {
 		});
 
 		if (existingJobOffer) {
-			throw new NotFoundException('A job offer already exists for this worker.');
+			throw new ConflictException('A job offer already exists for this worker.');
 		}
 
 		return this.Prisma.jobOffer.create({

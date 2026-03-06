@@ -1,16 +1,32 @@
-import { useLocalSearchParams } from "expo-router";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState } from "react";
 import { getJobById } from "@/src/api/job";
+import { createJobOffer } from "@/src/api/joboffer";
 import { Header } from "@/components/Header";
+import { NewButton } from "@/components/Button";
+
+function useResponsive() {
+    const { width, height } = useWindowDimensions();
+    const scale = (size: number) => (width / 390) * size;
+    const scaleFont = (size: number) => Math.min(scale(size), size * 1.4);
+    return {
+        width,
+        height,
+        scale,
+        scaleFont,
+    };
+}
 
 export default function JobDetailScreen() {
     const { id } = useLocalSearchParams();
     const colors = useThemeColors();
-    
+    const { scale, scaleFont } = useResponsive();
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
+    const [isApplying, setIsApplying] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -40,56 +56,202 @@ export default function JobDetailScreen() {
         );
     }
 
-	// Formate la date au format français
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', { 
-            day: '2-digit', 
-            month: 'short',
-            year: 'numeric'
-        });
+	const handleApply = async () => {
+        setIsApplying(true);
+        try {
+            await createJobOffer(Number(id));
+            setJob({ ...job, alreadyApplied: true, canApply: false });
+            router.push('/(tabs-worker)/dashboard-worker');
+        } catch (err: any) {
+            if (err.response?.status === 409) {
+                alert("Vous avez déjà postulé à cette offre.");
+            }
+            console.error("Erreur lors de la candidature :", err);
+        } finally {
+            setIsApplying(false);
+        }
     };
+	
+	if (loading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
-    // Formate l'heure au format français
-    const formatTime = (timeString: string) => {
-        const date = new Date(timeString);
-        return date.toLocaleTimeString('fr-FR', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-    };
+    if (!job) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+                <Text style={{ color: colors.text }}>Job non trouvé</Text>
+            </View>
+        );
+    }
 
     return (
-		<View style={{ flex: 1 }}>
-			<Header />
-			<ScrollView style={[styles.main, { backgroundColor: colors.background }]}>
-				<View style={styles.content}>
-					<Text style={[styles.title, { color: colors.primary }]}>{job.title}</Text>
-					
-					<View style={[styles.card, { backgroundColor: "#ffffff" }]}>
-						<Text style={[styles.salary, { color: colors.secondary }]}>{job.salary} €</Text>
-						<Text style={[styles.description, { color: "#000000" }]}>{job.description}</Text>
-						<Text style={{ color: "#000000" }}>Date: {formatDate(job.start_time)}</Text>
-						<Text style={{ color: "#000000" }}>Heure: {formatTime(job.start_time)} - {formatTime(job.end_time)}</Text>
-						
-						<View style={styles.infoRow}>
-							<Text style={{ color: "#000000", fontWeight: 'bold' }}>Adresse: </Text>
-							<Text style={{ color: "#000000" }}>{job.address}</Text>
-						</View>
-					</View>
-				</View>
-			</ScrollView>
-		</View>
+        <View style={{ flex: 1 }}>
+            <Header />
+            <ScrollView style={[styles.main, { backgroundColor: colors.background }]}>
+                <View style={[styles.jobCard, { backgroundColor: 'white', margin: scale(25) }]}>
+                    {/* Header de la carte */}
+                    <View style={styles.jobHeader}>
+                        <Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{job.title}</Text>
+                        <View style={styles.salaryBadge}>
+                            <Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{job.salary}€</Text>
+                        </View>
+                    </View>
+
+                    {/* Adresse */}
+                    <View style={styles.addressRow}>
+                        <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
+                        <Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
+                    </View>
+
+                    {/* Description */}
+                    <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
+                    <Text style={[styles.jobDescription, { fontSize: scaleFont(13) }]}>{job.description}</Text>
+
+                    {/* Séparateur */}
+                    <View style={styles.separator} />
+
+                    {/* Dates */}
+                    <View style={styles.dateRow}>
+                        <View style={styles.dateItem}>
+                            <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
+                            <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+                                {new Date(job.start_time).toLocaleDateString('fr-FR')}
+                            </Text>
+                            <Text style={[styles.dateValue, { fontSize: scaleFont(11), color: "#666" }]}>
+                                {new Date(job.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                        </View>
+                        <View style={styles.dateSeparator} />
+                        <View style={styles.dateItem}>
+                            <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
+                            <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+                                {new Date(job.end_time).toLocaleDateString('fr-FR')}
+                            </Text>
+                            <Text style={[styles.dateValue, { fontSize: scaleFont(11), color: "#666" }]}>
+                                {new Date(job.end_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+					<View style={styles.buttonCreateAccount}>
+                    {job.isWorker && job.alreadyApplied ? (
+                        <View style={styles.alreadyAppliedBadge}>
+                            <Text style={styles.alreadyAppliedText}>
+                                Vous avez déjà postulé pour cette offre
+                            </Text>
+                        </View>
+                    ) : job.canApply ? (
+                        <NewButton 
+                            title={isApplying ? "En cours..." : "Postuler"} 
+                            onPress={handleApply}
+                            disabled={isApplying}
+                        />
+                    ) : null}
+                </View>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     main: { flex: 1 },
     container: { flex: 1, justifyContent: "center", alignItems: "center" },
-    content: { padding: 20 },
-    title: { fontSize: 28, fontWeight: "bold", marginBottom: 15 },
-    card: { padding: 15, borderRadius: 12, backgroundColor: 'rgba(150, 150, 150, 0.1)' },
-    salary: { fontSize: 22, fontWeight: '700', marginBottom: 10 },
-    description: { fontSize: 16, lineHeight: 24, marginBottom: 20 },
-    infoRow: { flexDirection: 'row', marginTop: 10 }
+    jobCard: {
+        borderRadius: 12,
+        padding: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+	alreadyAppliedText: {
+        color: "#666",
+        fontWeight: "600",
+        fontSize: 16,
+		alignSelf: "center",
+    },
+	alreadyAppliedBadge: {
+        backgroundColor: "#f0f0f0",
+        padding: 15,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        alignItems: "center",
+    },
+    jobHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    jobTitle: {
+        fontWeight: "bold",
+        flex: 1,
+        marginRight: 10,
+    },
+    salaryBadge: {
+        backgroundColor: "#4a90d9",
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 20,
+    },
+    salaryText: {
+        color: "#fff",
+        fontWeight: "600",
+    },
+    jobDescription: {
+        color: "#666",
+        lineHeight: 20,
+        marginBottom: 10,
+    },
+    separator: {
+        height: 1,
+        backgroundColor: "#e0e0e0",
+        marginVertical: 10,
+    },
+    dateRow: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    dateItem: {
+        flex: 1,
+        alignItems: "center",
+    },
+    dateLabel: {
+        color: "#999",
+        fontWeight: "500",
+        marginBottom: 2,
+    },
+    dateValue: {
+        color: "#333",
+        fontWeight: "600",
+    },
+    dateSeparator: {
+        width: 1,
+        height: 30,
+        backgroundColor: "#e0e0e0",
+    },
+    addressRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    addressTitle: {
+        marginRight: 6,
+        fontWeight: "500",
+    },
+    addressText: {
+        color: "#888",
+        fontStyle: "italic",
+    },
+  buttonCreateAccount: {
+	marginTop: "1%",
+    width: "100%",
+    paddingHorizontal: "5%",
+  },
 });
