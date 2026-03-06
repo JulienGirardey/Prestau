@@ -1,107 +1,77 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native";
+import { ScrollView, StyleSheet, Text, View, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { NewButton } from "@/components/Button";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
-import { JobOffer } from "@/src/api/joboffer";
+import { JobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
 import { useQuery } from "@tanstack/react-query";
-import { getJobOffersByWorker } from "@/src/api/joboffer";
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
-	monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-	monthNamesShort: ['Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'],
-	dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-	dayNamesShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
-	today: "Aujourd'hui"
+    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    monthNamesShort: ['Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'],
+    dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+    dayNamesShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+    today: "Aujourd'hui"
 };
 LocaleConfig.defaultLocale = 'fr';
 
 export default function DashboardWorker() {
-	const colors = useThemeColors();
-	// --- QUERIES ---
-	const { data: availability, isLoading: isLoadingAvailability, error: errorAvailability } = useQuery({
-		queryKey: ["dashboard-worker-availability"],
-		queryFn: () => getWorkerAvailability(),
-	});
-
-	const { data: joboffers = [], isLoading: isLoadingJoboffer, error: errorJoboffer } = useQuery<JobOffer[]>({
-		queryKey: ["dashboard-worker-joboffers"],
-		queryFn: () => getJobOffersByWorker(),
-	});
-
-	// --- ÉTATS DU CALENDRIER (garde les states pour la mise à jour optimiste) ---
-	const [freeDays, setFreeDays] = useState<string[]>(availability?.data?.freeDays ?? []);
-	const [busyDays, setBusyDays] = useState<string[]>(availability?.data?.busyDays ?? []);
     const colors = useThemeColors();
-    
-    // --- ÉTATS (STATES) ---
-    const [missions, setMissions] = useState<JobOffer[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    
-    // Les dates seront chargées depuis la base de données, tableaux vides par défaut
+
+    // Récupération des disponibilités via React Query
+    const { data: availability, isLoading: isLoadingAvailability, error: errorAvailability } = useQuery({
+        queryKey: ["dashboard-worker-availability"],
+        queryFn: () => getWorkerAvailability(),
+    });
+
+    // Récupération des offres d'emploi via React Query
+    const { data: joboffers = [], isLoading: isLoadingJoboffer, error: errorJoboffer } = useQuery<JobOffer[]>({
+        queryKey: ["dashboard-worker-joboffers"],
+        queryFn: () => getJobOffersByWorker(),
+    });
+
+    // États locaux pour une mise à jour réactive du calendrier
     const [freeDays, setFreeDays] = useState<string[]>([]);
-    const [busyDays, setBusyDays] = useState<string[]>([]); 
+    const [busyDays, setBusyDays] = useState<string[]>([]);
 
-    // --- CHARGEMENT DES DONNÉES DEPUIS LA BDD ---
+    // Synchronisation des états locaux avec les données de l'API
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            setIsLoading(true);
-            try {
-                // Chargement des missions
-                const jobsResponse = await getJobOffersByWorker();
-                setMissions(jobsResponse || []);
+        if (availability?.data) {
+            setFreeDays(availability.data.freeDays || []);
+            setBusyDays(availability.data.busyDays || []);
+        }
+    }, [availability]);
 
-                const availabilityResponse = await getWorkerAvailability();
-                setFreeDays(availabilityResponse.data?.freeDays || []);
-                setBusyDays(availabilityResponse.data?.busyDays || []);
+    // Gestion du clic sur un jour (Disponible -> Occupé -> Neutre)
+    const handleDayPress = async (day: any) => {
+        const dateStr = day.dateString;
+        let newStatus = 'neutral';
 
-				const acceptedMissions = (jobsResponse || []).filter(
-        		(offer) => offer.status === 'ACCEPTED' || offer.status === 'PENDING');
-				setMissions(acceptedMissions);
-                
-            } catch (error) {
-                console.error("Erreur lors du chargement du dashboard:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchDashboardData();
-    }, []);
+        if (freeDays.includes(dateStr)) {
+            setFreeDays(prev => prev.filter(d => d !== dateStr));
+            setBusyDays(prev => [...prev, dateStr]);
+            newStatus = 'busy';
+        } else if (busyDays.includes(dateStr)) {
+            setBusyDays(prev => prev.filter(d => d !== dateStr));
+            newStatus = 'neutral';
+        } else {
+            setFreeDays(prev => [...prev, dateStr]);
+            newStatus = 'free';
+        }
 
-	// --- LOGIQUE DU CALENDRIER ---
-	// Envoi des données à la BDD au clic sur un jour (Changement de statut : Disponible -> Occupé -> Neutre)
-	const handleDayPress = async (day: any) => {
-		const dateStr = day.dateString;
+        try {
+            await updateWorkerAvailability(dateStr, newStatus);
+        } catch (error) {
+            console.error("Erreur de mise à jour de la date", error);
+        }
+    };
 
-		// Mise à jour optimiste de l'UI (changement immédiat pour un meilleur UX)
-		let newStatus = 'neutral';
-		if (freeDays.includes(dateStr)) {
-			setFreeDays(prev => prev.filter(d => d !== dateStr));
-			setBusyDays(prev => [...prev, dateStr]);
-			newStatus = 'busy';
-		} else if (busyDays.includes(dateStr)) {
-			setBusyDays(prev => prev.filter(d => d !== dateStr));
-			newStatus = 'neutral';
-		} else {
-			setFreeDays(prev => [...prev, dateStr]);
-			newStatus = 'free';
-		}
-
-		try {
-			await updateWorkerAvailability(dateStr, newStatus);
-		} catch (error) {
-			console.error("Erreur de mise à jour de la date", error);
-			// En cas d'erreur, ajouter la logique de rollback ici
-		}
-
-	};
-
-	// Construction de l'objet pour la coloration du calendrier
+// Construction de l'objet pour la coloration du calendrier
 	const markedDates = useMemo(() => {
 		let marks: Record<string, any> = {};
 
@@ -181,182 +151,104 @@ export default function DashboardWorker() {
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}>
 
-					{/* SECTION 1 : MISSIONS À VENIR */}
+					{ /* MISSIONS À VENIR */}
 					<DefaultCard style={styles.cardWrapper}>
-						<Text style={styles.titleCard}>Missions à venir</Text>
-						{isLoadingJoboffer ? (
-							<ActivityIndicator size="large" color="#F5F2D9" style={{ marginTop: 20 }} />
-						) : joboffers.length === 0 ? (
-							<Text style={styles.emptyText}>Aucune mission pour le moment</Text>
-						) : (
-							<FlatList
-								data={joboffers}
-								keyExtractor={(item) => String(item.id)}
-								horizontal={true}
-								showsHorizontalScrollIndicator={false}
-								contentContainerStyle={styles.flatListContent}
-								renderItem={renderMissionCard}
-							/>
-						)}
-					</DefaultCard>
-
-					{/* SECTION 2 : CALENDRIER DES DISPONIBILITÉS */}
-					<DefaultCard style={[styles.cardWrapper, { paddingBottom: 15 }]}>
-						<Text style={styles.titleCard}>Mes disponibilités</Text>
-						<View style={styles.calendarWrapper}>
-							<Calendar
-								markingType={'custom'}
-								markedDates={markedDates}
-								theme={{
-									backgroundColor: 'transparent',
-									calendarBackground: 'transparent',
-									textSectionTitleColor: '#fff',
-									selectedDayBackgroundColor: colors.primary,
-									selectedDayTextColor: '#fff',
-									todayTextColor: colors.primary,
-									dayTextColor: '#F5F2D9',
-									textDisabledColor: '#a6a6a6',
-									arrowColor: '#fff',
-									monthTextColor: '#fff',
-									textDayFontWeight: '500',
-									textMonthFontWeight: 'bold',
-									textDayHeaderFontWeight: 'bold',
-									textDayFontSize: 15,
-									textMonthFontSize: 18,
-									textDayHeaderFontSize: 13
-								}}
-								onDayPress={handleDayPress}
-								hideExtraDays={true}
-								firstDay={1}
-							/>
+                        <Text style={styles.titleCard}>Missions à venir</Text>
+                        {joboffers.length === 0 ? (
+                            <Text style={styles.emptyText}>Aucune mission pour le moment</Text>
+                        ) : (
+                            <FlatList
+                                data={joboffers}
+                                keyExtractor={(item) => String(item.id)}
+                                horizontal={true}
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.flatListContent}
+                                renderItem={renderMissionCard}
+                            />
+                        )}
+                    </DefaultCard>
+					{/* CALENDRIER DES DISPONIBILITÉS */}
+                    <DefaultCard style={[styles.cardWrapper, { paddingBottom: 15 }]}>
+                        <Text style={styles.titleCard}>Mes disponibilités</Text>
+                        <View style={styles.calendarWrapper}>
+                            <Calendar
+                                markingType={'custom'}
+                                markedDates={markedDates}
+                                theme={{
+                                    backgroundColor: 'transparent',
+                                    calendarBackground: 'transparent',
+                                    textSectionTitleColor: '#fff',
+                                    dayTextColor: '#F5F2D9',
+                                    todayTextColor: colors.primary,
+                                    arrowColor: '#fff',
+                                    monthTextColor: '#fff',
+                                }}
+                                onDayPress={handleDayPress}
+                                hideExtraDays={true}
+                                firstDay={1}
+                            />
+							
 							{/* LÉGENDE DU CALENDRIER */}
-							<View style={styles.legendContainer}>
-								<View style={styles.legendItem}>
-									<View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-									<Text style={styles.legendText}>Disponible</Text>
-								</View>
-								<View style={styles.legendItem}>
-									<View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
-									<Text style={styles.legendText}>Occupé(e)</Text>
-								</View>
-								<View style={styles.legendItem}>
-									<View style={[styles.legendDot, { borderWidth: 1.5, borderColor: '#fff', backgroundColor: 'transparent' }]} />
-									<Text style={styles.legendText}>Aujourd&apos;hui</Text>
-								</View>
-							</View>
-						</View>
-					</DefaultCard>
+                            <View style={styles.legendContainer}>
+                                <View style={styles.legendItem}>
+                                    <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
+                                    <Text style={styles.legendText}>Disponible</Text>
+                                </View>
+                                <View style={styles.legendItem}>
+                                    <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
+                                    <Text style={styles.legendText}>Occupé(e)</Text>
+                                </View>
+                                <View style={styles.legendItem}>
+                                    <View style={[styles.legendDot, { borderWidth: 1.5, borderColor: '#fff' }]} />
+                                    <Text style={styles.legendText}>Aujourd&apos;hui</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </DefaultCard>
 
-					<View style={styles.buttonCreateAccount}>
-						<NewButton title="Avis Professionnels" onPress={() => console.log("Avis cliqué")} />
-					</View>
-				</ScrollView>
-			</SafeAreaView>
-		</View>
-	);
+                    <View style={styles.buttonCreateAccount}>
+                        <NewButton title="Avis Professionnels" onPress={() => console.log("Avis cliqué")} />
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1
-	},
-	body: {
-		flex: 1
-	},
-	scrollContent: {
-		alignItems: "center",
-		gap: 20,
-		paddingBottom: 40
-	},
-	cardWrapper: {
-		width: "95%"
-	},
-	flatListContent: {
-		paddingVertical: 10,
-		paddingHorizontal: 45,
-		gap: 10
-	},
-	buttonCreateAccount: {
-		marginTop: 20,
-		paddingBottom: 20,
-		width: "100%",
-		paddingHorizontal: 10,
-	},
-	titleCard: {
-		fontSize: 25,
-		textAlign: "center",
-		color: "#F5F2D9",
-		marginTop: -10,
-	},
-	emptyText: {
-		color: "#F5F2D9",
-		textAlign: "center",
-		marginTop: 15,
-		fontSize: 16,
-	},
-	innerMissionCard: {
-		backgroundColor: "#F5F2D9",
-		borderRadius: 15,
-		padding: 15,
-		marginVertical: 8,
-		width: 260,
-		alignSelf: "center",
-		alignItems: "center",
-	},
-	missionTitle: {
-		color: "#264D84",
-		fontSize: 18,
-		fontWeight: "bold",
-		textAlign: "center",
-		marginBottom: 5,
-	},
-	missionDate: {
-		color: "#264D84",
-		fontSize: 14,
-		textAlign: "center",
-		marginBottom: 3,
-	},
-	missionSalary: {
-		color: "#264D84",
-		fontSize: 14,
-		textAlign: "center",
-		fontWeight: "600",
-	},
-	missionAddress: {
-		color: "#555",
-		fontSize: 12,
-		textAlign: "center",
-		marginTop: 5,
-	},
-	missionStatus: {
-		color: "#264D84",
-		fontSize: 14,
-		textAlign: "center",
-		fontWeight: "600",
-	},
-	calendarWrapper: { marginTop: 10, width: "100%", paddingHorizontal: 5 },
-	legendContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginTop: 15,
-		paddingHorizontal: 10,
-		borderTopWidth: 1,
-		borderTopColor: "rgba(245, 242, 217, 0.2)",
-		paddingTop: 10,
-	},
-	legendItem: {
-		flexDirection: "row",
-		alignItems: "center"
-	},
-	legendDot: {
-		width: 12,
-		height: 12,
-		borderRadius: 6,
-		marginRight: 6
-	},
-	legendText: {
-		color: "#F5F2D9",
-		fontSize: 12,
-		fontWeight: "500"
-	},
+    container: { flex: 1 },
+    body: { flex: 1 },
+    scrollContent: { alignItems: "center", gap: 20, paddingBottom: 40 },
+    cardWrapper: { width: "95%" },
+    flatListContent: { paddingVertical: 10, paddingHorizontal: 45, gap: 10 },
+    buttonCreateAccount: { marginTop: 20, paddingBottom: 20, width: "100%", paddingHorizontal: 10 },
+    titleCard: { fontSize: 25, textAlign: "center", color: "#F5F2D9", marginTop: -10 },
+    emptyText: { color: "#F5F2D9", textAlign: "center", marginTop: 15, fontSize: 16 },
+    innerMissionCard: {
+        backgroundColor: "#F5F2D9",
+        borderRadius: 15,
+        padding: 15,
+        marginVertical: 8,
+        width: 260,
+        alignSelf: "center",
+        alignItems: "center",
+    },
+    missionTitle: { color: "#264D84", fontSize: 18, fontWeight: "bold", textAlign: "center", marginBottom: 5 },
+    missionDate: { color: "#264D84", fontSize: 14, textAlign: "center", marginBottom: 3 },
+    missionSalary: { color: "#264D84", fontSize: 14, textAlign: "center", fontWeight: "600" },
+    missionAddress: { color: "#555", fontSize: 12, textAlign: "center", marginTop: 5 },
+    missionStatus: { color: "#264D84", fontSize: 14, textAlign: "center", fontWeight: "600" },
+    calendarWrapper: { marginTop: 10, width: "100%", paddingHorizontal: 5 },
+    legendContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 15,
+        paddingHorizontal: 10,
+        borderTopWidth: 1,
+        borderTopColor: "rgba(245, 242, 217, 0.2)",
+        paddingTop: 10,
+    },
+    legendItem: { flexDirection: "row", alignItems: "center" },
+    legendDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
+    legendText: { color: "#F5F2D9", fontSize: 12, fontWeight: "500" },
 });
