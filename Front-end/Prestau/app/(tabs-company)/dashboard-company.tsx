@@ -58,7 +58,7 @@ export default function DashboardCompany() {
                         <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                             <Pressable 
                                 onPress={() => router.push({
-                                    pathname: '/[id]',
+                                    pathname: '/job/[id]',
                                     params: { id: job.id }
                                 })}
 								style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}

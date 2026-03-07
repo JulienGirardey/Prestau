@@ -25,6 +25,11 @@ export const getMyJobOffers = async (): Promise<JobOffer[]> => {
 	return response.data;
 };
 
+export const getJobOfferById = async (id: number) => {
+    const response = await api.get(`/joboffer/${id}`);
+    return response.data;
+};
+
 export const getMissionHistory = async () => {
     const response = await api.get('/joboffer/history');
     return response.data;
@@ -44,11 +49,15 @@ export const createJobOffer = async (jobId: number) => {
 	const response = await api.post(`/joboffer/${jobId}`);
 	return response.data;
 };
+
 export const deleteJobOffer = async (jobId: number) => {
     return await api.delete(`/joboffer/cancel/${jobId}`); 
 };
 
-export const getjobOfferById = async (id: number) => {
-	const response = await api.get(`/joboffer/${id}`);
-	return response.data;
+export const acceptJobOffer = async (offerId: number) => {
+		return await api.post(`/joboffer/accept/${offerId}`);
+};
+
+export const rejectJobOffer = async (offerId: number) => {
+		return await api.post(`/joboffer/reject/${offerId}`);
 };
