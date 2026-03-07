@@ -44,3 +44,8 @@ export const createJobOffer = async (jobId: number) => {
 	const response = await api.post(`/joboffer/${jobId}`);
 	return response.data;
 };
+
+export const getjobOfferById = async (id: number) => {
+	const response = await api.get(`/joboffer/${id}`);
+	return response.data;
+};

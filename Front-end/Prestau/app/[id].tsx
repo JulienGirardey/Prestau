@@ -51,7 +51,7 @@ export default function JobDetailScreen() {
     if (!job) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={{ color: "#000000" }}>Job non trouve</Text>
+                <Text style={{ color: "#000000" }}>Job non trouvé</Text>
             </View>
         );
     }
@@ -83,7 +83,7 @@ export default function JobDetailScreen() {
     if (!job) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
-                <Text style={{ color: colors.text }}>Job non trouvé</Text>
+                <Text style={{ color: "#000000" }}>Job non trouvé</Text>
             </View>
         );
     }
