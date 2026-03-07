@@ -101,6 +101,12 @@ export default function JobDetailScreen() {
                     {/* Header de la carte */}
                     <View style={styles.jobHeader}>
                         <Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{job.title}</Text>
+						<Text style={[
+									styles.Status,
+									{ fontSize: scaleFont(12),  color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
+								]}>
+									● {job.status}
+								</Text>
                         <View style={styles.salaryBadge}>
                             <Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{job.salary}€</Text>
                         </View>
@@ -256,6 +262,11 @@ const styles = StyleSheet.create({
     timeText: {
         color: "#666",
     },
+	Status: {
+		fontSize: 12,
+		fontWeight: "600",
+		marginRight: 55,
+	},
     dateSeparator: {
         width: 1,
         height: 40,

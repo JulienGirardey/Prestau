@@ -177,7 +177,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}>
 
-					{ /* MISSIONS À VENIR */}
+					{ /* MISSIONS */}
 					<DefaultCard style={styles.cardWrapper}>
                         <Text style={styles.titleCard}>Missions</Text>
                         {joboffers.length === 0 ? (
