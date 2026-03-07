@@ -5,14 +5,15 @@ import { useThemeColors } from '@/hooks/useThemeColors';
 type Props = {
     title?: string,
     onPress?: () => void,
-    style?: any
+    style?: any,
+    disabled?: boolean
 }
 
-export function NewButton({ title = "Button", onPress, style }: Props) {
+export function NewButton({ title = "Button", onPress, style, disabled }: Props) {
     const colors = useThemeColors();
     return (
         <View style={[styles.buttonContainer, style]}>
-            <Button title={title} onPress={onPress} color={colors.background} />
+            <Button title={title} onPress={onPress} color={colors.background} disabled={disabled}/>
         </View>
     );
 }
