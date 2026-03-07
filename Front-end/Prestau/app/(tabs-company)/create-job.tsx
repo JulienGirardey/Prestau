@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, StyleSheet, View, ScrollView, useWindowDimensions } from "react-native";
+import { KeyboardAvoidingView, Platform, StyleSheet, View, ScrollView, useWindowDimensions, Alert } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
@@ -11,9 +11,8 @@ import { router } from "expo-router";
 import { createJob } from "@/src/api/job";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { Alert } from "react-native";
-dayjs.extend(customParseFormat)
 import { useQueryClient } from "@tanstack/react-query";
+dayjs.extend(customParseFormat)
 
 // Hook responsive : 
 // Toutes les valeurs de l'UI sont calculées à partir de la largeur réelle

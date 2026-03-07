@@ -87,8 +87,12 @@ export class JobofferController {
     return this.jobofferService.findOne(id);
   }
 
-  @Delete(":id")
-  remove(@Param("id", ParseIntPipe) id: number) {
-    return this.jobofferService.remove(id);
-  }
+@Delete("cancel/:jobId")
+@Roles(Role.WORKER)
+cancelApplication(
+  @Param("jobId", ParseIntPipe) jobId: number,
+  @Req() req: CurrentUserRequest,
+) {
+  return this.jobofferService.removeByJobAndWorker(jobId, req.user.id);
+}
 }

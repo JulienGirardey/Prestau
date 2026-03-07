@@ -44,6 +44,9 @@ export const createJobOffer = async (jobId: number) => {
 	const response = await api.post(`/joboffer/${jobId}`);
 	return response.data;
 };
+export const deleteJobOffer = async (jobId: number) => {
+    return await api.delete(`/joboffer/cancel/${jobId}`); 
+};
 
 export const getjobOfferById = async (id: number) => {
 	const response = await api.get(`/joboffer/${id}`);
