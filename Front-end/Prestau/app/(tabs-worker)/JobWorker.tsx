@@ -117,7 +117,7 @@ export default function MissionScreen() {
                             <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                                 <Pressable 
                                     onPress={() => router.push({
-                                        pathname: '/[id]', // Chemin corrigé pour Expo Router
+                                        pathname: '/job/[id]', // Chemin corrigé pour Expo Router
                                         params: { id: job.id }
                                     })}
 									style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}

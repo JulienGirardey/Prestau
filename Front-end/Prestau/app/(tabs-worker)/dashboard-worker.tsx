@@ -139,8 +139,8 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
         <Pressable 
             onPress={() => {
                 router.push({
-                    pathname: '/[id]', 
-                    params: { id: item.job.id }
+                    pathname: '/joboffer/[id]', 
+                    params: { id: item.id }
                 });
             }}
             style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
