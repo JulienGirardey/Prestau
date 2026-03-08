@@ -241,8 +241,10 @@ export class JobofferService {
                 return {
                     ...offer,
                     hasReviewed: !!existingReview,
-                    receivedRating: receivedReview?.rating ?? null,
-                    receivedComment: receivedReview?.comment ?? null,
+                    myRating: existingReview?.rating ?? null,
+                    myComment: existingReview?.comment ?? null,
+                    receivedRating: existingReview && receivedReview ? receivedReview.rating : null,
+                    receivedComment: existingReview && receivedReview ? receivedReview.comment : null,
                 };
             }),
         );
@@ -278,8 +280,8 @@ export class JobofferService {
         return {
             ...jobOffer,
             hasReviewed: !!existingReview,
-            receivedRating: receivedReview?.rating ?? null,
-            receivedComment: receivedReview?.comment ?? null,
+            receivedRating: existingReview && receivedReview ? receivedReview.rating : null,
+            receivedComment: existingReview && receivedReview ? receivedReview.comment : null,
         };
     }
 

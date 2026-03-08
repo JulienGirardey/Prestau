@@ -10,6 +10,8 @@ interface Mission {
     hasReviewed?: boolean;
     receivedRating?: number | null;
     receivedComment?: string | null;
+    myRating?: number | null;
+    myComment?: string | null;
     job: {
 				id : number;
         title: string;
@@ -86,11 +88,12 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                 </Text>
             </View>
 
+            {/* Avis reçu (doré) */}
             {item.receivedRating != null && (
-                <View style={styles.receivedReviewBox}>
+                <View style={[styles.receivedReviewBox, { borderLeftColor: "#C9A961", backgroundColor: "#fff8e1" }]}> 
                     <View style={styles.ratingRow}>
                         <Ionicons name="star" size={16} color="#C9A961" />
-                        <Text style={styles.ratingText}>{item.receivedRating}/5</Text>
+                        <Text style={[styles.ratingText, { color: "#C9A961" }]}>{item.receivedRating}/5</Text>
                         <Text style={styles.ratingFrom}>
                             {" "}· de{" "}
                             {role === "WORKER" && item.job.company
@@ -103,6 +106,29 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                     {item.receivedComment ? (
                         <Text style={styles.receivedComment}>"{item.receivedComment}"</Text>
                     ) : null}
+                </View>
+            )}
+
+            {/* Avis laissé (bleu) */}
+            {item.myRating != null && (
+                <View style={[styles.receivedReviewBox, { borderLeftColor: "#4a90d9", backgroundColor: "#f0f4ff" }]}> 
+                    <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={16} color="#4a90d9" />
+                        <Text style={[styles.ratingText, { color: "#4a90d9" }]}>{item.myRating}/5</Text>
+                        <Text style={styles.ratingFrom}> · votre avis</Text>
+                    </View>
+                    {item.myComment ? (
+                        <Text style={styles.receivedComment}>"{item.myComment}"</Text>
+                    ) : null}
+                </View>
+            )}
+
+            {/* Message si mission terminée mais pas encore d'avis */}
+            {item.status === 'COMPLETED' && !item.hasReviewed && (
+                <View style={styles.pendingReviewBox}>
+                    <Text style={styles.pendingReviewText}>
+                        Laissez votre avis pour voir celui de l'autre partie
+                    </Text>
                 </View>
             )}
         </View>
@@ -138,10 +164,9 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 12,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
     },
     header: {
         flexDirection: "row",
@@ -252,6 +277,20 @@ const styles = StyleSheet.create({
     receivedComment: {
         marginTop: 4,
         color: "#555",
+        fontSize: 12,
+        fontStyle: "italic",
+    },
+    pendingReviewBox: {
+        marginTop: 10,
+        backgroundColor: "#f5f5f5",
+        borderRadius: 8,
+        padding: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: "#ccc",
+        alignItems: "center",
+    },
+    pendingReviewText: {
+        color: "#999",
         fontSize: 12,
         fontStyle: "italic",
     },
