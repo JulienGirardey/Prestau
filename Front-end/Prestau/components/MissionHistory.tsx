@@ -52,17 +52,17 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                 </View>
             </View>
 
+            <Text style={styles.address}>{item.job.address}</Text>
             {role === 'WORKER' && item.job.company && (
-                <Text style={styles.subtitle}>{item.job.company.companyName}</Text>
+                <Text style={styles.subtitle}>
+									Company: {item.job.company.companyName}</Text>
             )}
 
             {role === 'COMPANY' && item.worker && (
                 <Text style={styles.subtitle}>
-                    {item.worker.firstName} {item.worker.lastName}
+                    Worker: {item.worker.firstName}{item.worker.lastName}
                 </Text>
             )}
-
-            <Text style={styles.address}>{item.job.address}</Text>
 
             <View style={styles.separator} />
 

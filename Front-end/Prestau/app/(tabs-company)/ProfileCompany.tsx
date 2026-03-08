@@ -36,6 +36,7 @@ export default function ProfileCompany() {
     const [jobCount, setJobCount] = useState(0);
     const [history, setHistory] = useState<any[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+    const [rating, setRating] = useState<number>(0);
 		const router = useRouter();
 
     useEffect(() => {
@@ -58,15 +59,13 @@ export default function ProfileCompany() {
 
     useEffect(() => {
         if (profile?.id) {
-            getJobOffersByCompany()
-                .then((data) => {
-                    const completed = data.filter((offer: any) => offer.status === 'COMPLETED');
-                    setJobCount(completed.length);
-                })
-                .catch((error) => console.error("Erreur lors de la récupération du nombre de missions:", error));
-
             getMissionHistory()
-                .then((data) => setHistory(data))
+                .then((data) => {
+                    setHistory(data);
+                    setJobCount(data.length);
+                    const rated = data.filter((m: any) => m.receivedRating != null);
+                    setRating(rated.length ? +(rated.reduce((s: number, m: any) => s + m.receivedRating, 0) / rated.length).toFixed(1) : 0);
+                })
                 .catch((error) => console.error("Erreur lors de la récupération de l'historique des missions:", error));
         }
     }, [profile?.id]);
@@ -107,14 +106,14 @@ export default function ProfileCompany() {
                     <View style={styles.statItem}>
                         <Ionicons name="checkmark-circle" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {jobCount} Missions
+                            {jobCount} Mission(s)
                         </Text>
                     </View>
 
                     <View style={styles.statItem}>
                         <Ionicons name="star" size={scale(24)} color="#fff" />
                         <Text style={[styles.statText, { fontSize: scaleFont(14) }]}>
-                            {profile?.rating || 0} Évaluation
+                            {rating > 0 ? `${rating}/5` : "0"} Évaluation
                         </Text>
                     </View>
 
