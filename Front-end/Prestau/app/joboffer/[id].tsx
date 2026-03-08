@@ -18,7 +18,6 @@ export default function JobOfferDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
-
 	const [jobOffer, setJobOffer] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [isCancelling, setIsCancelling] = useState(false);
@@ -117,14 +116,21 @@ export default function JobOfferDetailScreen() {
 
 				{/* ANNULER LA CANDIDATURE */}
 				<View style={styles.buttonContainer}>
-					<NewButton
-						title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
-						onPress={handleCancel}
-						disabled={isCancelling}
-						style={{ backgroundColor: "#FF3B30" }}
-					/>
-				</View>
-
+					{jobOffer.status === 'COMPLETED' ? (
+							<NewButton
+									title="Laisser un avis"
+									onPress={() => router.push({ pathname: '/review/[id]', params: { id: Number(id) } })}
+									style={{ backgroundColor: '#C9A961' }}
+							/>
+					) : (
+							<NewButton
+									title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
+									onPress={handleCancel}
+									disabled={isCancelling}
+									style={{ backgroundColor: '#FF3B30' }}
+							/>
+					)}
+			</View>
 			</ScrollView>
 		</View>
 	);

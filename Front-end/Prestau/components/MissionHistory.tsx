@@ -1,11 +1,13 @@
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { useRouter } from "expo-router";
 
 interface Mission {
     id: number;
     status: string;
     updatedAt: string;
     job: {
+				id : number;
         title: string;
         salary: number;
         address: string;
@@ -22,12 +24,21 @@ interface Mission {
 interface MissionHistoryProps {
     missions: Mission[];
     role: 'WORKER' | 'COMPANY';
+		onMissionPress?: () => void;
 }
 
-export function MissionHistory({ missions, role }: MissionHistoryProps) {
+export function MissionHistory({ missions, role, onMissionPress }: MissionHistoryProps) {
     const colors = useThemeColors();
+		const router = useRouter();
 
     const renderMission = ({ item }: { item: Mission }) => (
+			<Pressable
+				onPress={() => {
+    		onMissionPress?.(); 
+				router.push({
+					pathname: '/joboffer/[id]',
+					params: { id: item.id }
+			})}}>
         <View style={[styles.card, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>{item.job.title}</Text>
@@ -72,6 +83,7 @@ export function MissionHistory({ missions, role }: MissionHistoryProps) {
                 </Text>
             </View>
         </View>
+			</Pressable>
     );
 
     if (missions.length === 0) {

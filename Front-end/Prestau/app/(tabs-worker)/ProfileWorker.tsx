@@ -170,7 +170,11 @@ export default function ProfileWorker() {
                         </TouchableOpacity>
                     </View>
 
-                    <MissionHistory missions={history} role="WORKER" />
+                    <MissionHistory 
+										missions={history}
+										role="WORKER"
+										onMissionPress={() => setShowHistory(false)}
+										/>
                 </View>
             </Modal>
         </View>
