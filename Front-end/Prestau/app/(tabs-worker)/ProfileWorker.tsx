@@ -4,12 +4,13 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { logout } from "@/src/api/auth";
-import { router } from "expo-router";
+import { router, useRouter } from "expo-router";
 import { getWorkerProfile } from "@/src/api/worker";
-import { getJobOffersByWorker, getMissionHistory } from "@/src/api/joboffer";
+import { getMissionHistory } from "@/src/api/joboffer";
 import { MissionHistory } from "@/components/MissionHistory";
+import { useQuery } from "@tanstack/react-query";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -23,47 +24,37 @@ function useResponsive() {
     };
 }
 
-interface WorkerProfile {
-    id: number;
-    firstName: string;
-    lastName: string;
-    city: string;
-}
-
 export default function ProfileWorker() {
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
-    const [profile, setProfile] = useState<WorkerProfile | null>(null);
-    const [jobCount, setJobCount] = useState(0);
-    const [history, setHistory] = useState<any[]>([]);
     const [showHistory, setShowHistory] = useState(false);
-    const [rating, setRating] = useState<number>(0);
+    const router = useRouter();
 
-    useEffect(() => {
-        // Simuler le chargement des données du profil
-        getWorkerProfile()
-            .then((data) => setProfile(data))
-            .catch((error) => console.error("Erreur lors de la récupération du profil:", error));
+    const { data: profile } = useQuery({
+        queryKey: ["worker-profile"],
+        queryFn: getWorkerProfile,
+    });
 
-        getMissionHistory()
-            .then((data) => {
-                setHistory(data);
-                setJobCount(data.length);
-                const rated = data.filter((m: any) => m.receivedRating != null);
-                setRating(rated.length ? +(rated.reduce((s: number, m: any) => s + m.receivedRating, 0) / rated.length).toFixed(1) : 0);
-            })
-            .catch((error) => console.error("Erreur lors de la récupération de l'historique des missions:", error));
-    }, []);
+    const { data: history = [] } = useQuery({
+        queryKey: ["mission-history-worker"],
+        queryFn: getMissionHistory,
+    });
+
+    const jobCount = history.length;
+    const rated = history.filter((m: any) => m.receivedRating != null);
+    const rating = rated.length
+        ? +(rated.reduce((s: number, m: any) => s + m.receivedRating, 0) / rated.length).toFixed(1)
+        : 0;
 
     const handleLogout = async () => {
         await logout();
-        // Redirige vers la page de login après déconnexion
+				// Redirige vers la page de login après déconnexion
         router.replace("/login");
     };
 
     const handleSettings = () => {
+				// Navigation vers les paramètres
         console.log("Paramètres");
-        // Navigation vers les paramètres
     };
 
     return (

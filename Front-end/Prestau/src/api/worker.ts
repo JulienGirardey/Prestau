@@ -16,6 +16,13 @@ interface CreateWorkerData {
 	photoURL?: string;
 }
 
+interface WorkerProfile {
+	id: number;
+	firstName: string;
+	lastName: string;
+	city: string;
+}
+
 export const createWorkerProfile = async (data: CreateWorkerData) => {
 	return api.post('/worker', data);
 };
@@ -26,7 +33,7 @@ export const getWorkerAvailability = async () => {
 
 };
 
-export const getWorkerProfile = async () => {
+export const getWorkerProfile = async (): Promise<WorkerProfile> => {
 	const response = await api.get('/worker/MyProfile');
 	return response.data;
 };
