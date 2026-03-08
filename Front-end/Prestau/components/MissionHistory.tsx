@@ -1,11 +1,15 @@
 import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Mission {
     id: number;
     status: string;
     updatedAt: string;
+    hasReviewed?: boolean;
+    receivedRating?: number | null;
+    receivedComment?: string | null;
     job: {
 				id : number;
         title: string;
@@ -33,12 +37,11 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
 
     const renderMission = ({ item }: { item: Mission }) => (
 			<Pressable
-				onPress={() => {
-    		onMissionPress?.(); 
-				router.push({
-					pathname: '/joboffer/[id]',
-					params: { id: item.id }
-			})}}>
+    		onPress={() => {
+        onMissionPress?.();
+        router.push({ pathname: '/joboffer/[id]', params: { id: item.id } });
+    }}
+    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}>
         <View style={[styles.card, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>{item.job.title}</Text>
@@ -82,6 +85,26 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                     Terminée le {new Date(item.updatedAt).toLocaleDateString()}
                 </Text>
             </View>
+
+            {item.receivedRating != null && (
+                <View style={styles.receivedReviewBox}>
+                    <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={16} color="#C9A961" />
+                        <Text style={styles.ratingText}>{item.receivedRating}/5</Text>
+                        <Text style={styles.ratingFrom}>
+                            {" "}· de{" "}
+                            {role === "WORKER" && item.job.company
+                                ? item.job.company.companyName
+                                : role === "COMPANY" && item.worker
+                                ? `${item.worker.firstName} ${item.worker.lastName}`
+                                : ""}
+                        </Text>
+                    </View>
+                    {item.receivedComment ? (
+                        <Text style={styles.receivedComment}>"{item.receivedComment}"</Text>
+                    ) : null}
+                </View>
+            )}
         </View>
 			</Pressable>
     );
@@ -200,5 +223,36 @@ const styles = StyleSheet.create({
     emptyText: {
         color: "#999",
         fontSize: 16,
+    },
+    ratingRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 8,
+    },
+    ratingText: {
+        marginLeft: 4,
+        color: "#C9A961",
+        fontWeight: "600",
+        fontSize: 13,
+    },
+    ratingFrom: {
+        color: "#888",
+        fontSize: 12,
+        fontStyle: "italic",
+    },
+    receivedReviewBox: {
+        marginTop: 10,
+        backgroundColor: "#fdf8ee",
+        borderRadius: 8,
+        padding: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: "#C9A961",
+    },
+    receivedComment: {
+        marginTop: 4,
+        color: "#555",
+        fontSize: 12,
+        fontStyle: "italic",
     },
 });

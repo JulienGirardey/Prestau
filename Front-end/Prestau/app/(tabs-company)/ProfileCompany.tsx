@@ -6,10 +6,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from "react";
 import { logout } from "@/src/api/auth";
-import { router } from "expo-router";
 import { getCompanyProfile } from "@/src/api/company";
 import { getJobOffersByCompany, getMissionHistory } from "@/src/api/joboffer";
 import { MissionHistory } from "@/components/MissionHistory";
+import { useRouter } from "expo-router";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -36,6 +36,7 @@ export default function ProfileCompany() {
     const [jobCount, setJobCount] = useState(0);
     const [history, setHistory] = useState<any[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+		const router = useRouter();
 
     useEffect(() => {
         // Simuler le chargement des données du profil
@@ -171,8 +172,10 @@ export default function ProfileCompany() {
                             <Ionicons name="close-circle" size={scale(32)} color={colors.primary} />
                         </TouchableOpacity>
                     </View>
-
-                    <MissionHistory missions={history} role="WORKER" />
+                    <MissionHistory 
+										missions={history} 
+										role="COMPANY"
+										onMissionPress={() => setShowHistory(false)}/>
                 </View>
             </Modal>
         </View>

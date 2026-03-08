@@ -1,10 +1,14 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, useWindowDimensions, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, useWindowDimensions, ScrollView, ActivityIndicator } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
+import { getJobOfferById } from "@/src/api/joboffer";
+import { createReview } from "@/src/api/review";
+import * as SecureStore from "expo-secure-store";
+import { jwtDecode } from "jwt-decode";
 
 function useResponsive() {
 	const { width } = useWindowDimensions();
@@ -22,6 +26,15 @@ export default function ReviewScreen() {
 	const [rating, setRating] = useState(0);
 	const [comment, setComment] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [jobOffer, setJobOffer] = useState<any>(null);
+	const [loadingOffer, setLoadingOffer] = useState(true);
+
+	useEffect(() => {
+		getJobOfferById(Number(id))
+			.then((data) => setJobOffer(data))
+			.catch(() => Alert.alert("Erreur", "Impossible de charger les données."))
+			.finally(() => setLoadingOffer(false));
+	}, [id]);
 
 	const handleSubmit = async () => {
 		if (rating === 0) {
@@ -29,15 +42,47 @@ export default function ReviewScreen() {
 			return;
 		}
 
+		if (!jobOffer) return;
+
 		setIsSubmitting(true);
 		try {
-			// TODO : appel API pour soumettre l'avis
-			// await submitReview(Number(id), { rating, comment });
+			const token = await SecureStore.getItemAsync("access_token");
+			if (!token) throw new Error("Non authentifié");
+			const decoded: any = jwtDecode(token);
+			const role: string = decoded.role;
+
+			let reviewerType: string;
+			let revieweeType: string;
+			let revieweeId: number;
+
+			if (role === "WORKER") {
+				if (!jobOffer.job?.company?.userId) throw new Error("Données entreprise manquantes");
+				reviewerType = "WORKER";
+				revieweeType = "COMPANY";
+				revieweeId = jobOffer.job.company.userId;
+			} else {
+				if (!jobOffer.worker?.userId) throw new Error("Données worker manquantes");
+				reviewerType = "COMPANY";
+				revieweeType = "WORKER";
+				revieweeId = jobOffer.worker.userId;
+			}
+
+			await createReview({
+				rating,
+				comment: comment || undefined,
+				jobId: jobOffer.job.id,
+				reviewerType,
+				revieweeType,
+				revieweeId,
+				reviewerId: decoded.sub,
+			});
+
 			Alert.alert("Merci !", "Votre avis a bien été enregistré.", [
 				{ text: "OK", onPress: () => router.back() }
 			]);
-		} catch {
-			Alert.alert("Erreur", "Impossible d'envoyer l'avis.");
+		} catch (error: any) {
+			const message = error?.message ?? "Impossible d'envoyer l'avis.";
+			Alert.alert("Erreur", message);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -46,6 +91,11 @@ export default function ReviewScreen() {
 	return (
 		<View style={{ flex: 1, backgroundColor: colors.background }}>
 			<Header />
+			{loadingOffer ? (
+				<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+					<ActivityIndicator size="large" color={colors.primary} />
+				</View>
+			) : (
 			<ScrollView contentContainerStyle={styles.container}>
 
 				<Text style={[styles.title, { fontSize: scaleFont(26), color: colors.primary }]}>
@@ -104,6 +154,7 @@ export default function ReviewScreen() {
 				</View>
 
 			</ScrollView>
+			)}
 		</View>
 	);
 }

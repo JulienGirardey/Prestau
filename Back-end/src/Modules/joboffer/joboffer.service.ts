@@ -179,7 +179,9 @@ export class JobofferService {
     }
 
     // Récupérer l'historique des missions terminées
-    async findHistory(userId: number, role: string): Promise<JobOffer[]> {
+    async findHistory(userId: number, role: string) {
+        let jobOffers: any[];
+
         if (role === 'WORKER') {
             const worker = await this.Prisma.worker.findUnique({
                 where: { userId },
@@ -189,7 +191,7 @@ export class JobofferService {
                 throw new NotFoundException('Worker not found');
             }
 
-            return this.Prisma.jobOffer.findMany({
+            jobOffers = await this.Prisma.jobOffer.findMany({
                 where: {
                     workerId: worker.id,
                     status: 'COMPLETED',
@@ -201,9 +203,7 @@ export class JobofferService {
                 },
                 orderBy: { updatedAt: 'desc' },
             });
-        }
-        
-        if (role === 'COMPANY') {
+        } else if (role === 'COMPANY') {
             const company = await this.Prisma.company.findUnique({
                 where: { userId },
             });
@@ -212,7 +212,7 @@ export class JobofferService {
                 throw new NotFoundException('Company not found');
             }
 
-            return this.Prisma.jobOffer.findMany({
+            jobOffers = await this.Prisma.jobOffer.findMany({
                 where: {
                     job: { companyId: company.id },
                     status: 'COMPLETED',
@@ -223,17 +223,37 @@ export class JobofferService {
                 },
                 orderBy: { updatedAt: 'desc' },
             });
+        } else {
+            return [];
         }
 
-        return [];
+        // Pour chaque mission, ajouter hasReviewed et receivedRating
+        return Promise.all(
+            jobOffers.map(async (offer) => {
+                const existingReview = await this.Prisma.review.findFirst({
+                    where: { jobId: offer.jobId, reviewerId: userId },
+                });
+
+                const receivedReview = await this.Prisma.review.findFirst({
+                    where: { jobId: offer.jobId, revieweeId: userId },
+                });
+
+                return {
+                    ...offer,
+                    hasReviewed: !!existingReview,
+                    receivedRating: receivedReview?.rating ?? null,
+                    receivedComment: receivedReview?.comment ?? null,
+                };
+            }),
+        );
     }
 
     // Récupérer une candidature spécifique par ID
-    async findOne(id: number): Promise<JobOffer> {
+    async findOne(id: number, userId: number, role: string) {
         const jobOffer = await this.Prisma.jobOffer.findUnique({
             where: { id },
             include: {
-                job: true,
+                job: { include: { company: true } },
                 worker: true,
             },
         });
@@ -241,7 +261,26 @@ export class JobofferService {
         if (!jobOffer) {
             throw new NotFoundException(`JobOffer with ID ${id} not found`);
         }
-        return jobOffer;
+
+        // Vérifier si l'user connecté a déjà laissé un avis pour ce job
+        const existingReview = await this.Prisma.review.findFirst({
+            where: { jobId: jobOffer.jobId, reviewerId: userId },
+        });
+
+        // Récupérer la note reçue de l'autre partie
+        const revieweeId = role === 'WORKER' ? jobOffer.worker?.id : jobOffer.job.company?.id;
+        const receivedReview = revieweeId
+            ? await this.Prisma.review.findFirst({
+                  where: { jobId: jobOffer.jobId, revieweeId: userId },
+              })
+            : null;
+
+        return {
+            ...jobOffer,
+            hasReviewed: !!existingReview,
+            receivedRating: receivedReview?.rating ?? null,
+            receivedComment: receivedReview?.comment ?? null,
+        };
     }
 
 	// Annuler une candidature par le worker

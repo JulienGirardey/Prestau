@@ -83,8 +83,8 @@ export class JobofferController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.jobofferService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.jobofferService.findOne(id, req.user.id, req.user.role);
   }
 
 @Delete("cancel/:jobId")

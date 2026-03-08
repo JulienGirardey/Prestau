@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { getJobOfferById, deleteJobOffer } from "@/src/api/joboffer";
-import { router } from "expo-router";
+import { jwtDecode } from "jwt-decode";
 
 function useResponsive() {
 	const { width, height } = useWindowDimensions();
@@ -21,6 +22,8 @@ export default function JobOfferDetailScreen() {
 	const [jobOffer, setJobOffer] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [isCancelling, setIsCancelling] = useState(false);
+	const router = useRouter();
+	const [role, setRole] = useState<string | null>(null);
 
 	const handleCancel = async () => {
 		setIsCancelling(true);
@@ -45,6 +48,15 @@ export default function JobOfferDetailScreen() {
 	useEffect(() => {
 		if (id) fetchJobOffer();
 	}, [id, fetchJobOffer]);
+
+	useEffect(() => {
+		SecureStore.getItemAsync('access_token').then((token) => {
+			if (token) {
+				const decoded: any = jwtDecode(token);
+				setRole(decoded.role);
+			}
+		});
+	}, []);
 
 	if (loading) {
 		return (
@@ -114,15 +126,21 @@ export default function JobOfferDetailScreen() {
 					</View>
 				</View>
 
-				{/* ANNULER LA CANDIDATURE */}
+				{/* ACTIONS */}
 				<View style={styles.buttonContainer}>
-					{jobOffer.status === 'COMPLETED' ? (
+					{jobOffer.status === 'COMPLETED' && !jobOffer.hasReviewed && (
 							<NewButton
 									title="Laisser un avis"
 									onPress={() => router.push({ pathname: '/review/[id]', params: { id: Number(id) } })}
 									style={{ backgroundColor: '#C9A961' }}
 							/>
-					) : (
+					)}
+					{jobOffer.status === 'COMPLETED' && jobOffer.hasReviewed && (
+							<View style={styles.infoBox}>
+								<Text style={styles.infoText}>Vous avez déjà laissé un avis</Text>
+							</View>
+					)}
+					{jobOffer.status !== 'COMPLETED' && role === 'WORKER' && (
 							<NewButton
 									title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
 									onPress={handleCancel}
@@ -170,4 +188,13 @@ const styles = StyleSheet.create({
 	timeText: { color: "#666" },
 	dateSeparator: { width: 1, height: 40, backgroundColor: "#e0e0e0" },
 	buttonContainer: { width: "100%", paddingHorizontal: "6.5%", paddingBottom: 30 },
+	infoBox: {
+		backgroundColor: "#f0f0f0",
+		padding: 15,
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: "#ccc",
+		alignItems: "center",
+	},
+	infoText: { color: "#666", fontWeight: "600", fontSize: 14, textAlign: "center" },
 });

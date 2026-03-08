@@ -14,6 +14,18 @@ export class ReviewService {
             throw new BadRequestException('Vous ne pouvez pas vous évaluer vous-même.');
         }
 
+				// Vérifier si l'utilisateur a déjà posté un avis pour ce job
+    const existingReview = await this.Prisma.review.findFirst({
+        where: {
+            jobId: createReviewDto.jobId,
+            reviewerId: userId,
+        },
+    });
+
+    if (existingReview) {
+        throw new BadRequestException('Vous avez déjà posté un avis pour cette mission.');
+    }
+
         return this.Prisma.review.create({
             data: {
                 ...createReviewDto,
