@@ -1,11 +1,19 @@
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Mission {
     id: number;
     status: string;
     updatedAt: string;
+    hasReviewed?: boolean;
+    receivedRating?: number | null;
+    receivedComment?: string | null;
+    myRating?: number | null;
+    myComment?: string | null;
     job: {
+				id : number;
         title: string;
         salary: number;
         address: string;
@@ -22,12 +30,20 @@ interface Mission {
 interface MissionHistoryProps {
     missions: Mission[];
     role: 'WORKER' | 'COMPANY';
+		onMissionPress?: () => void;
 }
 
-export function MissionHistory({ missions, role }: MissionHistoryProps) {
+export function MissionHistory({ missions, role, onMissionPress }: MissionHistoryProps) {
     const colors = useThemeColors();
+		const router = useRouter();
 
     const renderMission = ({ item }: { item: Mission }) => (
+			<Pressable
+    		onPress={() => {
+        onMissionPress?.();
+        router.push({ pathname: '/joboffer/[id]', params: { id: item.id } });
+    }}
+    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}>
         <View style={[styles.card, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>{item.job.title}</Text>
@@ -36,17 +52,17 @@ export function MissionHistory({ missions, role }: MissionHistoryProps) {
                 </View>
             </View>
 
+            <Text style={styles.address}>{item.job.address}</Text>
             {role === 'WORKER' && item.job.company && (
-                <Text style={styles.subtitle}>{item.job.company.companyName}</Text>
+                <Text style={styles.subtitle}>
+									Company: {item.job.company.companyName}</Text>
             )}
 
             {role === 'COMPANY' && item.worker && (
                 <Text style={styles.subtitle}>
-                    {item.worker.firstName} {item.worker.lastName}
+                    Worker: {item.worker.firstName}{item.worker.lastName}
                 </Text>
             )}
-
-            <Text style={styles.address}>{item.job.address}</Text>
 
             <View style={styles.separator} />
 
@@ -71,7 +87,52 @@ export function MissionHistory({ missions, role }: MissionHistoryProps) {
                     Terminée le {new Date(item.updatedAt).toLocaleDateString()}
                 </Text>
             </View>
+
+            {/* Avis reçu (doré) */}
+            {item.receivedRating != null && (
+                <View style={[styles.receivedReviewBox, { borderLeftColor: "#C9A961", backgroundColor: "#fff8e1" }]}> 
+                    <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={16} color="#C9A961" />
+                        <Text style={[styles.ratingText, { color: "#C9A961" }]}>{item.receivedRating}/5</Text>
+                        <Text style={styles.ratingFrom}>
+                            {" "}· de{" "}
+                            {role === "WORKER" && item.job.company
+                                ? item.job.company.companyName
+                                : role === "COMPANY" && item.worker
+                                ? `${item.worker.firstName} ${item.worker.lastName}`
+                                : ""}
+                        </Text>
+                    </View>
+                    {item.receivedComment ? (
+                        <Text style={styles.receivedComment}>"{item.receivedComment}"</Text>
+                    ) : null}
+                </View>
+            )}
+
+            {/* Avis laissé (bleu) */}
+            {item.myRating != null && (
+                <View style={[styles.receivedReviewBox, { borderLeftColor: "#4a90d9", backgroundColor: "#f0f4ff" }]}> 
+                    <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={16} color="#4a90d9" />
+                        <Text style={[styles.ratingText, { color: "#4a90d9" }]}>{item.myRating}/5</Text>
+                        <Text style={styles.ratingFrom}> · votre avis</Text>
+                    </View>
+                    {item.myComment ? (
+                        <Text style={styles.receivedComment}>"{item.myComment}"</Text>
+                    ) : null}
+                </View>
+            )}
+
+            {/* Message si mission terminée mais pas encore d'avis */}
+            {item.status === 'COMPLETED' && !item.hasReviewed && (
+                <View style={styles.pendingReviewBox}>
+                    <Text style={styles.pendingReviewText}>
+                        Laissez votre avis pour voir celui de l'autre partie
+                    </Text>
+                </View>
+            )}
         </View>
+			</Pressable>
     );
 
     if (missions.length === 0) {
@@ -103,10 +164,9 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 12,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
     },
     header: {
         flexDirection: "row",
@@ -188,5 +248,50 @@ const styles = StyleSheet.create({
     emptyText: {
         color: "#999",
         fontSize: 16,
+    },
+    ratingRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 8,
+    },
+    ratingText: {
+        marginLeft: 4,
+        color: "#C9A961",
+        fontWeight: "600",
+        fontSize: 13,
+    },
+    ratingFrom: {
+        color: "#888",
+        fontSize: 12,
+        fontStyle: "italic",
+    },
+    receivedReviewBox: {
+        marginTop: 10,
+        backgroundColor: "#fdf8ee",
+        borderRadius: 8,
+        padding: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: "#C9A961",
+    },
+    receivedComment: {
+        marginTop: 4,
+        color: "#555",
+        fontSize: 12,
+        fontStyle: "italic",
+    },
+    pendingReviewBox: {
+        marginTop: 10,
+        backgroundColor: "#f5f5f5",
+        borderRadius: 8,
+        padding: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: "#ccc",
+        alignItems: "center",
+    },
+    pendingReviewText: {
+        color: "#999",
+        fontSize: 12,
+        fontStyle: "italic",
     },
 });

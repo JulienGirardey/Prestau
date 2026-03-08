@@ -7,9 +7,10 @@ import { NewButton } from "@/components/Button";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
-import { JobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
+import { JobOffer, deleteJobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { MissionHistory } from "@/components/MissionHistory";
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
@@ -164,7 +165,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
     );
 }, [router]);
 
-    if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
+  if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
 	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
 
 	// --- RENDU UI ---
