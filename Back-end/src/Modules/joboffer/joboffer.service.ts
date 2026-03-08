@@ -168,16 +168,6 @@ export class JobofferService {
         });
     }
 
-    // Récupérer toutes les candidatures (admin)
-    async findAll(): Promise<JobOffer[]> {
-        return this.Prisma.jobOffer.findMany({
-            include: {
-                job: true,
-                worker: true,
-            },
-        });
-    }
-
     // Récupérer l'historique des missions terminées
     async findHistory(userId: number, role: string) {
         let jobOffers: any[];
@@ -227,30 +217,31 @@ export class JobofferService {
             return [];
         }
 
-        // Pour chaque mission, ajouter hasReviewed et receivedRating
+        // Pour chaque jobOffer, ajouter hasReviewed et receivedRating
         return Promise.all(
             jobOffers.map(async (offer) => {
+							// Récupérer l'avis que l'utilisateur a laissé pour cette mission, s'il existe
                 const existingReview = await this.Prisma.review.findFirst({
                     where: { jobId: offer.jobId, reviewerId: userId },
                 });
-
+							// Récupérer la note reçue de l'autre partie
                 const receivedReview = await this.Prisma.review.findFirst({
                     where: { jobId: offer.jobId, revieweeId: userId },
                 });
 
                 return {
-                    ...offer,
-                    hasReviewed: !!existingReview,
-                    myRating: existingReview?.rating ?? null,
-                    myComment: existingReview?.comment ?? null,
-                    receivedRating: existingReview && receivedReview ? receivedReview.rating : null,
-                    receivedComment: existingReview && receivedReview ? receivedReview.comment : null,
+                    ...offer, // Inclure les données de base de l'offre
+                    hasReviewed: !!existingReview, // Indique si l'utilisateur a déjà laissé un avis pour cette mission
+                    myRating: existingReview?.rating ?? null, // Indique la note que l'utilisateur a laissée, ou null s'il n'a pas encore laissé d'avis
+                    myComment: existingReview?.comment ?? null, // Indique le commentaire que l'utilisateur a laissé, ou null s'il n'a pas encore laissé d'avis
+                    receivedRating: existingReview && receivedReview ? receivedReview.rating : null, // Indique la note que l'utilisateur a reçue de l'autre partie, ou null s'il n'a pas encore reçu d'avis
+                    receivedComment: existingReview && receivedReview ? receivedReview.comment : null, // Indique le commentaire que l'utilisateur a reçue de l'autre partie, ou null s'il n'a pas encore reçu d'avis
                 };
             }),
         );
     }
 
-    // Récupérer une candidature spécifique par ID
+    // Récupérer une jobOffer spécifique par ID
     async findOne(id: number, userId: number, role: string) {
         const jobOffer = await this.Prisma.jobOffer.findUnique({
             where: { id },
@@ -264,7 +255,7 @@ export class JobofferService {
             throw new NotFoundException(`JobOffer with ID ${id} not found`);
         }
 
-        // Vérifier si l'user connecté a déjà laissé un avis pour ce job
+        // Récupérer l'avis que l'utilisateur a laissé pour cette mission, s'il existe
         const existingReview = await this.Prisma.review.findFirst({
             where: { jobId: jobOffer.jobId, reviewerId: userId },
         });
@@ -285,7 +276,7 @@ export class JobofferService {
         };
     }
 
-	// Annuler une candidature par le worker
+	// Annuler une jobOffer par le worker
 	async removeByJobAndWorker(jobId: number, userId: number) {
 		const worker = await this.Prisma.worker.findUnique({
 			where: { userId }

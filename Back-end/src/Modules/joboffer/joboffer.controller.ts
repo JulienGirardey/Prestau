@@ -72,11 +72,6 @@ export class JobofferController {
     return this.jobofferService.findMyApplications(req.user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.jobofferService.findAll();
-  }
-
   @Get('history')
   findHistory(@Req() req: any) {
     return this.jobofferService.findHistory(req.user.id, req.user.role);
@@ -87,12 +82,12 @@ export class JobofferController {
     return this.jobofferService.findOne(id, req.user.id, req.user.role);
   }
 
-@Delete("cancel/:jobId")
-@Roles(Role.WORKER)
-cancelApplication(
-  @Param("jobId", ParseIntPipe) jobId: number,
-  @Req() req: CurrentUserRequest,
-) {
-  return this.jobofferService.removeByJobAndWorker(jobId, req.user.id);
-}
+	@Delete("cancel/:jobId")
+	@Roles(Role.WORKER)
+	cancelApplication(
+		@Param("jobId", ParseIntPipe) jobId: number,
+		@Req() req: CurrentUserRequest,
+	) {
+		return this.jobofferService.removeByJobAndWorker(jobId, req.user.id);
+	}
 }
