@@ -11,12 +11,18 @@ interface CreateCompanyProfileDto {
 	social_media?: string;
 }
 
+interface CompanyProfile {
+	id: number;
+	companyName: string;
+	address: string;
+}
+
 export const createCompanyProfile = async (data: CreateCompanyProfileDto) => {
 	const response = await api.post('/company', data);
 	return response.data;
 };
 
-export const getCompanyProfile = async () => {
+export const getCompanyProfile = async (): Promise<CompanyProfile> => {
 	const response = await api.get('/company/MyCompany');
 	return response.data;
 };
