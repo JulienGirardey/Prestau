@@ -2,33 +2,11 @@ import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { JobOffer } from "@/src/api/joboffer";
 
-interface Mission {
-    id: number;
-    status: string;
-    updatedAt: string;
-    hasReviewed?: boolean;
-    receivedRating?: number | null;
-    receivedComment?: string | null;
-    myRating?: number | null;
-    myComment?: string | null;
-    job: {
-				id : number;
-        title: string;
-        salary: number;
-        address: string;
-        start_time: string;
-        end_time: string;
-        company?: { companyName: string };
-    };
-    worker?: {
-        firstName: string;
-        lastName: string;
-    };
-}
 
 interface MissionHistoryProps {
-    missions: Mission[];
+    missions: JobOffer[];
     role: 'WORKER' | 'COMPANY';
 		onMissionPress?: () => void;
 }
@@ -37,7 +15,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
     const colors = useThemeColors();
 		const router = useRouter();
 
-    const renderMission = ({ item }: { item: Mission }) => (
+    const renderMission = ({ item }: { item: JobOffer }) => (
 			<Pressable
     		onPress={() => {
         onMissionPress?.();

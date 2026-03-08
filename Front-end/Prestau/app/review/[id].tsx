@@ -1,14 +1,16 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, useWindowDimensions, ScrollView, ActivityIndicator } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
-import { getJobOfferById } from "@/src/api/joboffer";
+import { getJobOfferById, JobOffer } from "@/src/api/joboffer";
 import { createReview } from "@/src/api/review";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
+import { useQuery } from "@tanstack/react-query";
+
 
 function useResponsive() {
 	const { width } = useWindowDimensions();
@@ -22,19 +24,15 @@ export default function ReviewScreen() {
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const router = useRouter();
-
 	const [rating, setRating] = useState(0);
 	const [comment, setComment] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [jobOffer, setJobOffer] = useState<any>(null);
-	const [loadingOffer, setLoadingOffer] = useState(true);
 
-	useEffect(() => {
-		getJobOfferById(Number(id))
-			.then((data) => setJobOffer(data))
-			.catch(() => Alert.alert("Erreur", "Impossible de charger les données."))
-			.finally(() => setLoadingOffer(false));
-	}, [id]);
+	const { data: jobOffer, isLoading: loadingOffer } = useQuery<JobOffer>({
+		queryKey: ["joboffer", id],
+		queryFn: () => getJobOfferById(Number(id)),
+		enabled: id!=null,
+	});
 
 	const handleSubmit = async () => {
 		if (rating === 0) {
@@ -49,14 +47,14 @@ export default function ReviewScreen() {
 			const token = await SecureStore.getItemAsync("access_token");
 			if (!token) throw new Error("Non authentifié");
 			const decoded: any = jwtDecode(token);
-			const role: string = decoded.role;
+			const role: string = decoded.role; // lit le rôle de l'utilisateur à partir du token
 
-			let reviewerType: string;
-			let revieweeType: string;
-			let revieweeId: number;
+			let reviewerType: string; // celui qui écrit l'avis (WORKER ou COMPANY)
+			let revieweeType: string; // celui qui reçoit l'avis (WORKER ou COMPANY)
+			let revieweeId: number; // l'id de celui qui reçoit l'avis
 
 			if (role === "WORKER") {
-				if (!jobOffer.job?.company?.userId) throw new Error("Données entreprise manquantes");
+				if (!jobOffer.job?.company?.userId) throw new Error("Données company manquantes");
 				reviewerType = "WORKER";
 				revieweeType = "COMPANY";
 				revieweeId = jobOffer.job.company.userId;
@@ -67,6 +65,7 @@ export default function ReviewScreen() {
 				revieweeId = jobOffer.worker.userId;
 			}
 
+			// crée l'avis via l'API
 			await createReview({
 				rating,
 				comment: comment || undefined,
