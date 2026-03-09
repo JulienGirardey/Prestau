@@ -142,34 +142,55 @@ export default function JobDetailScreen() {
 
 				{/* Section des boutons d'action */}
 				<View style={styles.buttonContainer}>
-					{job.isWorker && (
-						<>
-							{job.alreadyApplied ? (
-								<View>
-									<View style={styles.alreadyAppliedBadge}>
-										<Text style={styles.alreadyAppliedText}>
-											Vous avez déjà postulé pour cette offre
-										</Text>
+										{job.isWorker && (
+							<>
+								{job.alreadyApplied ? (
+									<View>
+										<View style={styles.alreadyAppliedBadge}>
+											<Text style={styles.alreadyAppliedText}>
+												Vous avez déjà postulé pour cette offre
+											</Text>
+										</View>
+										{/* Bouton pour ANNULER la candidature */}
+										<View style={{ marginTop: 15 }}>
+											<NewButton
+												title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
+												onPress={() => cancelApply()}
+												disabled={isCancelling}
+												style={{ backgroundColor: '#FF3B30' }}
+											/>
+										</View>
 									</View>
-									{/* Bouton pour ANNULER la candidature */}
-									<View style={{ marginTop: 15 }}>
+								) : (
+									/* Si canApply est vrai, on affiche le bouton pour postuler */
+									job.canApply && (
 										<NewButton
-											title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
-											onPress={() => cancelApply()}
-											disabled={isCancelling}
-											style={{ backgroundColor: '#FF3B30' }}
+											title={isApplying ? "En cours..." : "Postuler"}
+											onPress={() => applyToJob()}
+											disabled={isApplying}
 										/>
-									</View>
-								</View>
-							) : job.canApply ? (
-								<NewButton
-									title={isApplying ? "En cours..." : "Postuler"}
-									onPress={() => applyToJob()}
-									disabled={isApplying}
-								/>
-							) : null}
-						</>
-					)}
+									)
+								)}
+							</>
+						)}
+
+						{/* SECTION COMPANY */}
+						{!job.isWorker && (
+								<>
+									{Array.isArray(job.jobOffers) && job.jobOffers.length > 0 ? (
+										<NewButton 
+											title={`Voir les candidats (${job.jobOffers.length})`} 
+											onPress={() => setShowApplicants(true)} 
+										/>
+									) : (
+										<View style={styles.alreadyAppliedBadge}>
+											<Text style={styles.alreadyAppliedText}>
+												Aucune candidature pour le moment
+											</Text>
+										</View>
+									)}
+								</>
+						)}
 				</View>
 			</ScrollView>
 		</View>
