@@ -262,9 +262,17 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   body: { flex: 1 },
-  scrollContent: { alignItems: "center", gap: 20, paddingBottom: 40 },
+  scrollContent: {
+    alignItems: "center",
+    gap: 20,
+    paddingBottom: 40,
+  },
   cardWrapper: { width: "95%" },
-  flatListContent: { paddingVertical: 10, paddingHorizontal: 45, gap: 10 },
+  flatListContent: {
+    paddingVertical: 10,
+    paddingHorizontal: 45,
+    gap: 10,
+  },
   buttonCreateAccount: {
     marginTop: 20,
     paddingBottom: 20,
@@ -272,10 +280,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   missionCard: {
-        borderRadius: 8,
-        padding: 16,
-        marginRight: 12,
-    },
+    borderRadius: 8,
+    padding: 16,
+    marginRight: 12,
+  },
   titleCard: {
     fontSize: 25,
     textAlign: "center",
@@ -326,17 +334,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "600",
   },
-  calendarWrapper: { marginTop: 10, width: "100%", paddingHorizontal: 5 },
+  calendarWrapper: {
+    marginTop: 10,
+    width: "100%",
+    paddingHorizontal: 5,
+  },
   legendContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 15,
     paddingHorizontal: 10,
     borderTopWidth: 1,
-    borderTopColor: "rgba(245, 242, 217, 0.2)",
+    borderTopColor:
+      "rgba(245, 242, 217, 0.2)",
     paddingTop: 10,
   },
-  legendItem: { flexDirection: "row", alignItems: "center" },
-  legendDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
-  legendText: { color: "#F5F2D9", fontSize: 12, fontWeight: "500" },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  legendText: {
+    color: "#F5F2D9",
+    fontSize: 12,
+    fontWeight: "500",
+  },
 });
