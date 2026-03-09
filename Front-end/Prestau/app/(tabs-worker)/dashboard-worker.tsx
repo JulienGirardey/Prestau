@@ -3,7 +3,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
-import { NewButton } from "@/components/Button";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
@@ -185,7 +184,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
             </View>
         </Pressable>
     );
-}, [router]);
+}, [router, scale, scaleFont]);
 
   if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
 	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
