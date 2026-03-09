@@ -144,12 +144,17 @@ export default function JobOfferDetailScreen() {
 								<Text style={styles.infoText}>Vous avez déjà laissé un avis</Text>
 							</View>
 					)}
+						<View style={styles.alreadyAppliedBadge}>
+							<Text style={styles.alreadyAppliedText}>
+								Vous avez déjà postulé pour cette offre
+							</Text>
+						</View>
 					{jobOffer.status !== 'COMPLETED' && role === 'WORKER' && (
 							<NewButton
 									title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
 									onPress={() => cancelApply()}
 									disabled={isCancelling}
-									style={{ backgroundColor: '#FF3B30' }}
+									style={{ backgroundColor: '#FF3B30', marginTop: 15 }}
 							/>
 					)}
 			</View>
@@ -257,6 +262,20 @@ const styles = StyleSheet.create({
 	},
 	infoText: {
 		color: "#666",
+		fontWeight: "600",
+		fontSize: 14,
+		textAlign: "center",
+	},
+	alreadyAppliedBadge: {
+		backgroundColor: "#f0f0f0",
+		padding: 15,
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: "#ccc",
+		alignItems: "center",
+	},
+	alreadyAppliedText: {
+		color: "#777",
 		fontWeight: "600",
 		fontSize: 14,
 		textAlign: "center",
