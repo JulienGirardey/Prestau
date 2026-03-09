@@ -39,7 +39,16 @@ export class JobService {
     });
   }
 
-	async findAll(user: { id: number; role: Role }) {
+	async findAll(user: { id: number; role: Role }, search?: string) {
+		const searchFilter = search?.trim()
+			? {
+				OR: [
+					{ title: { contains: search.trim(), mode: 'insensitive' as const } },
+					{ company: { city: { contains: search.trim(), mode: 'insensitive' as const } } },
+				],
+			}
+			: {};
+
 		if (user.role === Role.COMPANY) {
 			const company = await this.prisma.company.findUnique({
 				where: { userId: user.id } // Trouve la company associée à l'utilisateur
@@ -50,12 +59,12 @@ export class JobService {
 			}
 
 			return this.prisma.job.findMany({
-				where: { companyId: company.id },
+				where: { companyId: company.id, ...searchFilter },
 				include: { company: true },
 			});
 		}
 		// Le worker voit tous les jobs
-		return this.prisma.job.findMany({ include: { company: true } })
+		return this.prisma.job.findMany({ where: searchFilter, include: { company: true } })
 	}
 
 	async findOne(id: number, userId?: number) {

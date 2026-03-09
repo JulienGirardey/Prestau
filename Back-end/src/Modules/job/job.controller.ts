@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseIntPipe, Query } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -20,9 +20,9 @@ export class JobController {
 		return this.jobService.create(createJobDto, req.user.id);
 	}
 
-	@Get()
-	findAll(@Req() req: CurrentUserRequest) {
-		return this.jobService.findAll(req.user);
+	@Get()// Endpoint pour récupérer tous les jobs, avec une option de recherche
+	findAll(@Req() req: CurrentUserRequest, @Query('search') search?: string) {
+		return this.jobService.findAll(req.user, search);
 	}
 
   	@Get('my-jobs') // Endpoint pour récupérer les jobs d'une entreprise spécifique

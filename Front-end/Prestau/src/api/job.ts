@@ -22,8 +22,11 @@ export const createJob = async (jobData: Omit<Job, 'id' | 'status' | 'company'>)
 		return response.data;
 };
 
-// Obtenir la liste de tous les jobs disponibles par les workers
-export const getJobs = async (): Promise<Job[]> => (await api.get('/job')).data;
+// Obtenir la liste de tous les jobs disponibles par les workers (avec recherche optionnelle)
+export const getJobs = async (search?: string): Promise<Job[]> => {
+	const params = search?.trim() ? { search: search.trim() } : {};
+	return (await api.get('/job', { params })).data;
+};
 
 // la company peut réupérer la liste de ses jobs postés
 export const getMyJobs = async (): Promise<Job[]> => (await api.get('/job/my-jobs')).data;
