@@ -80,9 +80,6 @@ export default function JobOfferDetailScreen() {
 				<View style={[styles.jobCard, { backgroundColor: "white", margin: scale(25) }]}>
 					<View style={styles.jobHeader}>
 						<Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{job.title}</Text>
-						<Text style={[styles.jobStatus, { fontSize: scaleFont(12), color: job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>
-							● {job.status}
-						</Text>
 						<View style={styles.salaryBadge}>
 							<Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{job.salary}€</Text>
 						</View>
@@ -125,6 +122,10 @@ export default function JobOfferDetailScreen() {
 							</Text>
 						</View>
 					</View>
+					<View style={styles.separator} />
+					<Text style={[styles.jobStatus, { fontSize: scaleFont(12), color: job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>
+							● {job.status}
+						</Text>
 				</View>
 
 				{/* ACTIONS */}
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
 	},
 	jobStatus: {
 		fontWeight: "600",
-		marginRight: 55,
+		alignSelf: "center",
 	},
 	salaryBadge: {
 		backgroundColor: "#4a90d9",
