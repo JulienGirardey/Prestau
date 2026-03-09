@@ -6,8 +6,10 @@ import {
     ScrollView,
     RefreshControl,
     Pressable,
+    TextInput,
     useWindowDimensions,
 } from "react-native";
+import { useState, useMemo } from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
@@ -41,6 +43,39 @@ export default function MissionScreen() {
         queryKey: ["dashboard-worker-jobs"],
         queryFn: () => getJobs(),
     });
+
+    // États des filtres
+    const [searchText, setSearchText] = useState('');
+    const [salaryFilter, setSalaryFilter] = useState<'all' | 'lt10' | '10to12' | '12to15' | '15to20' | 'gt20'>('all');
+
+    const SALARY_FILTERS = [
+        { key: 'all', label: 'Tous' },
+        { key: 'lt10', label: '< 10€' },
+        { key: '10to12', label: '10-12€' },
+        { key: '12to15', label: '12-15€' },
+        { key: '15to20', label: '15-20€' },
+        { key: 'gt20', label: '> 20€' },
+    ] as const;
+
+    // Jobs filtrés selon la recherche et le salaire
+    const filteredJobs = useMemo(() => {
+        return jobs.filter(job => {
+            const text = searchText.toLowerCase().trim();
+            const matchesText = text === '' ||
+                job.title.toLowerCase().includes(text) ||
+                job.company?.city?.toLowerCase().includes(text) ||
+                String(job.company?.postalCode).includes(text);
+
+            let matchesSalary = true;
+            if (salaryFilter === 'lt10') matchesSalary = job.salary < 10;
+            else if (salaryFilter === '10to12') matchesSalary = job.salary >= 10 && job.salary < 12;
+            else if (salaryFilter === '12to15') matchesSalary = job.salary >= 12 && job.salary < 15;
+            else if (salaryFilter === '15to20') matchesSalary = job.salary >= 15 && job.salary < 20;
+            else if (salaryFilter === 'gt20') matchesSalary = job.salary >= 20;
+
+            return matchesText && matchesSalary;
+        });
+    }, [jobs, searchText, salaryFilter]);
 
     // Formate la date au format français
     const formatDate = (dateString: string) => {
@@ -85,8 +120,43 @@ export default function MissionScreen() {
                 style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>
                 Missions disponibles
             </ThemedText>
-            
-            <DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
+
+            {/* BARRE DE RECHERCHE & FILTRES */}
+            <View style={[styles.searchBlock, { paddingHorizontal: scale(25), marginBottom: scale(19) }]}>
+                <View style={[styles.searchInputWrapper, { borderRadius: scale(10), paddingHorizontal: scale(12), height: scale(42) }]}>
+                    <Ionicons name="search-outline" size={scale(18)} color="#888" />
+                    <TextInput
+                        style={[styles.searchInput, { fontSize: scaleFont(14), marginLeft: scale(8) }]}
+                        placeholder="Lieu ou type de mission..."
+                        placeholderTextColor="#aaa"
+                        value={searchText}
+                        onChangeText={setSearchText}
+                        clearButtonMode="while-editing"
+                    />
+                </View>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginTop: scale(10) }}
+                    contentContainerStyle={{ gap: scale(8) }}
+                >
+                    {SALARY_FILTERS.map(f => (
+                        <Pressable
+                            key={f.key}
+                            onPress={() => setSalaryFilter(f.key)}
+                            style={[styles.filterChip, { paddingHorizontal: scale(14), paddingVertical: scale(6), borderRadius: scale(20) },
+                                salaryFilter === f.key && styles.filterChipActive
+                            ]}
+                        >
+                            <Text style={[styles.filterChipText, { fontSize: scaleFont(13) },
+                                salaryFilter === f.key && styles.filterChipTextActive
+                            ]}>{f.label}</Text>
+                        </Pressable>
+                    ))}
+                </ScrollView>
+            </View>
+
+            <DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(5), paddingBottom: scale(5) }]}>
                 <ScrollView
                     style={styles.scroll}
                     showsVerticalScrollIndicator={false}
@@ -105,15 +175,15 @@ export default function MissionScreen() {
                         </View>
                     )}
 
-                    {jobs.length === 0 && !isLoadingJob ? (
+                    {filteredJobs.length === 0 && !isLoadingJob ? (
                         <View style={styles.emptyState}>
                             <Ionicons name="briefcase-outline" size={60} color={"#666"} />
                             <Text style={[styles.emptyText, { color: "#666" }]}>
-                                Aucune mission disponible pour le moment
+                                {jobs.length === 0 ? "Aucune mission disponible pour le moment" : "Aucune mission ne correspond à votre recherche"}
                             </Text>
                         </View>
                     ) : (
-                        jobs.map((job) => (
+                        filteredJobs.map((job) => (
                             <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                                 <Pressable 
                                     onPress={() => router.push({
@@ -306,5 +376,35 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 14,
         flex: 1,
+    },
+    searchBlock: {
+        width: '100%',
+    },
+    searchInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    searchInput: {
+        flex: 1,
+        color: '#333',
+    },
+    filterChip: {
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    filterChipActive: {
+        backgroundColor: '#264D84',
+        borderColor: '#264D84',
+    },
+    filterChipText: {
+        color: '#555',
+        fontWeight: '500',
+    },
+    filterChipTextActive: {
+        color: '#fff',
     },
 });
