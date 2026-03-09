@@ -88,7 +88,7 @@ export default function ProfileCompany() {
                             {profile?.companyName}
                         </Text>
                         <Text style={[styles.profileCity, { fontSize: scaleFont(18) }]}>
-                            {profile?.address}
+                            {profile?.address}{profile?.city}({profile?.postalCode})
                         </Text>
                     </View>
                 </View>

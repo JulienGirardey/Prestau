@@ -30,7 +30,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                 </View>
             </View>
 
-            <Text style={styles.address}>{item.job.address}</Text>
+            <Text style={styles.address}>{item.job.company?.address}, {item.job.company?.city} ({item.job.company?.postalCode})</Text>
             {role === 'WORKER' && item.job.company && (
                 <Text style={styles.subtitle}>
 									Company: {item.job.company.companyName}</Text>

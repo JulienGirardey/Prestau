@@ -46,75 +46,73 @@ export default function DashboardCompany() {
             <ThemedText
                 variant="headline"
                 color="primary"
-                style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>
+                style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}
+            >
                 Missions postées
             </ThemedText>
             <DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
-                <ScrollView
-                    style={styles.scroll}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {jobs.map((job) => (
-                        <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
-                            <Pressable 
-                                onPress={() => router.push({
-                                    pathname: '/job/[id]',
-                                    params: { id: job.id }
-                                })}
-								style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-							>
-							{/* Header de la carte */}
-							<View style={styles.jobHeader}>
-								<Text style={[styles.jobTitle, { fontSize: scaleFont(17) }]}>{job.title}</Text>
-								<Text style={[
-									styles.Status,
-									{ fontSize: scaleFont(12),  color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
-								]}>
-									● {job.status}
-								</Text>
-								<View style={styles.salaryBadge}>
-									<Text style={[styles.salaryText, { fontSize: scaleFont(13) }]}>{job.salary}€</Text>
-								</View>
-							</View>
+                <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+										{jobs.length === 0 ? (
+												<Text style={{ textAlign: "center", color: "#888", marginVertical: 20 }}>
+														Aucune mission postée
+												</Text>
+										) : (
+												<>
+														{jobs.map((job) => (
+																<View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
+																		<Pressable
+																				onPress={() => router.push({
+																						pathname: '/job/[id]',
+																						params: { id: job.id }
+																				})}
+																				style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+																		>
+																				<View style={styles.jobHeader}>
+																						<Text style={[styles.jobTitle, { fontSize: scaleFont(17) }]}>{job.title}</Text>
+																						<Text style={[
+																								styles.Status,
+																								{ fontSize: scaleFont(12), color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
+																						]}>
+																								● {job.status}
+																						</Text>
+																						<View style={styles.salaryBadge}>
+																								<Text style={[styles.salaryText, { fontSize: scaleFont(13) }]}>{job.salary}€</Text>
+																						</View>
+																				</View>
 
-							{/* Adresse */}
-							<View style={styles.addressRow}>
-								<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-								<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
-							</View>
+																				<View style={styles.addressRow}>
+																						<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
+																						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
+																				</View>
 
-							{/* Description */}
-							<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
-							<Text
-								style={[styles.jobDescription, { fontSize: scaleFont(13) }]}
-								numberOfLines={2}
-							>
-								{job.description}
-							</Text>
+																				<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
+																				<Text style={[styles.jobDescription, { fontSize: scaleFont(13) }]} numberOfLines={2}>
+																						{job.description}
+																				</Text>
 
-							{/* Séparateur */}
-							<View style={styles.separator} />
+																				<View style={styles.separator} />
 
-							{/* Dates */}
-							<View style={styles.dateRow}>
-                                <View style={styles.dateItem}>
-                                    <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
-                                    <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
-                                        {new Date(job.start_time).toLocaleDateString()}
-                                    </Text>
-                                </View>
-                                <View style={styles.dateSeparator} />
-                                <View style={styles.dateItem}>
-                                    <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
-                                    <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
-                                        {new Date(job.end_time).toLocaleDateString()}
-                                    </Text>
-                                </View>
-                            </View>
-                            </Pressable>
-                        </View>
-                    ))}
-                </ScrollView>
+																				<View style={styles.dateRow}>
+																						<View style={styles.dateItem}>
+																								<Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
+																								<Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+																										{new Date(job.start_time).toLocaleDateString()}
+																								</Text>
+																						</View>
+																						<View style={styles.dateSeparator} />
+																						<View style={styles.dateItem}>
+																								<Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
+																								<Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+																										{new Date(job.end_time).toLocaleDateString()}
+																								</Text>
+																						</View>
+																				</View>
+																		</Pressable>
+																</View>
+														))}
+												</>
+										)}
+								</ScrollView>
             </DefaultCard>
             <View style={styles.buttonContainer}>
                 <NewButton title="Avis" onPress={() => console.log("Voir les avis")} />

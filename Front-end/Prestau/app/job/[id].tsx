@@ -101,7 +101,7 @@ export default function JobDetailScreen() {
 					{/* Adresse */}
 					<View style={styles.addressRow}>
 						<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
+						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
 					</View>
 
 					{/* Description */}

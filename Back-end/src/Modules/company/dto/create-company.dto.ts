@@ -10,6 +10,14 @@ export class CreateCompanyDto {
 	address!: string;
 
 	@IsString()
+	@IsNotEmpty({ message: 'La ville est obligatoire.' })
+	city!: string;
+
+	@IsNumber()
+	@IsNotEmpty({ message: 'Le code postal est obligatoire.' })
+	postalCode!: number;
+
+	@IsString()
 	@IsNotEmpty({ message: 'Le numéro SIRET est obligatoire.' })
 	siret!: string;
 

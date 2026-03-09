@@ -9,9 +9,6 @@ import React, { useState } from "react";
 import { createCompanyProfile } from "@/src/api/company";
 import { router } from "expo-router";
 
-// import { router } from "expo-router";
-// import { createCompanyProfile } from "@/src/api/company";
-
 // Hook responsive
 function useResponsive() {
 	const { width, height } = useWindowDimensions();
@@ -72,6 +69,8 @@ export default function CompanyCreation() {
 	const [form, setForm] = useState({
 		companyName: "",
 		address: "",
+		postalCode: "",
+		city: "",
 		siret: "",
 		phoneNumber: "",
 		establishment_type: "",
@@ -84,7 +83,7 @@ export default function CompanyCreation() {
 		setForm((prev) => ({ ...prev, [key]: value }));
 
 	const handleCreate = async () => {
-		if (!form.companyName || !form.address || !form.siret || !form.phoneNumber || !form.establishment_type) {
+		if (!form.companyName || !form.address || !form.siret || !form.phoneNumber || !form.establishment_type || !form.postalCode || !form.city) {
 			alert('Merci de remplir tous les champs obligatoires');
 			return;
 		}
@@ -93,6 +92,8 @@ export default function CompanyCreation() {
 			await createCompanyProfile({
 				companyName: form.companyName,
 				address: form.address,
+				postalCode: Number(form.postalCode),
+				city: form.city,
 				siret: form.siret,
 				phoneNumber: form.phoneNumber,
 				establishment_type: form.establishment_type,
@@ -109,7 +110,9 @@ export default function CompanyCreation() {
 
 	const fields = [
 		{ label: "Nom de l'entreprise", key: "companyName", placeholder: "Le Bistrot Parisien", required: true },
-		{ label: "Adresse", key: "address", placeholder: "12 rue de la Paix, Paris", required: true },
+		{ label: "Adresse", key: "address", placeholder: "12 rue de la Paix", required: true },
+		{ label: "Ville", key: "city", placeholder: "Paris", required: true },
+		{ label: "Code postal", key: "postalCode", placeholder: "75001", required: true },
 		{ label: "SIRET", key: "siret", placeholder: "12345678901234", required: true },
 		{ label: "Téléphone", key: "phoneNumber", placeholder: "0606060606", required: true },
 		{ label: "Type d'établissement", key: "establishment_type", placeholder: "Restaurant, Bar...", required: true },

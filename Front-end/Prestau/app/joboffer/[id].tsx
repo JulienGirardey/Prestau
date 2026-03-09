@@ -5,7 +5,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState} from "react";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
-import { getJobOfferById, deleteJobOffer } from "@/src/api/joboffer";
+import { getJobOfferById, deleteJobOffer, JobOffer } from "@/src/api/joboffer";
 import { jwtDecode } from "jwt-decode";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,7 +24,7 @@ export default function JobOfferDetailScreen() {
 	const [isCancelling, setIsCancelling] = useState(false);
 	const [role, setRole] = useState<string | null>(null);
 
-	const { data: jobOffer, isLoading } = useQuery({
+	const { data: jobOffer, isLoading } = useQuery<JobOffer>({
 		queryKey: ["joboffer", id],
 		queryFn: () => getJobOfferById(Number(id)),
 		enabled: id !=null, // S'assure que la requête ne s'exécute que si l'id est disponible
@@ -41,7 +41,8 @@ export default function JobOfferDetailScreen() {
 	}, []);
 
 	const handleCancel = async () => {
-		setIsCancelling(true);
+		if (!jobOffer) return;
+    setIsCancelling(true);
 		try {
 			await deleteJobOffer(jobOffer.job.id);
 			router.push("/(tabs-worker)/dashboard-worker");
@@ -89,7 +90,7 @@ export default function JobOfferDetailScreen() {
 
 					<View style={styles.addressRow}>
 						<Text style={[styles.label, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
+						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
 					</View>
 
 					<Text style={[styles.label, { fontSize: scaleFont(14), marginTop: 10 }]}>Description:</Text>

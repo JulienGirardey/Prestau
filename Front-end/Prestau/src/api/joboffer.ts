@@ -1,6 +1,11 @@
 import api from './axios';
 
-export type JobOfferStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+export enum JobOfferStatus { 
+	OPEN = 'OPEN',
+	IN_PROGRESS = 'IN_PROGRESS',
+	COMPLETED = 'COMPLETED',
+	CANCELLED = 'CANCELLED',
+}
 
 export interface JobOffer {
     id: number;
@@ -19,12 +24,11 @@ export interface JobOffer {
         title: string;
         description: string;
         salary: number;
-        address: string;
         start_time: string;
         end_time: string;
         status: string;
         companyId: number;
-        company?: { companyName: string; userId: number };
+        company?: { companyName: string; userId: number; address: string; city: string; postalCode: number };
     };
     worker?: {
         firstName: string;

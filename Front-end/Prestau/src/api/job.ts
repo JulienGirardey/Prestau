@@ -7,17 +7,17 @@ export interface Job {
     title: string;
     description: string;
     salary: number;
-    address: string;
     start_time: string;
     end_time: string;
     status: JobStatus;
+		company?: { companyName: string; address: string; city: string; postalCode: number };
 		isWorker?: boolean;
     canApply?: boolean;
     alreadyApplied?: boolean;
 }
 
 // créer un job (seulement pour les companies)
-export const createJob = async (jobData: Omit<Job, 'id' | 'status'>): Promise<Job> => {
+export const createJob = async (jobData: Omit<Job, 'id' | 'status' | 'company'>): Promise<Job> => {
 		const response = await api.post('/job', jobData);
 		return response.data;
 };
