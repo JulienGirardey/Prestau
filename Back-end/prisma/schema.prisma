@@ -28,7 +28,7 @@ model Company {
   updatedAt   DateTime @updatedAt
 
 	userId      Int      @unique
-  user       	Users    @relation(fields: [userId], references: [id])
+  user       	Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 	jobs        Job[]
 }
 
@@ -71,7 +71,7 @@ model Worker {
   busyDays     String[] @default([])
 
 	userId       Int       @unique
-  user         Users     @relation(fields: [userId], references: [id])
+  user         Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
 	jobOffers        JobOffer[]
 }
@@ -88,7 +88,7 @@ model Job {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	company     Company  @relation(fields: [companyId], references: [id])
+	company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jobOffers   JobOffer[]
 	reviews     Review[]
   @@index([companyId], name: "idx_companyId")
@@ -114,8 +114,8 @@ model JobOffer {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	job         Job      @relation(fields: [jobId], references: [id])
-	worker      Worker   @relation(fields: [workerId], references: [id])
+	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+	worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 	messages            Message[]
   @@index([jobId], name: "idx_jobId")
   @@index([workerId], name: "idx_workerId")
@@ -142,7 +142,7 @@ model Review {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	job         Job      @relation(fields: [jobId], references: [id])
+	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
 	@@index([jobId], name: "idx_review_jobId")
   @@index([reviewerId, reviewerType], name: "idx_reviewer")
@@ -160,5 +160,5 @@ model Message {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id])
+	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
 }
