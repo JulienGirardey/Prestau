@@ -41,10 +41,12 @@ export default function JobOfferDetailScreen() {
 	}, []);
 
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
-		mutationFn: () => deleteJobOffer(Number(id)),
+		mutationFn: () => deleteJobOffer(Number(jobOffer.job.id)),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["job", id] });
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
+			if (jobOffer?.job?.id) {
+        queryClient.invalidateQueries({ queryKey: ["job", jobOffer.job.id] });
+      }
 			router.push('/(tabs-worker)/dashboard-worker');
 		},
 		onError: (err: any) => {
@@ -123,8 +125,8 @@ export default function JobOfferDetailScreen() {
 						</View>
 					</View>
 					<View style={styles.separator} />
-					<Text style={[styles.jobStatus, { fontSize: scaleFont(12), color: job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>
-							● {job.status}
+					<Text style={[styles.jobStatus, { fontSize: scaleFont(12), color: jobOffer.status === "PENDING" ? "#e67e22" : "#27ae60" }]}>
+							● {jobOffer.status}
 						</Text>
 				</View>
 
