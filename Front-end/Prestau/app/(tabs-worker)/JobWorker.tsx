@@ -38,15 +38,16 @@ export default function MissionScreen() {
     const { scale, scaleFont } = useResponsive();
     const router = useRouter();
 
-    // Récupération des missions via React Query
-    const { data: jobs = [], isLoading: isLoadingJob, error: errorJob, refetch } = useQuery<Job[]>({
-        queryKey: ["dashboard-worker-jobs"],
-        queryFn: () => getJobs(),
-    });
-
     // États des filtres
     const [searchText, setSearchText] = useState('');
     const [salaryFilter, setSalaryFilter] = useState<'all' | 'lt10' | '10to12' | '12to15' | '15to20' | 'gt20'>('all');
+    const [debouncedQuery, setDebouncedQuery] = useState("");
+
+    // Récupération des missions via React Query
+    const { data: jobs = [], isLoading: isLoadingJob, error: errorJob, refetch } = useQuery<Job[]>({
+        queryKey: ["dashboard-worker-jobs", debouncedQuery],
+        queryFn: () => getJobs(debouncedQuery || undefined),
+    });
 
     const SALARY_FILTERS = [
         { key: 'all', label: 'Tous' },
@@ -57,25 +58,17 @@ export default function MissionScreen() {
         { key: 'gt20', label: '> 20€' },
     ] as const;
 
-    // Jobs filtrés selon la recherche et le salaire
+    // Jobs filtrés selon le salaire
     const filteredJobs = useMemo(() => {
         return jobs.filter(job => {
-            const text = searchText.toLowerCase().trim();
-            const matchesText = text === '' ||
-                job.title.toLowerCase().includes(text) ||
-                job.company?.city?.toLowerCase().includes(text) ||
-                String(job.company?.postalCode).includes(text);
-
-            let matchesSalary = true;
-            if (salaryFilter === 'lt10') matchesSalary = job.salary < 10;
-            else if (salaryFilter === '10to12') matchesSalary = job.salary >= 10 && job.salary < 12;
-            else if (salaryFilter === '12to15') matchesSalary = job.salary >= 12 && job.salary < 15;
-            else if (salaryFilter === '15to20') matchesSalary = job.salary >= 15 && job.salary < 20;
-            else if (salaryFilter === 'gt20') matchesSalary = job.salary >= 20;
-
-            return matchesText && matchesSalary;
+            if (salaryFilter === 'lt10') return job.salary < 10;
+            if (salaryFilter === '10to12') return job.salary >= 10 && job.salary < 12;
+            if (salaryFilter === '12to15') return job.salary >= 12 && job.salary < 15;
+            if (salaryFilter === '15to20') return job.salary >= 15 && job.salary < 20;
+            if (salaryFilter === 'gt20') return job.salary >= 20;
+            return true;
         });
-    }, [jobs, searchText, salaryFilter]);
+    }, [jobs, salaryFilter]);
 
     // Formate la date au format français
     const formatDate = (dateString: string) => {
@@ -131,6 +124,8 @@ export default function MissionScreen() {
                         placeholderTextColor="#aaa"
                         value={searchText}
                         onChangeText={setSearchText}
+                        onSubmitEditing={() => setDebouncedQuery(searchText)}
+                        returnKeyType="search"
                         clearButtonMode="while-editing"
                     />
                 </View>

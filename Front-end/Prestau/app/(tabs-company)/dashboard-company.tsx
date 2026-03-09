@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions, Pressable } from "react-native";
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions, Pressable, RefreshControl } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
@@ -27,7 +27,7 @@ export default function DashboardCompany() {
     const { scale, scaleFont } = useResponsive();
     const router = useRouter();
 
-    const { data: jobs = [], isLoading: isLoadingMyJobs, error: errorMyJobs } = useQuery<Job[]>({
+    const { data: jobs = [], isLoading: isLoadingMyJobs, error: errorMyJobs, refetch } = useQuery<Job[]>({
         queryKey: ["dashboard-company-jobs"],
         queryFn: () => getMyJobs(),
     });
@@ -51,7 +51,17 @@ export default function DashboardCompany() {
                 Missions postées
             </ThemedText>
             <DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
-                <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+                <ScrollView 
+                  style={styles.scroll}
+                  showsVerticalScrollIndicator={false}
+                  refreshControl={
+                      <RefreshControl
+                          refreshing={isLoadingMyJobs}
+                          onRefresh={refetch}
+                          tintColor={colors.primary}
+                          />
+                      }
+                  >
 										{jobs.length === 0 ? (
 												<Text style={{ textAlign: "center", color: "#888", marginVertical: 20 }}>
 														Aucune mission postée
