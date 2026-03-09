@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { useMutation, useQuery, useQueryClient  } from "@tanstack/react-query";
 
+
 // Hook pour la gestion du design adaptatif
 function useResponsive() {
 	const { width, height } = useWindowDimensions();
@@ -171,6 +172,9 @@ export default function JobDetailScreen() {
 					)}
 				</View>
 			</ScrollView>
+			<Modal visible={showApplicants} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplicants(false)}>
+				{/* Contenu du modal pour les actions de candidature */}
+			</Modal>
 		</View>
 	);
 }
