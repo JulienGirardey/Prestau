@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Button } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState, useCallback } from "react";
 import { getJobById } from "@/src/api/job";
 import { createJobOffer, deleteJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
+import { useQuery } from "@tanstack/react-query";
 
 // Hook pour la gestion du design adaptatif
 function useResponsive() {
@@ -25,33 +26,20 @@ export default function JobDetailScreen() {
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const router = useRouter();
-	const [job, setJob] = useState<any>(null);
-	const [loading, setLoading] = useState(true);
 	const [isApplying, setIsApplying] = useState(false);
-	const [isCancelling, setIsCancelling] = useState(false); // État pour l'annulation
+	const [isCancelling, setIsCancelling] = useState(false);
 
-	// Récupération des détails de la mission
-	const fetchJobDetails = useCallback(() => {
-		setLoading(true);
-		getJobById(Number(id))
-			.then((data) => setJob(data))
-			.catch((err) => console.error(err))
-			.finally(() => setLoading(false));
-	}, [id]);
-
-	useEffect(() => {
-		if (id) {
-			fetchJobDetails();
-		}
-	}, [id, fetchJobDetails]);
+	const { data: job, isLoading } = useQuery({
+		queryKey: ["job", id],
+		queryFn: () => getJobById(Number(id)),
+		enabled: !!id,
+	});
 
 	// Fonction pour postuler à une mission
 	const handleApply = async () => {
 		setIsApplying(true);
 		try {
 			await createJobOffer(Number(id));
-			// Mise à jour locale pour un retour visuel immédiat
-			setJob({ ...job, alreadyApplied: true, canApply: false });
 			router.push('/(tabs-worker)/dashboard-worker');
 		} catch (err: any) {
 			console.error("Erreur lors de la candidature :", err);
@@ -66,7 +54,6 @@ export default function JobDetailScreen() {
 		setIsCancelling(true);
 		try {
 			await deleteJobOffer(Number(id));
-			setJob({ ...job, alreadyApplied: false, canApply: true });
 			router.push('/(tabs-worker)/dashboard-worker');
 		} catch (err: any) {
 			console.error("Erreur lors de l'annulation :", err);
@@ -76,7 +63,7 @@ export default function JobDetailScreen() {
 		}
 	};
 
-	if (loading) {
+	if (isLoading) {
 		return (
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
 				<ActivityIndicator size="large" color={colors.primary} />
@@ -114,7 +101,7 @@ export default function JobDetailScreen() {
 					{/* Adresse */}
 					<View style={styles.addressRow}>
 						<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
+						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
 					</View>
 
 					{/* Description */}

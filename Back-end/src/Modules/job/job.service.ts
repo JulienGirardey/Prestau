@@ -35,6 +35,7 @@ export class JobService {
 
     return this.prisma.job.findMany({
       where: { companyId: company.id },
+      include: { company: true },
     });
   }
 
@@ -49,11 +50,12 @@ export class JobService {
 			}
 
 			return this.prisma.job.findMany({
-				where: { companyId: company.id } // companyId est l'identifiant unique de la company récupéré via userId
+				where: { companyId: company.id },
+				include: { company: true },
 			});
 		}
 		// Le worker voit tous les jobs
-		return this.prisma.job.findMany()
+		return this.prisma.job.findMany({ include: { company: true } })
 	}
 
 	async findOne(id: number, userId?: number) {

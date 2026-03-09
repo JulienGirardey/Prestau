@@ -4,12 +4,13 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { logout } from "@/src/api/auth";
 import { getCompanyProfile } from "@/src/api/company";
-import { getJobOffersByCompany, getMissionHistory } from "@/src/api/joboffer";
+import { getMissionHistory } from "@/src/api/joboffer";
 import { MissionHistory } from "@/components/MissionHistory";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 
 function useResponsive() {
     const { width, height } = useWindowDimensions();
@@ -23,28 +24,30 @@ function useResponsive() {
     };
 }
 
-interface CompanyProfile {
-    id: number;
-    companyName: string;
-    address: string;
-}
-
 export default function ProfileCompany() {
     const colors = useThemeColors();
     const { scale, scaleFont } = useResponsive();
-    const [profile, setProfile] = useState<CompanyProfile | null>(null);
-    const [jobCount, setJobCount] = useState(0);
-    const [history, setHistory] = useState<any[]>([]);
-    const [showHistory, setShowHistory] = useState(false);
-    const [rating, setRating] = useState<number>(0);
+    const [showHistory, setShowHistory] = useState(false); 
 		const router = useRouter();
 
-    useEffect(() => {
-        // Simuler le chargement des données du profil
-        getCompanyProfile()
-            .then((data) => setProfile(data))
-            .catch((error) => console.error("Erreur lors de la récupération du profil:", error));
-    }, []);
+		// Récupération du profil de l'entreprise
+		const { data: profile } = useQuery({
+				queryKey: ["company-profile"], // Clé de cache pour le profil de l'entreprise
+				queryFn: getCompanyProfile, // Fonction pour récupérer le profil de l'entreprise
+		});
+
+		// Récupération de l'historique des missions
+		const { data: history = [] } = useQuery({
+				queryKey: ["mission-history-company"],
+				queryFn: getMissionHistory,
+		});
+
+		// Calcul du nombre de missions et de la note moyenne
+		const jobCount = history.length;
+		const rated = history.filter((m: any) => m.receivedRating != null);
+		const rating = rated.length 
+				? +(rated.reduce((s: number, m: any) => s + m.receivedRating, 0) / rated.length).toFixed(1) 
+				: 0;
 
     const handleLogout = async () => {
         await logout();
@@ -57,18 +60,6 @@ export default function ProfileCompany() {
         // Navigation vers les paramètres
     };
 
-    useEffect(() => {
-        if (profile?.id) {
-            getMissionHistory()
-                .then((data) => {
-                    setHistory(data);
-                    setJobCount(data.length);
-                    const rated = data.filter((m: any) => m.receivedRating != null);
-                    setRating(rated.length ? +(rated.reduce((s: number, m: any) => s + m.receivedRating, 0) / rated.length).toFixed(1) : 0);
-                })
-                .catch((error) => console.error("Erreur lors de la récupération de l'historique des missions:", error));
-        }
-    }, [profile?.id]);
     return (
         <View style={[styles.page, { backgroundColor: colors.background }]}>
             <Header />
@@ -97,7 +88,7 @@ export default function ProfileCompany() {
                             {profile?.companyName}
                         </Text>
                         <Text style={[styles.profileCity, { fontSize: scaleFont(18) }]}>
-                            {profile?.address}
+                            {profile?.address}{profile?.city}({profile?.postalCode})
                         </Text>
                     </View>
                 </View>

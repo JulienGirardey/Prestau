@@ -2,11 +2,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState} from "react";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
-import { getJobOfferById, deleteJobOffer } from "@/src/api/joboffer";
+import { getJobOfferById, deleteJobOffer, JobOffer } from "@/src/api/joboffer";
 import { jwtDecode } from "jwt-decode";
+import { useQuery } from "@tanstack/react-query";
 
 function useResponsive() {
 	const { width, height } = useWindowDimensions();
@@ -19,14 +20,29 @@ export default function JobOfferDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
-	const [jobOffer, setJobOffer] = useState<any>(null);
-	const [loading, setLoading] = useState(true);
-	const [isCancelling, setIsCancelling] = useState(false);
 	const router = useRouter();
+	const [isCancelling, setIsCancelling] = useState(false);
 	const [role, setRole] = useState<string | null>(null);
 
+	const { data: jobOffer, isLoading } = useQuery<JobOffer>({
+		queryKey: ["joboffer", id],
+		queryFn: () => getJobOfferById(Number(id)),
+		enabled: id !=null, // S'assure que la requête ne s'exécute que si l'id est disponible
+	});
+
+	// Récupérer le rôle de l'utilisateur à partir du token JWT
+	useEffect(() => {
+		SecureStore.getItemAsync('access_token').then((token) => {
+			if (token) {
+				const decoded: any = jwtDecode(token);
+				setRole(decoded.role);
+			}
+		});
+	}, []);
+
 	const handleCancel = async () => {
-		setIsCancelling(true);
+		if (!jobOffer) return;
+    setIsCancelling(true);
 		try {
 			await deleteJobOffer(jobOffer.job.id);
 			router.push("/(tabs-worker)/dashboard-worker");
@@ -37,28 +53,7 @@ export default function JobOfferDetailScreen() {
 		}
 	};
 
-	const fetchJobOffer = useCallback(() => {
-		setLoading(true);
-		getJobOfferById(Number(id))
-			.then((data) => setJobOffer(data))
-			.catch((err) => console.error(err))
-			.finally(() => setLoading(false));
-	}, [id]);
-
-	useEffect(() => {
-		if (id) fetchJobOffer();
-	}, [id, fetchJobOffer]);
-
-	useEffect(() => {
-		SecureStore.getItemAsync('access_token').then((token) => {
-			if (token) {
-				const decoded: any = jwtDecode(token);
-				setRole(decoded.role);
-			}
-		});
-	}, []);
-
-	if (loading) {
+	if (isLoading) {
 		return (
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
 				<ActivityIndicator size="large" color={colors.primary} />
@@ -95,7 +90,7 @@ export default function JobOfferDetailScreen() {
 
 					<View style={styles.addressRow}>
 						<Text style={[styles.label, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
+						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
 					</View>
 
 					<Text style={[styles.label, { fontSize: scaleFont(14), marginTop: 10 }]}>Description:</Text>

@@ -74,7 +74,6 @@ function MissionCreationInner() {
 		start_hour: "",
 		end_date: "",
 		end_hour: "",
-		adress: "",
 		salary: ""
 	});
 
@@ -86,7 +85,7 @@ function MissionCreationInner() {
 	const handleCreate = async () => {
 		try {
 
-			if (!form.title || !form.description || !form.adress || !form.salary) {
+			if (!form.title || !form.description || !form.salary) {
 				Alert.alert("Erreur", "Tous les champs sont obligatoires");
 				return;
 			}
@@ -122,7 +121,6 @@ function MissionCreationInner() {
 				description: form.description,
 				start_time,
 				end_time,
-				address: form.adress,
 				salary: parseFloat(form.salary),
 			});
 			Alert.alert("Succès", "Mission créée avec succès");
@@ -142,7 +140,6 @@ function MissionCreationInner() {
 		{ label: "Heure de début", key: "start_hour", placeholder: "09:00", required: true },
 		{ label: "Date de fin", key: "end_date", placeholder: "15/06/2026", required: true },
 		{ label: "Heure de fin", key: "end_hour", placeholder: "18:00", required: true },
-		{ label: "Adress", key: "adress", placeholder: "123 Rue de la Paix", required: true },
 		{ label: "Salaire", key: "salary", placeholder: "10 €/heure", required: true },
 	] as const;
 

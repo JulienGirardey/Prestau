@@ -7,7 +7,7 @@ import { NewButton } from "@/components/Button";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
-import { JobOffer, deleteJobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
+import { JobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { MissionHistory } from "@/components/MissionHistory";
@@ -158,7 +158,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                     {formatMissionDate(item.job.start_time, item.job.end_time)}
                 </Text>
                 <Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text>
-                <Text style={styles.missionAddress}>📍 {item.job.address}</Text>
+                <Text style={styles.missionAddress}>📍 {item.job.company?.address}, {item.job.company?.city} ({item.job.company?.postalCode})</Text>
                 <Text style={styles.missionStatus}>Statut: {item.status}</Text>
             </View>
         </Pressable>

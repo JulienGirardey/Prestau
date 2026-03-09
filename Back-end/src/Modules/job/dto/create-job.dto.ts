@@ -13,10 +13,6 @@ export class CreateJobDto {
 	@IsNotEmpty({ message: 'Le salaire de l\'emploi est obligatoire.' })
   salary!: number;
 
-	@IsString()
-	@IsNotEmpty({ message: 'L\'adresse de l\'emploi est obligatoire.' })
-	address!: string;
-
 	@IsDateString()
 	@IsNotEmpty({ message: 'La date de début de l\'emploi est obligatoire.' })
   start_time!: string;
