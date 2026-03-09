@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { createWorkerProfile } from "@/src/api/worker";
+import { useMutation } from "@tanstack/react-query";
 
 // Hook responsive : 
 // Toutes les valeurs de l'UI sont calculées à partir de la largeur réelle
@@ -144,32 +145,37 @@ function WorkerCreationInner() {
 	};
 
 	// Fonction appelée lors de la création du profil
-	const handleCreate = async () => {
+	const { mutate: submitCreate, isPending } = useMutation({
+		mutationFn: () => createWorkerProfile({
+			firstName: form.firstName,
+			lastName: form.lastName,
+			dateOfBirth: new Date(form.dateOfBirth),
+			phoneNumber: form.phoneNumber,
+			city: form.city,
+			postalCode: Number(form.postalCode),
+			profession: form.profession,
+			languages: form.languages,
+			skills: form.skills,
+			experience_years: Number(form.experience_years),
+			qualifications: form.qualifications || undefined,
+			cv_url: form.cv_url || undefined,
+			photoURL: photo || undefined,
+		}),
+		onSuccess: () => {
+			router.push("/(tabs-worker)/dashboard-worker");
+		},
+		onError: (error) => {
+			alert('Erreur lors de la création du profil');
+			console.error(error);
+		}
+	});
+
+	const handleCreate = () => {
 		if (!form.firstName || !form.lastName || !form.phoneNumber || !form.city || !form.postalCode || !form.profession || !form.languages || !form.skills) {
 			alert('Merci de remplir tous les champs obligatoires');
 			return;
 		}
-		try {
-			await createWorkerProfile({
-				firstName: form.firstName,
-				lastName: form.lastName,
-				dateOfBirth: new Date(form.dateOfBirth),
-				phoneNumber: form.phoneNumber,
-				city: form.city,
-				postalCode: Number(form.postalCode),
-				profession: form.profession,
-				languages: form.languages,
-				skills: form.skills,
-				experience_years: Number(form.experience_years),
-				qualifications: form.qualifications || undefined,
-				cv_url: form.cv_url || undefined,
-				photoURL: photo || undefined,
-			});
-			router.push("/(tabs-worker)/dashboard-worker");
-		} catch (error) {
-			alert('Erreur lors de la création du profil');
-			console.error(error);
-		}
+		submitCreate();
 	};
 
 	// Définition des champs du formulaire (label, clé, placeholder, requis)
@@ -248,7 +254,7 @@ function WorkerCreationInner() {
 				</ScrollView>
 			</DefaultCard>
 			{/* Bouton de validation */}
-			<NewButton title="Créer mon profil" onPress={handleCreate} style={getButtonStyle(scale)} />
+		<NewButton title={isPending ? "Création..." : "Créer mon profil"} onPress={handleCreate} disabled={isPending} style={getButtonStyle(scale)} />
 		</View>
 	);
 }

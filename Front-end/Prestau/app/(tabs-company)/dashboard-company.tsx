@@ -82,11 +82,13 @@ export default function DashboardCompany() {
 
 																				<View style={styles.addressRow}>
 																						<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-																						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
 																				</View>
+																				<Text style={[styles.addressText, { fontSize: scaleFont(12), marginLeft: scale(8) }]} numberOfLines={2} ellipsizeMode="tail">
+																						{job.company?.address}, {job.company?.city} ({job.company?.postalCode})
+																				</Text>
 
-																				<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
-																				<Text style={[styles.jobDescription, { fontSize: scaleFont(13) }]} numberOfLines={2}>
+																				<Text style={[styles.addressTitle, { fontSize: scaleFont(14), marginTop: scale(10) }]}>Description:</Text>
+																				<Text style={[styles.jobDescription, { fontSize: scaleFont(12), marginLeft: scale(8) }]} numberOfLines={2} ellipsizeMode="tail">
 																						{job.description}
 																				</Text>
 
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
     },
     jobCard: {
         borderRadius: 12,
-        padding: 16,
+        padding: 15,
         marginBottom: 12,
         marginHorizontal: 5,
         shadowColor: "#000",
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     jobDescription: {
-        color: "#666",
+        color: "#777",
         lineHeight: 20,
     },
     separator: {
@@ -206,14 +208,13 @@ const styles = StyleSheet.create({
     addressRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 8,
+        marginBottom: 2,
     },
     addressTitle: {
         marginRight: 6,
     },
     addressText: {
-        color: "#888",
-        fontStyle: "italic",
+        color: "#777",
     },
     buttonContainer: {
         paddingHorizontal: 25,

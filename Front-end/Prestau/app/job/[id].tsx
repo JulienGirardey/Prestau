@@ -1,12 +1,11 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useEffect, useState, useCallback } from "react";
 import { getJobById } from "@/src/api/job";
 import { createJobOffer, deleteJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient  } from "@tanstack/react-query";
 
 // Hook pour la gestion du design adaptatif
 function useResponsive() {
@@ -26,42 +25,42 @@ export default function JobDetailScreen() {
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const router = useRouter();
-	const [isApplying, setIsApplying] = useState(false);
-	const [isCancelling, setIsCancelling] = useState(false);
+	const queryClient = useQueryClient();
 
+	// Récupération des détails du job
 	const { data: job, isLoading } = useQuery({
 		queryKey: ["job", id],
 		queryFn: () => getJobById(Number(id)),
-		enabled: !!id,
+		enabled: id!=null,
 	});
 
-	// Fonction pour postuler à une mission
-	const handleApply = async () => {
-		setIsApplying(true);
-		try {
-			await createJobOffer(Number(id));
+	// Mutation pour postuler à l'offre
+	const { mutate: applyToJob, isPending: isApplying } = useMutation({
+		mutationFn: () => createJobOffer(Number(id)),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["job", id] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
 			router.push('/(tabs-worker)/dashboard-worker');
-		} catch (err: any) {
+		},
+		onError: (err: any) => {
 			console.error("Erreur lors de la candidature :", err);
 			Alert.alert("Erreur", "Impossible de postuler à cette offre.");
-		} finally {
-			setIsApplying(false);
 		}
-	};
+	});
 
-	// Fonction pour annuler la candidature
-	const handleCancelApply = async () => {
-		setIsCancelling(true);
-		try {
-			await deleteJobOffer(Number(id));
+	// Mutation pour annuler la candidature
+	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
+		mutationFn: () => deleteJobOffer(Number(id)),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["job", id] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
 			router.push('/(tabs-worker)/dashboard-worker');
-		} catch (err: any) {
+		},
+		onError: (err: any) => {
 			console.error("Erreur lors de l'annulation :", err);
 			Alert.alert("Erreur", "Impossible d'annuler la candidature.");
-		} finally {
-			setIsCancelling(false);
 		}
-	};
+	});
 
 	if (isLoading) {
 		return (
@@ -101,12 +100,16 @@ export default function JobDetailScreen() {
 					{/* Adresse */}
 					<View style={styles.addressRow}>
 						<Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
 					</View>
+					<Text style={[styles.addressText, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+						{job.company?.address}, {job.company?.city} ({job.company?.postalCode})
+					</Text>
 
 					{/* Description */}
-					<Text style={[styles.addressTitle, { fontSize: scaleFont(14), marginTop: 10 }]}>Description:</Text>
-					<Text style={[styles.jobDescription, { fontSize: scaleFont(13) }]}>{job.description}</Text>
+					<Text style={[styles.addressTitle, { fontSize: scaleFont(14), marginTop: scale(10) }]}>Description:</Text>
+					<Text style={[styles.jobDescription, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+						{job.description}
+					</Text>
 
 					{/* Séparateur */}
 					<View style={styles.separator} />
@@ -150,9 +153,8 @@ export default function JobDetailScreen() {
 									<View style={{ marginTop: 15 }}>
 										<NewButton
 											title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
-											onPress={handleCancelApply}
+											onPress={() => cancelApply()}
 											disabled={isCancelling}
-											// Style rouge pour l'annulation
 											style={{ backgroundColor: '#FF3B30' }}
 										/>
 									</View>
@@ -160,7 +162,7 @@ export default function JobDetailScreen() {
 							) : job.canApply ? (
 								<NewButton
 									title={isApplying ? "En cours..." : "Postuler"}
-									onPress={handleApply}
+									onPress={() => applyToJob()}
 									disabled={isApplying}
 								/>
 							) : null}
@@ -207,21 +209,20 @@ const styles = StyleSheet.create({
 		fontWeight: "600",
 	},
 	jobDescription: {
-		color: "#666",
+		color: "#777",
 		lineHeight: 20,
 	},
 	addressRow: {
 		flexDirection: "row",
 		alignItems: "center",
-		marginBottom: 8,
+		marginBottom: 2,
 	},
 	addressTitle: {
 		marginRight: 6,
 		fontWeight: "600",
 	},
 	addressText: {
-		color: "#888",
-		fontStyle: "italic",
+		color: "#777",
 	},
 	separator: {
 		height: 1,
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
 		fontWeight: "600",
 	},
 	timeText: {
-		color: "#666",
+		color: "#777",
 	},
 	Status: {
 		fontSize: 12,
@@ -272,7 +273,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	alreadyAppliedText: {
-		color: "#666",
+		color: "#777",
 		fontWeight: "600",
 		fontSize: 14,
 		textAlign: "center",

@@ -9,30 +9,30 @@ import { NewButton } from "@/components/Button";
 import { login } from "@/src/api/auth";
 import { router } from "expo-router";
 import { jwtDecode } from "jwt-decode";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Login() {
 	const colors = useThemeColors();
 	const [inputEmail, setEmail] = React.useState("");
 	const [inputPassword, setPassword] = React.useState("");
 	const { width, height } = useWindowDimensions();
-	const handleLogin = async () => {
-		try {
-			const result = await login(inputEmail, inputPassword);
+	const { mutate: handleLogin, isPending } = useMutation({
+		mutationFn: () => login(inputEmail, inputPassword),
+		onSuccess: (result) => {
 			const token = result.access_token;
-
 			const decoded: any = jwtDecode(token);
 			const role = decoded.role;
-
 			console.log('succès, rôle:', role);
 			if (role === 'COMPANY') {
 				router.replace('/(tabs-company)/dashboard-company');
 			} else {
 				router.replace('/(tabs-worker)/dashboard-worker');
 			}
-		} catch (error) {
+		},
+		onError: (error) => {
 			console.error('erreur', error);
 		}
-	};
+	});
 	return (
 		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 			<DefaultCard style={{ height: Math.min(height * 0.25, 135), width: Math.min(width * 0.8, 400) }}>
@@ -43,7 +43,7 @@ export default function Login() {
 					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setPassword} />
 				</View>
 				<View style={styles.spacer} />
-				<NewButton title="Sign in" onPress={handleLogin} />
+				<NewButton title={isPending ? "Connexion..." : "Sign in"} onPress={handleLogin} disabled={isPending} />
 			</DefaultCard>
 		</SafeAreaView>
 	);

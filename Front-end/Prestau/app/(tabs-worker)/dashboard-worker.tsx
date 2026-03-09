@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, FlatList, Pressable } from "react-native";
+import { ScrollView, StyleSheet, Text, View, FlatList, Pressable, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
@@ -8,9 +8,16 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
 import { JobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { MissionHistory } from "@/components/MissionHistory";
+
+// Hook responsive
+function useResponsive() {
+    const { width, height } = useWindowDimensions();
+    const scale = (size: number) => (width / 390) * size;
+    const scaleFont = (size: number) => Math.min(scale(size), size * 1.4);
+    return { width, height, scale, scaleFont };
+}
 
 // CONFIGURATION DU CALENDRIER (LOCALISATION FR)
 LocaleConfig.locales['fr'] = {
@@ -24,6 +31,7 @@ LocaleConfig.defaultLocale = 'fr';
 
 export default function DashboardWorker() {
     const colors = useThemeColors();
+    const { scale, scaleFont } = useResponsive();
 	const router = useRouter();
 
     // Récupération des disponibilités via React Query
@@ -50,8 +58,16 @@ export default function DashboardWorker() {
         }
     }, [availability]);
 
-    // Gestion du clic sur un jour (Disponible -> Occupé -> Neutre)
-    const handleDayPress = async (day: any) => {
+		// Mutation pour mettre à jour la disponibilité d'un jour
+    const { mutate: updateAvailability } = useMutation({
+        mutationFn: ({ dateStr, status }: { dateStr: string; status: string }) =>
+            updateWorkerAvailability(dateStr, status),
+        onError: (error) => {
+            console.error("Erreur de mise à jour de la date", error);
+        }
+    });
+
+    const handleDayPress = (day: any) => {
         const dateStr = day.dateString;
         let newStatus = 'neutral';
 
@@ -67,11 +83,7 @@ export default function DashboardWorker() {
             newStatus = 'free';
         }
 
-        try {
-            await updateWorkerAvailability(dateStr, newStatus);
-        } catch (error) {
-            console.error("Erreur de mise à jour de la date", error);
-        }
+        updateAvailability({ dateStr, status: newStatus });
     };
 
 // Construction de l'objet pour la coloration du calendrier
@@ -150,16 +162,26 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                 styles.innerMissionCard,
                 { 
                     borderColor: getBorderColor(item.status), 
-                    borderWidth: 4.5,
+                    borderWidth: scale(4.5),
+                    width: scale(260),
+                    padding: scale(15),
+                    borderRadius: scale(15),
+                    marginVertical: scale(8),
                 }
             ]}>
-                <Text style={styles.missionTitle}>{item.job.title}</Text>
-                <Text style={styles.missionDate}>
+                <Text style={[styles.missionTitle, { fontSize: scaleFont(18), marginBottom: scale(5) }]}>{item.job.title}</Text>
+                <Text style={[styles.missionDate, { fontSize: scaleFont(12.2), marginBottom: scale(10) }]}>
                     {formatMissionDate(item.job.start_time, item.job.end_time)}
+										
                 </Text>
-                <Text style={styles.missionSalary}>Salaire: {item.job.salary}€</Text>
-                <Text style={styles.missionAddress}>📍 {item.job.company?.address}, {item.job.company?.city} ({item.job.company?.postalCode})</Text>
-                <Text style={styles.missionStatus}>Statut: {item.status}</Text>
+                <Text style={[styles.missionSalary, { fontSize: scaleFont(13) }]}>Salaire: {item.job.salary}€/h</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: scale(2), marginBottom: scale(8) }}>
+                    <Text style={[styles.missionAddress, { fontWeight: "600", fontSize: scaleFont(12) }]}>Adresse:</Text>
+                    <Text style={[styles.missionAddress, { marginLeft: scale(6), fontSize: scaleFont(12) }]} numberOfLines={2} ellipsizeMode="tail">
+                      📍{item.job.company?.city} ({item.job.company?.postalCode})
+                    </Text>
+                </View>
+                <Text style={[styles.missionStatus, { fontSize: scaleFont(14) }]}>Statut: {item.status}</Text>
             </View>
         </Pressable>
     );
@@ -175,29 +197,29 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
 			<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 				<ScrollView
 					style={styles.body}
-					contentContainerStyle={styles.scrollContent}
+					contentContainerStyle={[styles.scrollContent, { gap: scale(20), paddingBottom: scale(40) }]}
 					showsVerticalScrollIndicator={false}>
 
 					{ /* MISSIONS */}
 					<DefaultCard style={styles.cardWrapper}>
-                        <Text style={styles.titleCard}>Missions</Text>
+                        <Text style={[styles.titleCard, { fontSize: scaleFont(25) }]}>Missions</Text>
                         {joboffers.length === 0 ? (
-                            <Text style={styles.emptyText}>Aucune mission pour le moment</Text>
+                            <Text style={[styles.emptyText, { fontSize: scaleFont(16) }]}>Aucune mission pour le moment</Text>
                         ) : (
                             <FlatList
                                 data={joboffers}
                                 keyExtractor={(item) => String(item.id)}
                                 horizontal={true}
                                 showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.flatListContent}
+                                contentContainerStyle={[styles.flatListContent, { paddingVertical: scale(10), paddingHorizontal: scale(45), gap: scale(10) }]}
                                 renderItem={renderMissionCard}
                             />
                         )}
                     </DefaultCard>
 					{/* CALENDRIER DES DISPONIBILITÉS */}
-                    <DefaultCard style={[styles.cardWrapper, { paddingBottom: 15 }]}>
-                        <Text style={styles.titleCard}>Mes disponibilités</Text>
-                        <View style={styles.calendarWrapper}>
+                    <DefaultCard style={[styles.cardWrapper, { paddingBottom: scale(15) }]}>
+                        <Text style={[styles.titleCard, { fontSize: scaleFont(25) }]}>Mes disponibilités</Text>
+                        <View style={[styles.calendarWrapper, { marginTop: scale(10), paddingHorizontal: scale(5) }]}>
                             <Calendar
                                 markingType={'custom'}
                                 markedDates={markedDates}
@@ -216,18 +238,18 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                             />
 							
 							{/* LÉGENDE DU CALENDRIER */}
-                            <View style={styles.legendContainer}>
+                            <View style={[styles.legendContainer, { marginTop: scale(15), paddingHorizontal: scale(10), paddingTop: scale(10) }]}>
                                 <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-                                    <Text style={styles.legendText}>Disponible</Text>
+                                    <View style={[styles.legendDot, { backgroundColor: '#4CAF50', width: scale(12), height: scale(12), borderRadius: scale(6), marginRight: scale(6) }]} />
+                                    <Text style={[styles.legendText, { fontSize: scaleFont(12) }]}>Disponible</Text>
                                 </View>
                                 <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
-                                    <Text style={styles.legendText}>Occupé(e)</Text>
+                                    <View style={[styles.legendDot, { backgroundColor: '#F44336', width: scale(12), height: scale(12), borderRadius: scale(6), marginRight: scale(6) }]} />
+                                    <Text style={[styles.legendText, { fontSize: scaleFont(12) }]}>Occupé(e)</Text>
                                 </View>
                                 <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { borderWidth: 1.5, borderColor: '#fff' }]} />
-                                    <Text style={styles.legendText}>Aujourd&apos;hui</Text>
+                                    <View style={[styles.legendDot, { borderWidth: 1.5, borderColor: '#fff', width: scale(12), height: scale(12), borderRadius: scale(6), marginRight: scale(6) }]} />
+                                    <Text style={[styles.legendText, { fontSize: scaleFont(12) }]}>Aujourd&apos;hui</Text>
                                 </View>
                             </View>
                         </View>
@@ -273,7 +295,6 @@ const styles = StyleSheet.create({
     padding: 15,
     marginVertical: 8,
     width: 260,
-    alignSelf: "center",
     alignItems: "center",
   },
   missionTitle: {
@@ -285,7 +306,6 @@ const styles = StyleSheet.create({
   },
   missionDate: {
     color: "#264D84",
-    fontSize: 14,
     textAlign: "center",
     marginBottom: 3,
   },

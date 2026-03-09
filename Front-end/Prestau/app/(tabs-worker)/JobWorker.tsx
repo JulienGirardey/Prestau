@@ -7,8 +7,8 @@ import {
     RefreshControl,
     Pressable,
     useWindowDimensions,
-    SafeAreaView
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
@@ -133,20 +133,19 @@ export default function MissionScreen() {
                                     {/* Adresse */}
                                     <View style={styles.addressRow}>
                                         <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-                                        <Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.address}</Text>
                                     </View>
+                                    <Text style={[styles.addressText, { fontSize: scaleFont(12), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+                                        {job.company?.address}{job.company?.city ? `, ${job.company.city}` : ""} {job.company?.postalCode ? `(${job.company.postalCode})` : ""}
+                                    </Text>
 
                                     {/* Description */}
                                     {job.description && (
-                                        <View style={{ marginTop: 4 }}>
-                                            <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Description:</Text>
-                                            <Text
-                                                style={[styles.jobDescription, { fontSize: scaleFont(13) }]}
-                                                numberOfLines={2}
-                                            >
+                                        <>
+                                            <Text style={[styles.addressTitle, { fontSize: scaleFont(14), marginTop: 4 }]}>Description:</Text>
+                                            <Text style={[styles.jobDescription, { fontSize: scaleFont(12), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
                                                 {job.description}
                                             </Text>
-                                        </View>
+                                        </>
                                     )}
 
                                     {/* Séparateur */}
@@ -273,7 +272,7 @@ const styles = StyleSheet.create({
     addressRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 8,
+        marginBottom: 2,
     },
     addressTitle: {
         marginRight: 6,
@@ -281,7 +280,6 @@ const styles = StyleSheet.create({
     },
     addressText: {
         color: "#888",
-        fontStyle: "italic",
     },
     emptyState: {
         flex: 1,
