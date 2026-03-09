@@ -78,15 +78,23 @@ export default function DashboardCompany() {
 																				style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
 																		>
 																				<View style={styles.jobHeader}>
-																						<Text style={[styles.jobTitle, { fontSize: scaleFont(17) }]}>{job.title}</Text>
-																						<Text style={[
-																								styles.Status,
-																								{ fontSize: scaleFont(12), color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
-																						]}>
-																								● {job.status}
-																						</Text>
+																						<View style={styles.titleWrapper}>
+																								<Text 
+																										style={[styles.jobTitle, { fontSize: scaleFont(17) }]} 
+																										numberOfLines={1} 
+																										ellipsizeMode="tail">
+																										{job.title}
+																								</Text>
+																								
+																								{job.jobOffers && job.jobOffers.length > 0 && (
+																										<View style={styles.notificationDot} />
+																								)}
+																						</View>
+
 																						<View style={styles.salaryBadge}>
-																								<Text style={[styles.salaryText, { fontSize: scaleFont(13) }]}>{job.salary}€</Text>
+																								<Text style={[styles.salaryText, { fontSize: scaleFont(13) }]}>
+																										{job.salary}€
+																								</Text>
 																						</View>
 																				</View>
 
@@ -119,6 +127,13 @@ export default function DashboardCompany() {
 																								</Text>
 																						</View>
 																				</View>
+																				<View style={styles.separator} />
+																				<Text style={[
+																								styles.Status,
+																								{ fontSize: scaleFont(12), color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
+																						]}>
+																								● {job.status}
+																						</Text>
 																		</Pressable>
 																</View>
 														))}
@@ -166,8 +181,7 @@ const styles = StyleSheet.create({
     },
     jobTitle: {
         fontWeight: "bold",
-        flex: 1,
-        marginRight: 10,
+        marginRight: 5,
     },
     salaryBadge: {
         backgroundColor: "#4a90d9",
@@ -178,7 +192,7 @@ const styles = StyleSheet.create({
 	Status: {
 		fontSize: 12,
 		fontWeight: "600",
-		marginRight: 55,
+		alignSelf: "center",
 	},
     salaryText: {
         color: "#fff",
@@ -231,4 +245,19 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         alignItems: "center",
     },
+		notificationDot: {
+			width: 10,
+			height: 10,
+			borderRadius: 5,
+			backgroundColor: '#FF3B30',
+			borderWidth: 1,
+			borderColor: '#FFFFFF',
+			flexShrink: 0, 
+		},
+		titleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1, 
+    marginRight: 10,
+},
 });

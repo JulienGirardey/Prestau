@@ -35,7 +35,10 @@ export class JobService {
 
     return this.prisma.job.findMany({
       where: { companyId: company.id },
-      include: { company: true },
+      include: { 
+				company: true,
+				jobOffers: { where: { status: 'PENDING' } }
+			},
     });
   }
 
