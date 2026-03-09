@@ -123,7 +123,13 @@ export default function MissionScreen() {
                         placeholder="Lieu ou type de mission..."
                         placeholderTextColor="#aaa"
                         value={searchText}
-                        onChangeText={setSearchText}
+                        onChangeText={(text) => {
+                            setSearchText(text);
+                            if (text === '') {
+                                setDebouncedQuery('');
+                                setSalaryFilter('all');
+                            }
+                        }}
                         onSubmitEditing={() => setDebouncedQuery(searchText)}
                         returnKeyType="search"
                         clearButtonMode="while-editing"
@@ -182,7 +188,7 @@ export default function MissionScreen() {
                             <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
                                 <Pressable 
                                     onPress={() => router.push({
-                                        pathname: '/job/[id]', // Chemin corrigé pour Expo Router
+                                        pathname: '/job/[id]',
                                         params: { id: job.id }
                                     })}
 									style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
