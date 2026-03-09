@@ -73,7 +73,13 @@ export class JobService {
 	async findOne(id: number, userId?: number) {
 		const job = await this.prisma.job.findUnique({
 			where: { id },
-			include: { company: true }
+			include: { 
+				company: true,
+				jobOffers: {
+					include: {
+						worker: true }
+				}
+			},
 		});
 
 		if (!job) {
