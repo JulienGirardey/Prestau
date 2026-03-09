@@ -41,7 +41,7 @@ export default function JobOfferDetailScreen() {
 	}, []);
 
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
-		mutationFn: () => deleteJobOffer(Number(id)),
+		mutationFn: () => deleteJobOffer(jobOffer!.jobId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["job", id] });
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
