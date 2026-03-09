@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
 import { useState} from "react";
 import { logout } from "@/src/api/auth";
-import { router, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { getWorkerProfile } from "@/src/api/worker";
 import { getMissionHistory } from "@/src/api/joboffer";
 import { MissionHistory } from "@/components/MissionHistory";

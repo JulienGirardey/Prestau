@@ -7,7 +7,7 @@ import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { getJobOfferById, deleteJobOffer, JobOffer } from "@/src/api/joboffer";
 import { jwtDecode } from "jwt-decode";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 function useResponsive() {
 	const { width, height } = useWindowDimensions();
@@ -21,7 +21,7 @@ export default function JobOfferDetailScreen() {
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const router = useRouter();
-	const [isCancelling, setIsCancelling] = useState(false);
+	const queryClient = useQueryClient();
 	const [role, setRole] = useState<string | null>(null);
 
 	const { data: jobOffer, isLoading } = useQuery<JobOffer>({
@@ -40,18 +40,18 @@ export default function JobOfferDetailScreen() {
 		});
 	}, []);
 
-	const handleCancel = async () => {
-		if (!jobOffer) return;
-    setIsCancelling(true);
-		try {
-			await deleteJobOffer(jobOffer.job.id);
-			router.push("/(tabs-worker)/dashboard-worker");
-		} catch {
+	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
+		mutationFn: () => deleteJobOffer(Number(id)),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["job", id] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
+			router.push('/(tabs-worker)/dashboard-worker');
+		},
+		onError: (err: any) => {
+			console.error("Erreur lors de l'annulation :", err);
 			Alert.alert("Erreur", "Impossible d'annuler la candidature.");
-		} finally {
-			setIsCancelling(false);
 		}
-	};
+	});
 
 	if (isLoading) {
 		return (
@@ -88,13 +88,19 @@ export default function JobOfferDetailScreen() {
 						</View>
 					</View>
 
+					{/* Adresse */}
 					<View style={styles.addressRow}>
 						<Text style={[styles.label, { fontSize: scaleFont(14) }]}>Adresse:</Text>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13) }]}>{job.company?.address}, {job.company?.city} ({job.company?.postalCode})</Text>
-					</View>
+						</View>
+						<Text style={[styles.addressText, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+							{job.company?.address}, {job.company?.city} ({job.company?.postalCode})
+						</Text>
 
-					<Text style={[styles.label, { fontSize: scaleFont(14), marginTop: 10 }]}>Description:</Text>
-					<Text style={[styles.jobDescription, { fontSize: scaleFont(13) }]}>{job.description}</Text>
+						{/* Description */}
+						<Text style={[styles.label, { fontSize: scaleFont(14), marginTop: scale(10) }]}>Description:</Text>
+						<Text style={[styles.jobDescription, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+							{job.description}
+					</Text>
 
 					<View style={styles.separator} />
 
@@ -138,7 +144,7 @@ export default function JobOfferDetailScreen() {
 					{jobOffer.status !== 'COMPLETED' && role === 'WORKER' && (
 							<NewButton
 									title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
-									onPress={handleCancel}
+									onPress={() => cancelApply()}
 									disabled={isCancelling}
 									style={{ backgroundColor: '#FF3B30' }}
 							/>
@@ -167,22 +173,77 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginBottom: 8,
 	},
-	jobTitle: { fontWeight: "bold", flex: 1, marginRight: 10, color: "#264D84" },
-	jobStatus: { fontWeight: "600", marginRight: 55 },
-	salaryBadge: { backgroundColor: "#4a90d9", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
-	salaryText: { color: "#fff", fontWeight: "600" },
-	jobDescription: { color: "#666", lineHeight: 20 },
-	addressRow: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-	label: { marginRight: 6, fontWeight: "600" },
-	addressText: { color: "#888", fontStyle: "italic" },
-	separator: { height: 1, backgroundColor: "#e0e0e0", marginVertical: 15 },
-	dateRow: { flexDirection: "row", alignItems: "center" },
-	dateItem: { flex: 1, alignItems: "center" },
-	dateLabel: { color: "#999", fontWeight: "500", marginBottom: 2 },
-	dateValue: { color: "#333", fontWeight: "600" },
-	timeText: { color: "#666" },
-	dateSeparator: { width: 1, height: 40, backgroundColor: "#e0e0e0" },
-	buttonContainer: { width: "100%", paddingHorizontal: "6.5%", paddingBottom: 30 },
+	jobTitle: {
+		fontWeight: "bold",
+		flex: 1,
+		marginRight: 10,
+		color: "#264D84",
+	},
+	jobStatus: {
+		fontWeight: "600",
+		marginRight: 55,
+	},
+	salaryBadge: {
+		backgroundColor: "#4a90d9",
+		paddingHorizontal: 12,
+		paddingVertical: 4,
+		borderRadius: 20,
+	},
+	salaryText: {
+		color: "#fff",
+		fontWeight: "600",
+	},
+	jobDescription: {
+		color: "#777",
+		lineHeight: 20,
+	},
+	addressRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginBottom: 8,
+	},
+	label: {
+		marginRight: 6,
+		fontWeight: "600",
+	},
+	addressText: {
+		color: "#777",
+	},
+	separator: {
+		height: 1,
+		backgroundColor: "#e0e0e0",
+		marginVertical: 15,
+	},
+	dateRow: {
+		flexDirection: "row",
+		alignItems: "center",
+	},
+	dateItem: {
+		flex: 1,
+		alignItems: "center",
+	},
+	dateLabel: {
+		color: "#999",
+		fontWeight: "500",
+		marginBottom: 2,
+	},
+	dateValue: {
+		color: "#333",
+		fontWeight: "600",
+	},
+	timeText: {
+		color: "#666",
+	},
+	dateSeparator: {
+		width: 1,
+		height: 40,
+		backgroundColor: "#e0e0e0",
+	},
+	buttonContainer: {
+		width: "100%",
+		paddingHorizontal: "6.5%",
+		paddingBottom: 30,
+	},
 	infoBox: {
 		backgroundColor: "#f0f0f0",
 		padding: 15,
@@ -191,5 +252,10 @@ const styles = StyleSheet.create({
 		borderColor: "#ccc",
 		alignItems: "center",
 	},
-	infoText: { color: "#666", fontWeight: "600", fontSize: 14, textAlign: "center" },
+	infoText: {
+		color: "#666",
+		fontWeight: "600",
+		fontSize: 14,
+		textAlign: "center",
+	},
 });

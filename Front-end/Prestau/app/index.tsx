@@ -9,7 +9,6 @@ export default function Index() {
       <View style={styles.linksContainer}>
         <Link href="/register" style={styles.link}><Text style={styles.linkText}>Register</Text></Link>
         <Link href="/login" style={styles.link}><Text style={styles.linkText}>Login</Text></Link>
-        <Link href="/history" style={styles.link}><Text style={styles.linkText}>History</Text></Link>
       </View>
     </SafeAreaView>
   );

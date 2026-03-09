@@ -163,7 +163,9 @@ export class JobofferService {
         return this.Prisma.jobOffer.findMany({
             where: { workerId: worker.id },
             include: {
-                job: true,
+                job: {
+                    include: { company: true },
+                },
             },
         });
     }

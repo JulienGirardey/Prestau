@@ -9,7 +9,7 @@ import { getJobOfferById, JobOffer } from "@/src/api/joboffer";
 import { createReview } from "@/src/api/review";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 function useResponsive() {
@@ -24,9 +24,9 @@ export default function ReviewScreen() {
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [rating, setRating] = useState(0);
 	const [comment, setComment] = useState("");
-	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const { data: jobOffer, isLoading: loadingOffer } = useQuery<JobOffer>({
 		queryKey: ["joboffer", id],
@@ -34,16 +34,8 @@ export default function ReviewScreen() {
 		enabled: id!=null,
 	});
 
-	const handleSubmit = async () => {
-		if (rating === 0) {
-			Alert.alert("Note requise", "Veuillez sélectionner une note avant de valider.");
-			return;
-		}
-
-		if (!jobOffer) return;
-
-		setIsSubmitting(true);
-		try {
+	const { mutate: submitReview, isPending: isSubmitting } = useMutation({
+		mutationFn: async () => {
 			const token = await SecureStore.getItemAsync("access_token");
 			if (!token) throw new Error("Non authentifié");
 			const decoded: any = jwtDecode(token);
@@ -54,37 +46,49 @@ export default function ReviewScreen() {
 			let revieweeId: number; // l'id de celui qui reçoit l'avis
 
 			if (role === "WORKER") {
-				if (!jobOffer.job?.company?.userId) throw new Error("Données company manquantes");
+				if (!jobOffer!.job?.company?.userId) throw new Error("Données company manquantes");
 				reviewerType = "WORKER";
 				revieweeType = "COMPANY";
-				revieweeId = jobOffer.job.company.userId;
+				revieweeId = jobOffer!.job.company.userId;
 			} else {
-				if (!jobOffer.worker?.userId) throw new Error("Données worker manquantes");
+				if (!jobOffer!.worker?.userId) throw new Error("Données worker manquantes");
 				reviewerType = "COMPANY";
 				revieweeType = "WORKER";
-				revieweeId = jobOffer.worker.userId;
+				revieweeId = jobOffer!.worker.userId;
 			}
 
-			// crée l'avis via l'API
-			await createReview({
+			return createReview({
 				rating,
 				comment: comment || undefined,
-				jobId: jobOffer.job.id,
+				jobId: jobOffer!.job.id,
 				reviewerType,
 				revieweeType,
 				revieweeId,
 				reviewerId: decoded.sub,
 			});
 
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["joboffer", id] });
+			queryClient.invalidateQueries({ queryKey: ["mission-history-worker"] });
+			queryClient.invalidateQueries({ queryKey: ["mission-history-company"] });
 			Alert.alert("Merci !", "Votre avis a bien été enregistré.", [
 				{ text: "OK", onPress: () => router.back() }
 			]);
-		} catch (error: any) {
+		},
+		onError: (error: any) => {
 			const message = error?.message ?? "Impossible d'envoyer l'avis.";
 			Alert.alert("Erreur", message);
-		} finally {
-			setIsSubmitting(false);
 		}
+	});
+
+	const handleSubmit = () => {
+		if (rating === 0) {
+			Alert.alert("Note requise", "Veuillez sélectionner une note avant de valider.");
+			return;
+		}
+		if (!jobOffer) return;
+		submitReview();
 	};
 
 	return (

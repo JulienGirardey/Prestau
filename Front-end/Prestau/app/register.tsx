@@ -9,6 +9,7 @@ import { useState } from "react";
 import { register } from "@/src/api/auth";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
 
 
 export default function Register() {
@@ -18,11 +19,9 @@ export default function Register() {
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
 	const [role, setRole] = useState<'WORKER' | 'COMPANY' | null>(null);
 	const { width, height } = useWindowDimensions();
-	const handleRegister = async () => {
-		if (!role) return;
-		try {
-			const result = await register(inputEmail, inputPassword, role);
-			// Redirection selon le rôle choisi
+	const { mutate: submitRegister, isPending } = useMutation({
+		mutationFn: () => register(inputEmail, inputPassword, role!),
+		onSuccess: (result) => {
 			if (role === 'WORKER') {
 				router.push('/workerCreation');
 				console.log('succès', result);
@@ -30,10 +29,16 @@ export default function Register() {
 				router.push('/companyCreation');
 				console.log('succès', result);
 			}
-		} catch (error) {
+		},
+		onError: (error) => {
 			alert('Erreur lors de l\'inscription');
 			console.error(error);
 		}
+	});
+
+	const handleRegister = () => {
+		if (!role) return;
+		submitRegister();
 	};
 
 	return (
@@ -60,8 +65,9 @@ export default function Register() {
 				</View>
 				<View style={styles.spacer} />
 				<NewButton
-					title="Create Account"
+					title={isPending ? "Création..." : "Create Account"}
 					onPress={handleRegister}
+					disabled={isPending}
 					style={{ opacity: role === null ? 0.7 : 1 }}
 				/>
 			</DefaultCard>

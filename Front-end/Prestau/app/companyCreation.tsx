@@ -8,6 +8,7 @@ import { View, ScrollView, StyleSheet, useWindowDimensions } from "react-native"
 import React, { useState } from "react";
 import { createCompanyProfile } from "@/src/api/company";
 import { router } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
 
 // Hook responsive
 function useResponsive() {
@@ -82,30 +83,34 @@ export default function CompanyCreation() {
 	const set = (key: keyof typeof form) => (value: string) =>
 		setForm((prev) => ({ ...prev, [key]: value }));
 
-	const handleCreate = async () => {
+	const { mutate: submitCreate, isPending } = useMutation({
+		mutationFn: () => createCompanyProfile({
+			companyName: form.companyName,
+			address: form.address,
+			postalCode: Number(form.postalCode),
+			city: form.city,
+			siret: form.siret,
+			phoneNumber: form.phoneNumber,
+			establishment_type: form.establishment_type,
+			description: form.description || undefined,
+			website: form.website || undefined,
+			social_media: form.social_media || undefined,
+		}),
+		onSuccess: () => {
+			router.push('/(tabs-company)/dashboard-company');
+		},
+		onError: (error) => {
+			alert('Erreur lors de la création du profil');
+			console.error(error);
+		}
+	});
+
+	const handleCreate = () => {
 		if (!form.companyName || !form.address || !form.siret || !form.phoneNumber || !form.establishment_type || !form.postalCode || !form.city) {
 			alert('Merci de remplir tous les champs obligatoires');
 			return;
 		}
-
-		try {
-			await createCompanyProfile({
-				companyName: form.companyName,
-				address: form.address,
-				postalCode: Number(form.postalCode),
-				city: form.city,
-				siret: form.siret,
-				phoneNumber: form.phoneNumber,
-				establishment_type: form.establishment_type,
-				description: form.description || undefined,
-				website: form.website || undefined,
-				social_media: form.social_media || undefined,
-			});
-			router.push('/(tabs-company)/dashboard-company');
-		} catch (error) {
-			alert('Erreur lors de la création du profil');
-			console.error(error);
-		}
+		submitCreate();
 	};
 
 	const fields = [
@@ -160,7 +165,7 @@ export default function CompanyCreation() {
 				</ScrollView>
 			</DefaultCard>
 
-			<NewButton title="Créer mon profil" onPress={handleCreate} style={getButtonStyle(scale)} />
+			<NewButton title={isPending ? "Création..." : "Créer mon profil"} onPress={handleCreate} disabled={isPending} style={getButtonStyle(scale)} />
 		</View>
 	);
 }

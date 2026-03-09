@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import { createJob } from "@/src/api/job";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 dayjs.extend(customParseFormat)
 
 // Hook responsive : 
@@ -81,14 +81,26 @@ function MissionCreationInner() {
 	const set = (key: keyof typeof form) => (value: string) =>
 		setForm((prev) => ({ ...prev, [key]: value }));
 
-	// Fonction appelée lors de la création du profil
-	const handleCreate = async () => {
-		try {
+	const { mutate: createMission, isPending } = useMutation({
+		mutationFn: createJob,
+		onSuccess: () => {
+			Alert.alert("Succès", "Mission créée avec succès");
+			setForm({ title: "", description: "", start_date: "", start_hour: "", end_date: "", end_hour: "", salary: "" });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] });
+			router.push("/dashboard-company");
+		},
+		onError: (err: any) => {
+			console.error('Erreur création mission:', err?.message ?? err);
+			Alert.alert("Erreur", "Impossible de créer la mission.");
+		}
+	});
 
-			if (!form.title || !form.description || !form.salary) {
-				Alert.alert("Erreur", "Tous les champs sont obligatoires");
-				return;
-			}
+	// Fonction appelée lors de la création du profil
+	const handleCreate = () => {
+		if (!form.title || !form.description || !form.salary) {
+			Alert.alert("Erreur", "Tous les champs sont obligatoires");
+			return;
+		}
 			const startDate = dayjs(form.start_date, "DD/MM/YYYY", true);
 			const startHour = dayjs(form.start_hour, "HH:mm", true);
 			const endDate = dayjs(form.end_date, "DD/MM/YYYY", true);
@@ -116,20 +128,13 @@ function MissionCreationInner() {
 				Alert.alert("Erreur", "La date de fin ne peut pas être antérieure à la date de début");
 				return;
 			}
-			await createJob({
+			createMission({
 				title: form.title,
 				description: form.description,
 				start_time,
 				end_time,
 				salary: parseFloat(form.salary),
 			});
-			Alert.alert("Succès", "Mission créée avec succès");
-			// Invalide les données du dashboard pour forcer le rafraîchissement
-			queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] });
-			router.push("/dashboard-company");
-		} catch (err: any) {
-			console.error('Erreur création mission:', err?.message ?? err);
-		}
 	};
 
 	// Définition des champs du formulaire (label, clé, placeholder, requis)
@@ -182,7 +187,7 @@ function MissionCreationInner() {
 					</View>
 				</DefaultCard>
 				{/* Bouton de validation */}
-				<NewButton title="Créer ma mission" onPress={handleCreate} style={getButtonStyle(scale)} />
+				<NewButton title={isPending ? "Création..." : "Créer ma mission"}  onPress={handleCreate} style={getButtonStyle(scale)} />
 			</ScrollView>
 		</View >
 	);
