@@ -1,21 +1,21 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Modal } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Modal, TouchableOpacity } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { getJobById } from "@/src/api/job";
-import { createJobOffer, deleteJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
+import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 // Hook pour la gestion du design adaptatif
 function useResponsive() {
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const scale = (size: number) => (width / 390) * size;
   const scaleFont = (size: number) => Math.min(scale(size), size * 1.4);
   return {
     width,
-    height,
     scale,
     scaleFont,
   };
@@ -62,6 +62,25 @@ export default function JobDetailScreen() {
       console.error("Erreur lors de l'annulation :", err);
       Alert.alert("Erreur", "Impossible d'annuler la candidature.");
     },
+  });
+	// Mutation pour accepter le candidat
+  const { mutate: acceptMutation, isPending: isAccepting } = useMutation({
+    mutationFn: (offerId: number) => acceptJobOffer(offerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["job", id] });
+      Alert.alert("Succès", "Le candidat a été accepté.");
+    },
+    onError: () => Alert.alert("Erreur", "Impossible d'accepter ce candidat.")
+  });
+
+  // Mutation pour refuser le candidat
+  const { mutate: rejectMutation, isPending: isRejecting } = useMutation({
+    mutationFn: (offerId: number) => rejectJobOffer(offerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["job", id] });
+      Alert.alert("Succès", "Le candidat a été refusé.");
+    },
+    onError: () => Alert.alert("Erreur", "Impossible de refuser ce candidat.")
   });
 
   if (isLoading) {
@@ -164,28 +183,60 @@ export default function JobDetailScreen() {
         </View>
       </ScrollView>
       {/* Modal pour afficher les candidats */}
-      <Modal
-        visible={showApplicants}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowApplicants(false)}
-      >
+      <Modal visible={showApplicants} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplicants(false)}>
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-          <View style={{ padding: scale(20), borderBottomWidth: 1, borderBottomColor: "#eee" }}>
-            <Text style={{ color: colors.primary, fontSize: scaleFont(20), fontWeight: "bold" }}>Candidats ({job.jobOffers?.length || 0})</Text>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { fontSize: scaleFont(20) }]}>Candidats ({job.jobOffers?.length || 0})</Text>
           </View>
 
           <ScrollView contentContainerStyle={{ padding: scale(20) }}>
             {Array.isArray(job.jobOffers) && job.jobOffers.length > 0 ? (
               job.jobOffers.map((offer) => (
                 <View key={offer.id} style={styles.applicantCard}>
-                  <View style={styles.applicantInfo}>
-                    <Text style={styles.applicantName}>
-                      {offer.worker?.firstName} {offer.worker?.lastName}
-                    </Text>
-                    <Text style={styles.applicantEmail}>{offer.worker?.city || "Ville non spécifiée"}</Text>
+                  <View style={styles.profileHeader}>
+										{/*  TODO: a affishe la photo */ }
+                    <View style={styles.avatarPlaceholder}>
+                      <Text style={styles.avatarText}>
+                        {offer.worker?.firstName[0] || ""}
+                        {offer.worker?.lastName[0] || ""}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.applicantName}>
+                        {offer.worker?.firstName} {offer.worker?.lastName}
+                      </Text>
+                      <Text style={styles.applicantDate}>Postulé le {new Date(offer.createdAt).toLocaleDateString("fr-FR")}</Text>
+                    </View>
                   </View>
-                  {/* Accepte/Refuse */}
+
+                  <View style={styles.infoDivider} />
+
+                  <View style={styles.infoGrid}>
+                    <View style={styles.infoRow}>
+                      <Ionicons name="location-outline" size={16} color={colors.primary} />
+                      <Text style={styles.infoText}>{offer.worker?.city || "Ville non spécifiée"}</Text>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                      <Ionicons name="call-outline" size={16} color={colors.primary} />
+                      <Text style={styles.infoText}>{offer.worker?.phoneNumber || "Pas de téléphone"}</Text>
+                    </View>
+
+                    <View style={styles.infoRow}>
+                      <Ionicons name="briefcase-outline" size={16} color={colors.primary} />
+                      <Text style={styles.infoText}>{offer.worker?.profession || "Profession non dispo"}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.decisionRow}>
+                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: "#FF3B30" }]} onPress={() => rejectMutation(offer.id)} disabled={isRejecting}>
+                      <Text style={styles.actionButtonText}>{isRejecting ? "En cours..." : "Refuser"}</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: "#27ae60" }]} onPress={() => acceptMutation(offer.id)} disabled={isAccepting}>
+                      <Text style={styles.actionButtonText}>{isAccepting ? "En cours..." : "Accepter"}</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))
             ) : (
@@ -320,8 +371,71 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#264D84",
   },
-  applicantEmail: {
-    color: "#777",
-    marginTop: 4,
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  modalTitle: {
+    fontWeight: "bold",
+    color: "#264D84",
+  },
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#4a90d9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  avatarText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  applicantDate: {
+    fontSize: 12,
+    color: "#999",
+  },
+  infoDivider: {
+    height: 1,
+    backgroundColor: "#f0f0f0",
+    marginVertical: 10,
+  },
+  infoGrid: {
+    gap: 8,
+    marginBottom: 15,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  infoText: {
+    color: "#555",
+    fontSize: 14,
+  },
+  decisionRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
