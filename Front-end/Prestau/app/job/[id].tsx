@@ -172,9 +172,6 @@ export default function JobDetailScreen() {
 					)}
 				</View>
 			</ScrollView>
-			<Modal visible={showApplicants} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplicants(false)}>
-				{/* Contenu du modal pour les actions de candidature */}
-			</Modal>
 		</View>
 	);
 }
