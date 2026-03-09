@@ -21,7 +21,7 @@ interface CompanyProfile {
 	city: string;	
 }
 
-export const createCompanyProfile = async (data: CreateCompanyProfileDto) => {
+export const createCompanyProfile = async (data: CreateCompanyProfileDto): Promise<CompanyProfile> => {
 	const response = await api.post('/company', data);
 	return response.data;
 };

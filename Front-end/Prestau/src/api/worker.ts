@@ -23,7 +23,7 @@ interface WorkerProfile {
 	city: string;
 }
 
-export const createWorkerProfile = async (data: CreateWorkerData) => {
+export const createWorkerProfile = async (data: CreateWorkerData): Promise<WorkerProfile> => {
 	return api.post('/worker', data);
 };
 
