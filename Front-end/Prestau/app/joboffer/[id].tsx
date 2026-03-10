@@ -45,7 +45,7 @@ export default function JobOfferDetailScreen() {
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
 		mutationFn: () => {
         if (!jobOffer) throw new Error("JobOffer introuvable");
-        return deleteJobOffer(Number(jobOffer.id));
+        return deleteJobOffer(Number(jobOffer.job.id));
     },
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
