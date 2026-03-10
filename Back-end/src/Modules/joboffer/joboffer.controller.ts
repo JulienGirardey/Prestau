@@ -90,4 +90,13 @@ export class JobofferController {
 	) {
 		return this.jobofferService.removeByJobAndWorker(jobId, req.user.id);
 	}
+
+	@Post(":id/cancel")
+  @Roles(Role.COMPANY)
+  cancel(
+    @Param("id", ParseIntPipe) id: number,
+    @Req() req: CurrentUserRequest,
+  ) {
+    return this.jobofferService.cancel(id, req.user.id);
+  }
 }
