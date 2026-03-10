@@ -24,6 +24,7 @@ export default function JobOfferDetailScreen() {
 	const queryClient = useQueryClient();
 	const [role, setRole] = useState<string | null>(null);
 
+	// Récupérer les détails de l'offre d'emploi
 	const { data: jobOffer, isLoading } = useQuery<JobOffer>({
 		queryKey: ["joboffer", id],
 		queryFn: () => getJobOfferById(Number(id)),
@@ -40,8 +41,12 @@ export default function JobOfferDetailScreen() {
 		});
 	}, []);
 
+	// Mutation pour annuler la candidature
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
-		mutationFn: () => deleteJobOffer(Number(jobOffer.job.id)),
+		mutationFn: () => {
+        if (!jobOffer) throw new Error("JobOffer introuvable");
+        return deleteJobOffer(Number(jobOffer.id));
+    },
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
 			if (jobOffer?.job?.id) {
