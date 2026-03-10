@@ -64,7 +64,8 @@ export const createJobOffer = async (jobId: number): Promise<JobOffer> => {
 };
 
 export const deleteJobOffer = async (jobId: number) => {
-    return await api.delete(`/joboffer/cancel/${jobId}`); 
+		const response = await api.delete(`/joboffer/${jobId}`);
+		return response.data;
 };
 
 export const acceptJobOffer = async (offerId: number) => {
@@ -76,3 +77,12 @@ export const rejectJobOffer = async (offerId: number) => {
 		const response = await api.post(`/joboffer/${offerId}/reject`);
 		return response.data;
 };
+
+export const completeJobOffer = async (offerId: number) => {
+		const response = await api.post(`/joboffer/${offerId}/complete`);
+		return response.data;
+};
+export const cancelJobOffer = async (offerId: number) => {
+		const response = await api.post(`/joboffer/${offerId}/cancel`);
+		return response.data;
+}

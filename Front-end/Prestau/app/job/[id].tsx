@@ -68,20 +68,34 @@ export default function JobDetailScreen() {
     mutationFn: (offerId: number) => acceptJobOffer(offerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job", id] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
       Alert.alert("Succès", "Le candidat a été accepté.");
     },
     onError: () => Alert.alert("Erreur", "Impossible d'accepter ce candidat.")
   });
 
-  // Mutation pour refuser le candidat
+  
+	// Mutation pour anuler la candidature du candidat (refuser après acceptation)
   const { mutate: rejectMutation, isPending: isRejecting } = useMutation({
     mutationFn: (offerId: number) => rejectJobOffer(offerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job", id] });
-      Alert.alert("Succès", "Le candidat a été refusé.");
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
+      Alert.alert("Succès", "Le candidat a été annule.");
     },
-    onError: () => Alert.alert("Erreur", "Impossible de refuser ce candidat.")
+    onError: () => Alert.alert("Erreur", "Impossible de annuler ce candidat.")
   });
+
+	// Mutation pour refuser le candidat
+	const { mutate: cancelMutation, isPending: isCancellingCandidate } = useMutation({
+		mutationFn: (offerId: number) => cancelJobOffer(offerId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["job", id] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
+			Alert.alert("Succès", "La candidature a été refuse.");
+		},
+		onError: () => Alert.alert("Erreur", "Impossible de refuse cette candidature.")
+	});
 
   if (isLoading) {
     return (
@@ -98,6 +112,11 @@ export default function JobDetailScreen() {
       </View>
     );
   }
+
+	// Filtrer les offres d'emploi pour n'afficher que celles qui sont en cours ou acceptées
+	const activeOffers = Array.isArray(job?.jobOffers) 
+    ? job.jobOffers.filter((offer: any) => offer.status === 'PENDING' || offer.status === 'ACCEPTED')
+    : [];
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -172,7 +191,7 @@ export default function JobDetailScreen() {
           {!job.isWorker && (
             <>
               {Array.isArray(job.jobOffers) && job.jobOffers.length > 0 ? (
-                <NewButton title={`Voir les candidats (${job.jobOffers.length})`} onPress={() => setShowApplicants(true)} />
+                <NewButton title={`Voir les candidats (${activeOffers.length})`} onPress={() => setShowApplicants(true)} />
               ) : (
                 <View style={styles.alreadyAppliedBadge}>
                   <Text style={styles.alreadyAppliedText}>Aucune candidature pour le moment</Text>
@@ -186,12 +205,12 @@ export default function JobDetailScreen() {
       <Modal visible={showApplicants} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplicants(false)}>
         <View style={{ flex: 1, backgroundColor: colors.background }}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { fontSize: scaleFont(20) }]}>Candidats ({job.jobOffers?.length || 0})</Text>
+            <Text style={[styles.modalTitle, { fontSize: scaleFont(20) }]}>Candidats ({activeOffers?.length || 0})</Text>
           </View>
 
           <ScrollView contentContainerStyle={{ padding: scale(20) }}>
-            {Array.isArray(job.jobOffers) && job.jobOffers.length > 0 ? (
-              job.jobOffers.map((offer) => (
+            {Array.isArray(activeOffers) && activeOffers.length > 0 ? (
+              activeOffers.map((offer) => (
                 <View key={offer.id} style={styles.applicantCard}>
                   <View style={styles.profileHeader}>
 										{/*  TODO: a affishe la photo */ }
@@ -229,13 +248,27 @@ export default function JobDetailScreen() {
                   </View>
 
                   <View style={styles.decisionRow}>
-                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: "#FF3B30" }]} onPress={() => rejectMutation(offer.id)} disabled={isRejecting}>
-                      <Text style={styles.actionButtonText}>{isRejecting ? "En cours..." : "Refuser"}</Text>
-                    </TouchableOpacity>
+										{offer.status === "ACCEPTED" ? (
+											<TouchableOpacity 
+												style={[styles.actionButton, { backgroundColor: "#FF3B30", flex: 1 }]} 
+												onPress={() => rejectMutation(offer.id)}
+												disabled={isRejecting}
+											>
+												<Text style={styles.actionButtonText}>
+													{isRejecting ? "En cours..." : "Annuler la candidature"}
+												</Text>
+											</TouchableOpacity>
+										) : (
+											<>
+												<TouchableOpacity style={[styles.actionButton, { backgroundColor: "#FF3B30" }]} onPress={() => cancelMutation(offer.id)} disabled={isCancellingCandidate}>
+													<Text style={styles.actionButtonText}>{isCancellingCandidate ? "En cours..." : "Refuser"}</Text>
+												</TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.actionButton, { backgroundColor: "#27ae60" }]} onPress={() => acceptMutation(offer.id)} disabled={isAccepting}>
-                      <Text style={styles.actionButtonText}>{isAccepting ? "En cours..." : "Accepter"}</Text>
-                    </TouchableOpacity>
+												<TouchableOpacity style={[styles.actionButton, { backgroundColor: "#27ae60" }]} onPress={() => acceptMutation(offer.id)} disabled={isAccepting}>
+													<Text style={styles.actionButtonText}>{isAccepting ? "En cours..." : "Accepter"}</Text>
+												</TouchableOpacity>
+											</>
+										)}
                   </View>
                 </View>
               ))

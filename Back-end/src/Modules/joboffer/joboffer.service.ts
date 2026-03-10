@@ -92,13 +92,62 @@ export class JobofferService {
             throw new NotFoundException('You are not authorized to reject this offer');
         }
 
-        return this.Prisma.jobOffer.update({
+        const updatedOffer = this.Prisma.jobOffer.update({
             where: { id },
             data: {
                 status: 'REJECTED',
                 response_at: new Date(),
             },
         });
+
+				await this.checkAndResetJobStatus(jobOffer.jobId);
+				return updatedOffer;
+    }
+
+		// Annuler une candidature par company 
+		async cancel(id: number, userId: number): Promise<JobOffer> {
+				const jobOffer = await this.Prisma.jobOffer.findUnique({
+						where: { id },
+						include: { job: { include: { company: true } } },
+				});
+
+				if (!jobOffer) {
+						throw new NotFoundException(`JobOffer with ID ${id} not found`);
+				}
+
+				if (jobOffer.job.company.userId !== userId) {
+						throw new NotFoundException('You are not authorized to cancel this offer');
+				}
+
+				const updatedOffer = this.Prisma.jobOffer.update({
+						where: { id },
+						data: {
+								status: 'REJECTED',
+								response_at: new Date(),
+						},
+				});
+
+				await this.checkAndResetJobStatus(jobOffer.jobId);
+				return updatedOffer;
+		}
+
+		// Fonction pour vérifier s'il reste des offres d'emploi actives (PENDING ou ACCEPTED) pour une mission donnée, et si non, remettre la mission en OPEN
+		private async checkAndResetJobStatus(jobId: number) {
+        const activeOffersCount = await this.Prisma.jobOffer.count({
+            where: {
+                jobId: jobId,
+                status: {
+                    in: ['PENDING', 'ACCEPTED']
+                }
+            }
+        });
+
+        if (activeOffersCount === 0) {
+            await this.Prisma.job.update({
+                where: { id: jobId },
+                data: { status: 'OPEN' }
+            });
+        }
     }
 
     // Marquer une mission comme terminée

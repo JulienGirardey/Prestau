@@ -40,6 +40,7 @@ export default function JobOfferDetailScreen() {
 		});
 	}, []);
 
+	// Mutation pour annuler la candidature
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
 		mutationFn: () => deleteJobOffer(Number(jobOffer.job.id)),
 		onSuccess: () => {
