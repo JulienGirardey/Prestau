@@ -41,7 +41,7 @@ export default function Login() {
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Login</ThemedText>
 					<InputBar style={inputStyle.inputEmail} placeholder="Email" value={inputEmail} onChange={setEmail} />
-					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setPassword} />
+					<InputBar style={inputStyle.inputPassword} placeholder="Password" secureTextEntry={true} value={inputPassword} onChange={setPassword} />
 				</View>
 				<View style={styles.spacer} />
 				<NewButton title={isPending ? "Connexion..." : "Sign in"} onPress={handleLogin} disabled={isPending} />

@@ -48,8 +48,8 @@ export default function Register() {
 					<Image style={[styles.baseImageStyle, { borderColor: colors.secondary }]} source={require('@/assets/images/logo-prestau.jpg')} />
 					<ThemedText variant="headline" style={styles.title}>Create Account</ThemedText>
 					<InputBar style={inputStyle.inputEmail} placeholder="Email" value={inputEmail} onChange={setEmail} />
-					<InputBar style={inputStyle.inputPassword} placeholder="Password" value={inputPassword} onChange={setInputPassword} />
-					<InputBar style={inputStyle.inputVerifyPassword} placeholder="Verify password" value={inputVerifyPassword} onChange={setInputVerifyPassword} />
+					<InputBar style={inputStyle.inputPassword} placeholder="Password" secureTextEntry={true} value={inputPassword} onChange={setInputPassword} />
+					<InputBar style={inputStyle.inputVerifyPassword} placeholder="Verify password" secureTextEntry={true} value={inputVerifyPassword} onChange={setInputVerifyPassword} />
 				</View>
 				<View style={{ flexDirection: "row", gap: "3%", marginTop: 48 }}>
 					<TouchableOpacity
