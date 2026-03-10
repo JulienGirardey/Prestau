@@ -23,6 +23,7 @@ export default function Login() {
 			const decoded: any = jwtDecode(token);
 			const role = decoded.role;
 			console.log('succès, rôle:', role);
+			console.log('Token reçu:', token);
 			if (role === 'COMPANY') {
 				router.replace('/(tabs-company)/dashboard-company');
 			} else {

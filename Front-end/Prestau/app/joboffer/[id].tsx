@@ -24,6 +24,7 @@ export default function JobOfferDetailScreen() {
 	const queryClient = useQueryClient();
 	const [role, setRole] = useState<string | null>(null);
 
+	// Récupérer les détails de l'offre d'emploi
 	const { data: jobOffer, isLoading } = useQuery<JobOffer>({
 		queryKey: ["joboffer", id],
 		queryFn: () => getJobOfferById(Number(id)),
@@ -42,7 +43,10 @@ export default function JobOfferDetailScreen() {
 
 	// Mutation pour annuler la candidature
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
-		mutationFn: () => deleteJobOffer(Number(jobOffer.job.id)),
+		mutationFn: () => {
+        if (!jobOffer) throw new Error("JobOffer introuvable");
+        return deleteJobOffer(Number(jobOffer.id));
+    },
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
 			if (jobOffer?.job?.id) {
@@ -72,8 +76,6 @@ export default function JobOfferDetailScreen() {
 		);
 	}
 
-	const { job } = jobOffer;
-
 	return (
 		<View style={{ flex: 1, backgroundColor: colors.background }}>
 			<Header />
@@ -82,9 +84,9 @@ export default function JobOfferDetailScreen() {
 				{/* INFOS DU JOB ASSOCIÉ */}
 				<View style={[styles.jobCard, { backgroundColor: "white", margin: scale(25) }]}>
 					<View style={styles.jobHeader}>
-						<Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{job.title}</Text>
+						<Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{jobOffer.job.title}</Text>
 						<View style={styles.salaryBadge}>
-							<Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{job.salary}€</Text>
+							<Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{jobOffer.job.salary}€</Text>
 						</View>
 					</View>
 
@@ -93,13 +95,13 @@ export default function JobOfferDetailScreen() {
 						<Text style={[styles.label, { fontSize: scaleFont(14) }]}>Adresse:</Text>
 						</View>
 						<Text style={[styles.addressText, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
-							{job.company?.address}, {job.company?.city} ({job.company?.postalCode})
+							{jobOffer.job.company?.address}, {jobOffer.job.company?.city} ({jobOffer.job.company?.postalCode})
 						</Text>
 
 						{/* Description */}
 						<Text style={[styles.label, { fontSize: scaleFont(14), marginTop: scale(10) }]}>Description:</Text>
 						<Text style={[styles.jobDescription, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
-							{job.description}
+							{jobOffer.job.description}
 					</Text>
 
 					<View style={styles.separator} />
@@ -108,20 +110,20 @@ export default function JobOfferDetailScreen() {
 						<View style={styles.dateItem}>
 							<Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
 							<Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
-								{new Date(job.start_time).toLocaleDateString("fr-FR")}
+								{new Date(jobOffer.job.start_time).toLocaleDateString("fr-FR")}
 							</Text>
 							<Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>
-								{new Date(job.start_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+								{new Date(jobOffer.job.start_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
 							</Text>
 						</View>
 						<View style={styles.dateSeparator} />
 						<View style={styles.dateItem}>
 							<Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
 							<Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
-								{new Date(job.end_time).toLocaleDateString("fr-FR")}
+								{new Date(jobOffer.job.end_time).toLocaleDateString("fr-FR")}
 							</Text>
 							<Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>
-								{new Date(job.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+								{new Date(jobOffer.job.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
 							</Text>
 						</View>
 					</View>
@@ -145,11 +147,13 @@ export default function JobOfferDetailScreen() {
 								<Text style={styles.infoText}>Vous avez déjà laissé un avis</Text>
 							</View>
 					)}
+					{jobOffer.status !== 'COMPLETED' && (
 						<View style={styles.alreadyAppliedBadge}>
 							<Text style={styles.alreadyAppliedText}>
 								Vous avez déjà postulé pour cette offre
 							</Text>
 						</View>
+					)}
 					{jobOffer.status !== 'COMPLETED' && role === 'WORKER' && (
 							<NewButton
 									title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
