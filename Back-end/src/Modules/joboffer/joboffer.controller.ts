@@ -59,6 +59,15 @@ export class JobofferController {
     return this.jobofferService.complete(id, req.user.id); // Associer l'offre d'emploi complétée à l'utilisateur qui la complète (même token)
   }
 
+	@Post(":id/cancel")
+  @Roles(Role.COMPANY)
+  cancel(
+    @Param("id", ParseIntPipe) id: number,
+    @Req() req: CurrentUserRequest,
+  ) {
+    return this.jobofferService.cancel(id, req.user.id);
+  }
+
   @Get("my-offers")
 	@Roles(Role.COMPANY) // Seule la company peut récupérer ses propres offres d'emploi
   async getMyJobOffers(@Req() req: CurrentUserRequest) {
@@ -90,13 +99,4 @@ export class JobofferController {
 	) {
 		return this.jobofferService.removeByJobAndWorker(jobId, req.user.id);
 	}
-
-	@Post(":id/cancel")
-  @Roles(Role.COMPANY)
-  cancel(
-    @Param("id", ParseIntPipe) id: number,
-    @Req() req: CurrentUserRequest,
-  ) {
-    return this.jobofferService.cancel(id, req.user.id);
-  }
 }

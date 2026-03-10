@@ -53,7 +53,6 @@ export class JobofferService {
             where: { id },
             data: {
                 status: 'ACCEPTED',
-                selected_by_company: true,
                 response_at: new Date(),
             },
         });
@@ -61,17 +60,6 @@ export class JobofferService {
         await this.Prisma.job.update({
             where: { id: jobOffer.jobId },
             data: { status: 'IN_PROGRESS' },
-        });
-
-        await this.Prisma.jobOffer.updateMany({
-            where: {
-                jobId: jobOffer.jobId,
-                id: { not: id },
-            },
-            data: {
-                status: 'REJECTED',
-                response_at: new Date(),
-            },
         });
 
         return updatedOffer;
@@ -92,7 +80,7 @@ export class JobofferService {
             throw new NotFoundException('You are not authorized to reject this offer');
         }
 
-        const updatedOffer = this.Prisma.jobOffer.update({
+        const updatedOffer = await this.Prisma.jobOffer.update({
             where: { id },
             data: {
                 status: 'REJECTED',
@@ -119,10 +107,11 @@ export class JobofferService {
 						throw new NotFoundException('You are not authorized to cancel this offer');
 				}
 
-				const updatedOffer = this.Prisma.jobOffer.update({
+				const updatedOffer = await this.Prisma.jobOffer.update({
 						where: { id },
 						data: {
-								status: 'REJECTED',
+								status: 'CANCELLED',
+								selected_by_company: false,
 								response_at: new Date(),
 						},
 				});

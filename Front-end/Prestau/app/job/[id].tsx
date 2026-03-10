@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Modal, TouchableOpacity } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { getJobById } from "@/src/api/job";
-import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
+import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -78,8 +78,8 @@ export default function JobDetailScreen() {
 	// Mutation pour anuler la candidature du candidat (refuser après acceptation)
   const { mutate: rejectMutation, isPending: isRejecting } = useMutation({
     mutationFn: (offerId: number) => rejectJobOffer(offerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job", id] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["job", id] });
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
       Alert.alert("Succès", "Le candidat a été annule.");
     },
@@ -113,6 +113,10 @@ export default function JobDetailScreen() {
     );
   }
 
+
+	const myOffer = job.jobOffers?.find((offer: any) => offer.status === 'REJECTED' || offer.status === 'CANCELLED' || job.alreadyApplied);
+
+	const isRejected = myOffer?.status === 'REJECTED' || myOffer?.status === 'CANCELLED';
 	// Filtrer les offres d'emploi pour n'afficher que celles qui sont en cours ou acceptées
 	const activeOffers = Array.isArray(job?.jobOffers) 
     ? job.jobOffers.filter((offer: any) => offer.status === 'PENDING' || offer.status === 'ACCEPTED')
@@ -168,9 +172,9 @@ export default function JobDetailScreen() {
 
         {/* Section des boutons d'action */}
         <View style={styles.buttonContainer}>
-          {job.isWorker && (
+          {job.isWorker &&  (
             <>
-              {job.alreadyApplied ? (
+              {job.alreadyApplied && !isRejected ? (
                 <View>
                   <View style={styles.alreadyAppliedBadge}>
                     <Text style={styles.alreadyAppliedText}>Vous avez déjà postulé pour cette offre</Text>
@@ -180,8 +184,13 @@ export default function JobDetailScreen() {
                     <NewButton title={isCancelling ? "Annulation..." : "Annuler ma candidature"} onPress={() => cancelApply()} disabled={isCancelling} style={{ backgroundColor: "#FF3B30" }} />
                   </View>
                 </View>
-              ) : (
-                /* Si canApply est vrai, on affiche le bouton pour postuler */
+              ) : isRejected ? (
+								<View style={styles.alreadyAppliedBadge}>
+									<Text style={[styles.alreadyAppliedText, { color: '#FF3B30' }]}>
+										Votre candidature a été refusée
+									</Text>
+								</View>
+							) : (
                 job.canApply && <NewButton title={isApplying ? "En cours..." : "Postuler"} onPress={() => applyToJob()} disabled={isApplying} />
               )}
             </>

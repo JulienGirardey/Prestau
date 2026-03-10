@@ -139,6 +139,12 @@ export default function DashboardWorker() {
 		return `${new Date(start).toLocaleString('fr-FR', options)} - ${new Date(end).toLocaleString('fr-FR', options)}`;
 	};
 
+	const activeMissions = useMemo(() => {
+    return joboffers.filter(offer => 
+        offer.status === 'PENDING' || offer.status === 'ACCEPTED'
+    );
+}, [joboffers]);
+
 	// COMPOSANT DE CARTE EXTERNALISÉ : pour éviter la duplication de code
 const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
     const getBorderColor = (status: string) => {
@@ -202,11 +208,11 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
 					{ /* MISSIONS */}
 					<DefaultCard style={styles.cardWrapper}>
                         <Text style={[styles.titleCard, { fontSize: scaleFont(25) }]}>Missions</Text>
-                        {joboffers.length === 0 ? (
+                        {activeMissions.length === 0 ? (
                             <Text style={[styles.emptyText, { fontSize: scaleFont(16) }]}>Aucune mission pour le moment</Text>
                         ) : (
                             <FlatList
-                                data={joboffers}
+                                data={activeMissions}
                                 keyExtractor={(item) => String(item.id)}
                                 horizontal={true}
                                 showsHorizontalScrollIndicator={false}
