@@ -25,10 +25,6 @@ export default function Index() {
 			<View style={styles.linksContainer}>
 				<Link href="/register" style={styles.link}><Text style={styles.linkText}>Register</Text></Link>
 				<Link href="/login" style={styles.link}><Text style={styles.linkText}>Login</Text></Link>
-				<Link href="/dashboard-worker" style={styles.link}><Text style={styles.linkText}>Dashboard Worker</Text></Link>
-				<Link href="/dashboard-company" style={styles.link}><Text style={styles.linkText}>Dashboard Company</Text></Link>
-				<Link href="/workerCreation" style={styles.link}><Text style={styles.linkText}>Worker Creation</Text></Link>
-				<Link href="/companyCreation" style={styles.link}><Text style={styles.linkText}>Company Creation</Text></Link>
 			</View>
 		</SafeAreaView>
 	);

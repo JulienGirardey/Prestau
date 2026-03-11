@@ -134,7 +134,6 @@ export default function DashboardWorker() {
 		return marks;
 	}, [freeDays, busyDays]);
 
-	// --- FONCTIONS UTILITAIRES (CODE PROPRE) ---
 	const formatMissionDate = (start: string, end: string) => {
 		const options: Intl.DateTimeFormatOptions = { dateStyle: 'short', timeStyle: 'short' };
 		return `${new Date(start).toLocaleString('fr-FR', options)} - ${new Date(end).toLocaleString('fr-FR', options)}`;

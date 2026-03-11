@@ -70,7 +70,7 @@ export default function ProfileWorker() {
             <ThemedText
                 variant="headline"
                 color="primary"
-                style={styles.pageTitle}> {/* Titre de la page */}
+                style={styles.pageTitle}>
                 Profile
             </ThemedText>
 
@@ -82,8 +82,8 @@ export default function ProfileWorker() {
                     <View style={styles.avatarContainer}>
                         <Ionicons name="person-circle" size={scale(80)} color="#fff" />
                     </View>
-
-                    <View style={styles.profileInfo}> {/* Nom et ville */}
+									{/* Nom et ville */}
+                    <View style={styles.profileInfo}> 
                         <Text style={styles.profileName}>
                             {profile?.firstName} {profile?.lastName}
                         </Text>
@@ -95,21 +95,22 @@ export default function ProfileWorker() {
 
                 {/* Statistiques : missions, note, ancienneté */}
                 <View style={styles.statsContainer}> 
-                    <View style={styles.statItem}> {/* Nombre de missions */}
+									{/* Nombre de missions */}
+                    <View style={styles.statItem}> 
                         <Ionicons name="checkmark-circle" size={scale(24)} color="#fff" />
                         <Text style={styles.statText}>
                             {jobCount} Mission(s)
                         </Text>
                     </View>
-
-                    <View style={styles.statItem}> {/* Note moyenne */}
+									{/* Note moyenne */}
+                    <View style={styles.statItem}> 
                         <Ionicons name="star" size={scale(24)} color="#fff" />
                         <Text style={styles.statText}>
                             {rating > 0 ? `${rating}/5` : "0"} Évaluation
                         </Text>
                     </View>
 
-                    <View style={styles.statItem}> {/* Ancienneté */}
+                    <View style={styles.statItem}> 
                         <Ionicons name="calendar" size={scale(24)} color="#fff" />
                         <Text style={styles.statText}>
                             {profile?.yearsOfExperience || 0} Année sur l&apos;app
@@ -154,14 +155,15 @@ export default function ProfileWorker() {
                 onRequestClose={() => setShowHistory(false)}
             >
                 <View style={[styles.modalContainer, { backgroundColor: colors.background }]}> {/* Conteneur du modal */}
-                    <View style={styles.modalHeader}> {/* En-tête du modal */}
+                    <View style={styles.modalHeader}>
                         <ThemedText
                             variant="headline"
                             color="primary"
-                            style={styles.modalTitle}> {/* Titre du modal */}
+                            style={styles.modalTitle}>
                             Missions passées
                         </ThemedText>
-                        <TouchableOpacity onPress={() => setShowHistory(false)}> {/* Bouton fermer */}
+                        {/* Bouton fermer */}
+                        <TouchableOpacity onPress={() => setShowHistory(false)}>
                             <Ionicons name="close-circle" size={scale(32)} color={colors.primary} />
                         </TouchableOpacity>
                     </View>

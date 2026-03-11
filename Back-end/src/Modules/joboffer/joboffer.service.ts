@@ -248,7 +248,7 @@ export class JobofferService {
                     status: 'COMPLETED',
                 },
                 include: {
-                    job: true,
+                    job: { include: { company: true } },
                     worker: true,
                 },
                 orderBy: { updatedAt: 'desc' },

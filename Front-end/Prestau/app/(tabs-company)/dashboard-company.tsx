@@ -40,7 +40,7 @@ export default function DashboardCompany() {
 	if (errorMyJobs) return <Text>Erreur lors de la récupération des missions</Text>;
 
 	return (
-		<View style={[styles.page, { backgroundColor: colors.background }]}> {/* Conteneur principal de la page */}
+		<View style={[styles.page, { backgroundColor: colors.background }]}> 
 			<Header /> {/* Barre d'en-tête */}
 			<ThemedText
 				variant="headline"
@@ -49,7 +49,8 @@ export default function DashboardCompany() {
 			> {/* Titre de la page */}
 				Missions postées
 			</ThemedText>
-			<DefaultCard style={styles.card}> {/* Carte contenant la liste des missions */}
+			{/* Carte contenant la liste des missions */}
+			<DefaultCard style={styles.card}>
 				<ScrollView
 					style={styles.scroll}
 					showsVerticalScrollIndicator={false}
@@ -80,7 +81,8 @@ export default function DashboardCompany() {
 									>
 										{/* En-tête de la mission : titre, badge salaire, notification */}
 										<View style={styles.jobHeader}>
-											<View style={styles.titleWrapper}> {/* Titre + notification */}
+											{/* Titre + notification */}
+											<View style={styles.titleWrapper}>
 												<Text
 													style={styles.jobTitle}
 													numberOfLines={1}
@@ -92,8 +94,8 @@ export default function DashboardCompany() {
 													<View style={styles.notificationDot} />
 												)}
 											</View>
-
-											<View style={styles.salaryBadge}> {/* Badge salaire */}
+											{/* Badge salaire */}
+											<View style={styles.salaryBadge}> 
 												<Text style={styles.salaryText}>
 													{job.salary}€
 												</Text>
@@ -113,26 +115,28 @@ export default function DashboardCompany() {
 										<Text style={styles.jobDescription} numberOfLines={2} ellipsizeMode="tail">
 											{job.description}
 										</Text>
-
-										<View style={styles.separator} /> {/* Séparateur */}
+										{/* Séparateur */}
+										<View style={styles.separator} /> 
 
 										{/* Dates de début et fin */}
 										<View style={styles.dateRow}>
-											<View style={styles.dateItem}> {/* Date de début */}
+											{/* Date de début */}
+											<View style={styles.dateItem}> 
 												<Text style={styles.dateLabel}>Début</Text>
 												<Text style={styles.dateValue}>
 													{new Date(job.start_time).toLocaleDateString()}
 												</Text>
 											</View>
-											<View style={styles.dateSeparator} /> {/* Séparateur vertical */}
-											<View style={styles.dateItem}> {/* Date de fin */}
+											<View style={styles.dateSeparator} />
+											{/* Date de fin */}
+											<View style={styles.dateItem}> 
 												<Text style={styles.dateLabel}>Fin</Text>
 												<Text style={styles.dateValue}>
 													{new Date(job.end_time).toLocaleDateString()}
 												</Text>
 											</View>
 										</View>
-										<View style={styles.separator} /> {/* Séparateur */}
+										<View style={styles.separator} />
 										{/* Statut de la mission (OPEN ou autre) avec couleur */}
 										<Text style={[
 											styles.Status,

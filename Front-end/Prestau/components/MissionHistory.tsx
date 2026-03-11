@@ -37,10 +37,9 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                 <Text style={styles.subtitle}>
 									Company: {item.job.company.companyName}</Text>
             )}
-
             {role === 'COMPANY' && item.worker && (
                 <Text style={styles.subtitle}>
-                    Worker: {item.worker.firstName}{item.worker.lastName}
+                    Worker: {item.worker.firstName} {item.worker.lastName}
                 </Text>
             )}
 
@@ -99,7 +98,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                         <Text style={[styles.ratingText, { color: "#4a90d9" }]}>{item.myRating}/5</Text>
                         <Text style={styles.ratingFrom}> · votre avis</Text>
                     </View>
-                    {item.myComment ? ( // Affiche le commentaire que l'utilisateur a laissé, s'il existe
+                    {item.myComment ? (
                         <Text style={styles.receivedComment}>"{item.myComment}"</Text>
                     ) : null}
                 </View>
