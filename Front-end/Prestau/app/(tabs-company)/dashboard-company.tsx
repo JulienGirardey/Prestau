@@ -41,12 +41,12 @@ export default function DashboardCompany() {
 
 	return (
 		<View style={[styles.page, { backgroundColor: colors.background }]}> 
-			<Header /> {/* Barre d'en-tête */}
+			<Header />
 			<ThemedText
 				variant="headline"
 				color="primary"
 				style={styles.pageTitle}
-			> {/* Titre de la page */}
+			>
 				Missions postées
 			</ThemedText>
 			{/* Carte contenant la liste des missions */}
@@ -61,7 +61,8 @@ export default function DashboardCompany() {
 							tintColor={colors.primary}
 						/>
 					}
-				> {/* Liste scrollable des missions */}
+				>
+					{/* Liste scrollable des missions */}
 					{/* Affichage si aucune mission n'est postée */}
 					{jobs.length === 0 ? (
 						<Text style={styles.emptyText}>
@@ -71,7 +72,7 @@ export default function DashboardCompany() {
 						<>
 							{/* Parcours des missions postées */}
 							{jobs.map((job) => (
-								<View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}> {/* Carte individuelle de mission */}
+							<View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
 									<Pressable
 										onPress={() => router.push({
 											pathname: '/job/[id]',
