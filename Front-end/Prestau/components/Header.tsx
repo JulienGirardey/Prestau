@@ -2,12 +2,14 @@ import React from 'react';
 import { View, StyleSheet, Image, useWindowDimensions } from 'react-native';
 import { useThemeColors } from '@/hooks/useThemeColors';
 
-type Props = {
+// Props du composant Header
+type Props = { 
     title?: string,
     onPress?: () => void,
     style?: any
 }
 
+// Composant de header personnalisé, affichant le logo de l'application et pouvant être stylisé via les props
 export function Header({ title = "Header", onPress, style }: Props) {
     const colors = useThemeColors();
     const { width, height } = useWindowDimensions();
@@ -27,7 +29,8 @@ const styles = StyleSheet.create({
     }
 });
 
+// Style de base pour l'image du logo, utilisé dans le header et les écrans de login/register
 const baseImageStyle = {
-    alignSelf: "center" as const, // Type assertion to satisfy the type requirement
-    justifyContent: "center" as const, // Type assertion to satisfy the type requirement
+    alignSelf: "center" as const, // Centrer horizontalement l'image
+    justifyContent: "center" as const, // Centrer verticalement l'image
 }

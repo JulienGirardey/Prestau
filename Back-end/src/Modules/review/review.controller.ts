@@ -21,9 +21,4 @@ export class ReviewController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.reviewService.findOne(id);
   }
-
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
-    return this.reviewService.remove(id, req.user.id);
-  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseIntPipe, Query } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -11,7 +11,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 @Controller('job')
 @UseGuards(JwtAuthGuard) // Applique le guard d'authentification à toutes les routes de ce contrôleur
 export class JobController {
-	constructor(private readonly jobService: JobService) { }
+    constructor(private readonly jobService: JobService) { }
 
 	@Post()
 	@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company
@@ -20,15 +20,20 @@ export class JobController {
 		return this.jobService.create(createJobDto, req.user.id);
 	}
 
-	@Get()
-	findAll(@Req() req: CurrentUserRequest) {
-		return this.jobService.findAll(req.user);
+	@Get()// Endpoint pour récupérer tous les jobs, avec une option de recherche
+	findAll(@Req() req: CurrentUserRequest, @Query('search') search?: string) {
+		return this.jobService.findAll(req.user, search);
 	}
 
-	@Get(':id')
-	findOne(@Param('id', ParseIntPipe) id: number) {
-		return this.jobService.findOne(id);
+  	@Get('my-jobs') // Endpoint pour récupérer les jobs d'une entreprise spécifique
+	findMyJobs(@Req() req: CurrentUserRequest) {
+		return this.jobService.findByUserId(req.user.id);
 	}
+
+    @Get(':id')
+    findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
+        return this.jobService.findOne(id, req.user.id);
+    }
 
 	@Patch(':id')
 	@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company

@@ -8,6 +8,7 @@ import { Role } from '../auth/enums/role.enum';
 export class JobService {
 	constructor(private prisma: PrismaService) { }
 
+	// Une entreprise peut créer une proposition d'emploi, qui est liée à son compte utilisateur via la table company (company.userId)
 	async create(createJobDto: CreateJobDto, userId: number) {
 		const company = await this.prisma.company.findUnique({
 			where: { userId }
@@ -24,7 +25,38 @@ export class JobService {
 		});
 	}
 
-	async findAll(user: { id: number; role: Role }) {
+	// Une entreprise peut récupérer la liste de ses propositions d'emploi postées
+  async findByUserId(userId: number) {
+    const company = await this.prisma.company.findUnique({
+      where: { userId } // Trouve la company associée à l'utilisateur
+    });
+    
+    if (!company) {
+      throw new NotFoundException('Company not found');
+    }
+
+		// Récupère tous les jobs liés à cette company, avec les offres d'emploi associées qui sont encore en statut PENDING
+    return this.prisma.job.findMany({
+      where: { companyId: company.id },
+      include: { 
+				company: true,
+				jobOffers: { where: { status: 'PENDING' } }
+			},
+    });
+  }
+
+	// Un worker voit tous les jobs disponibles, avec une option de recherche par titre ou ville (insensible à la casse)
+	async findAll(user: { id: number; role: Role }, search?: string) {
+		const searchFilter = search?.trim()
+			? {
+				OR: [
+					{ title: { contains: search.trim(), mode: 'insensitive' as const } },
+					{ company: { city: { contains: search.trim(), mode: 'insensitive' as const } } },
+				],
+			}
+			: {};
+
+		// Si c'est une company, elle ne voit que ses propres jobs
 		if (user.role === Role.COMPANY) {
 			const company = await this.prisma.company.findUnique({
 				where: { userId: user.id } // Trouve la company associée à l'utilisateur
@@ -33,23 +65,59 @@ export class JobService {
 			if (!company) {
 				throw new NotFoundException('Company not found');
 			}
-
+			// Récupère tous les jobs liés à cette companyy
 			return this.prisma.job.findMany({
-				where: { companyId: company.id } // companyId est l'identifiant unique de la company récupéré via userId
+				where: { companyId: company.id, ...searchFilter },
+				include: { company: true },
 			});
 		}
-		// Le worker voit tous les jobs
-		return this.prisma.job.findMany()
+		// Si c'est un worker, il voit tous les jobs disponibles (filtrés par recherche si fournie)
+		return this.prisma.job.findMany({ where: searchFilter, include: { company: true } })
 	}
 
-	async findOne(id: number) {
+	async findOne(id: number, userId?: number) {
 		const job = await this.prisma.job.findUnique({
 			where: { id },
+			include: { 
+				company: true,
+				jobOffers: {
+					include: {
+						worker: true }
+				}
+			},
 		});
+
 		if (!job) {
-			throw new NotFoundException(`Job not found`);
+			throw new NotFoundException('Job not found');
 		}
-		return job;
+
+		let alreadyApplied = false;
+		let isWorker = false;
+
+		if (userId) {
+			const worker = await this.prisma.worker.findUnique({
+				where: { userId }
+			});
+
+			if (worker) {
+				isWorker = true;
+				// Vérifier si une candidature existe déjà
+				const existingOffer = await this.prisma.jobOffer.findFirst({
+					where: {
+						jobId: id,
+						workerId: worker.id
+					}
+				});
+				alreadyApplied = !!existingOffer;
+			}
+		}
+
+		return {
+			...job,
+			isWorker,
+			alreadyApplied,
+			canApply: isWorker && !alreadyApplied
+		};
 	}
 
 	async update(id: number, updateJobDto: UpdateJobDto, userId: number) {

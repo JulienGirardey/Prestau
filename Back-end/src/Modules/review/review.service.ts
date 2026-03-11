@@ -14,6 +14,18 @@ export class ReviewService {
             throw new BadRequestException('Vous ne pouvez pas vous évaluer vous-même.');
         }
 
+				// Vérifier si l'utilisateur a déjà posté un avis pour ce job
+    const existingReview = await this.Prisma.review.findFirst({
+        where: {
+            jobId: createReviewDto.jobId,
+            reviewerId: userId,
+        },
+    });
+
+    if (existingReview) {
+        throw new BadRequestException('Vous avez déjà posté un avis pour cette mission.');
+    }
+
         return this.Prisma.review.create({
             data: {
                 ...createReviewDto,
@@ -33,23 +45,5 @@ export class ReviewService {
         }
 
         return review;
-    }
-	// Supprimer une review (seul l'auteur peut supprimer son avis)
-    async remove(id: number, userId: number): Promise<Review> {
-        const review = await this.Prisma.review.findUnique({
-            where: { id },
-        });
-
-        if (!review) {
-            throw new NotFoundException(`Avis introuvable.`);
-        }
-
-        if (review.reviewerId !== userId) {
-            throw new ForbiddenException('Vous ne pouvez supprimer que vos propres avis.');
-        }
-
-        return this.Prisma.review.delete({
-            where: { id },
-        });
     }
 }

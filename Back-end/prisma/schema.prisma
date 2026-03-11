@@ -16,7 +16,10 @@ model Company {
   id          Int      @id @default(autoincrement())
   companyName String   @db.VarChar(255)
   address     String  @db.VarChar(255)
+	postalCode  Int
+	city        String  @db.VarChar(100)
   siret       String  @db.VarChar(14)
+	phoneNumber String  @db.VarChar(20)
   establishment_type String  @db.VarChar(100)
   description  String?  @db.Text
   website     String?  @db.VarChar(255)
@@ -25,7 +28,7 @@ model Company {
   updatedAt   DateTime @updatedAt
 
 	userId      Int      @unique
-  user       	Users    @relation(fields: [userId], references: [id])
+  user       	Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 	jobs        Job[]
 }
 
@@ -34,6 +37,7 @@ model Users {
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
   role      Role
+  refreshToken  String?  @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -63,9 +67,11 @@ model Worker {
   skills       String  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  freeDays     String[] @default([])
+  busyDays     String[] @default([])
 
 	userId       Int       @unique
-  user         Users     @relation(fields: [userId], references: [id])
+  user         Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
 	jobOffers        JobOffer[]
 }
@@ -75,7 +81,6 @@ model Job {
   title       String   @db.VarChar(100)
   description String   @db.Text
   salary      Float
-  address			String   @db.VarChar(255)
   start_time  DateTime
   end_time    DateTime
   companyId   Int
@@ -83,7 +88,7 @@ model Job {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	company     Company  @relation(fields: [companyId], references: [id])
+	company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jobOffers   JobOffer[]
 	reviews     Review[]
   @@index([companyId], name: "idx_companyId")
@@ -109,8 +114,8 @@ model JobOffer {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	job         Job      @relation(fields: [jobId], references: [id])
-	worker      Worker   @relation(fields: [workerId], references: [id])
+	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+	worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 	messages            Message[]
   @@index([jobId], name: "idx_jobId")
   @@index([workerId], name: "idx_workerId")
@@ -137,7 +142,7 @@ model Review {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	job         Job      @relation(fields: [jobId], references: [id])
+	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
 	@@index([jobId], name: "idx_review_jobId")
   @@index([reviewerId, reviewerType], name: "idx_reviewer")
@@ -155,5 +160,5 @@ model Message {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id])
+	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
 }
