@@ -34,7 +34,7 @@
 
 ## Overview
 
-Prestau Back-end is a **RESTful API** built with **NestJS** that powers the Prestau platform — a marketplace connecting **companies** (restaurants, hotels, catering businesses) with **temporary workers** in the food service industry.
+Prestau Back-end is a **RESTful API** built with **NestJS** that powers the Prestau platform — a marketplace connecting **companies** (restaurants, bar, catering businesses) with **temporary workers** in the food service industry.
 
 The API handles:
 - User registration and authentication (JWT)

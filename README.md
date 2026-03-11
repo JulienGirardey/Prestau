@@ -5,7 +5,7 @@
 ---
 
 <p align="center">
-  <strong>A marketplace connecting restaurants and food service businesses with temporary workers</strong>
+  <strong>A platform connecting restaurants with temporary workers.</strong>
 </p>
 
 <p align="center">
@@ -36,9 +36,9 @@
 
 ## About the Project
 
-**Prestau** is a full-stack mobile platform designed to bridge the gap between **food service businesses** (restaurants, hotels, caterers, event venues) and **temporary workers** (servers, cooks, bartenders, kitchen staff) looking for missions.
+**Prestau** is a comprehensive mobile platform designed to connect **businesses in the food service industry** (restaurants, bars, caterers, event venues) with **temporary workers** (waiters, bartenders, kitchen staff) looking for assignments.
 
-The platform allows companies to quickly post temporary job offers and find qualified staff, while workers can browse available missions, manage their availability, and build their professional reputation through a rating system.
+The platform allows businesses to quickly post temporary job offers and find staff, while workers can view available assignments, manage their availability, and build a professional reputation through a rating system.
 
 ### The Problem
 The food service industry frequently needs temporary staff for events, peak seasons, or to cover absences. Finding available, qualified workers quickly is a challenge, and workers often struggle to find consistent temporary work.
@@ -437,7 +437,7 @@ npm run lint
 ---
 
 <p align="center">
-  <strong>Une marketplace connectant les restaurants et entreprises de restauration avec des travailleurs intérimaires</strong>
+  <strong>Une marketplace connectant des entreprises de restauration avec des travailleurs intérimaires</strong>
 </p>
 
 <p align="center">
@@ -468,7 +468,7 @@ npm run lint
 
 ## À propos du projet
 
-**Prestau** est une plateforme mobile full-stack conçue pour connecter les **entreprises de restauration** (restaurants, hôtels, traiteurs, salles événementielles) avec les **travailleurs intérimaires** (serveurs, cuisiniers, barmen, personnel de cuisine) à la recherche de missions.
+**Prestau** est une plateforme mobile full-stack conçue pour connecter les **entreprises de restauration** (restaurants, hôtels, traiteurs, salles événementielles) avec les **travailleurs intérimaires** (serveurs, cuisiniers, barman, personnel de cuisine) à la recherche de missions.
 
 La plateforme permet aux entreprises de publier rapidement des offres de mission temporaire et de trouver du personnel, tandis que les travailleurs peuvent parcourir les missions disponibles, gérer leur disponibilité et construire leur réputation professionnelle grâce à un système de notation.
 
