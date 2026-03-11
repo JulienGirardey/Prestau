@@ -1,6 +1,7 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { View, TextInput, StyleSheet, StyleProp, ViewStyle } from "react-native"
 
+// Props du composant InputBar
 type Props = {
     value: string,
     onChange: (s: string) => void,
@@ -8,6 +9,7 @@ type Props = {
     style?: StyleProp<ViewStyle>
 }
 
+// Composant de barre de saisie personnalisée, utilisé pour les champs de formulaire
 export function InputBar({ value, onChange, placeholder, style }: Props) {
     const colors = useThemeColors();
     return <View style={[styles.container, style]}>

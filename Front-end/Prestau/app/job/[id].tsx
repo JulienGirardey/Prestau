@@ -21,10 +21,12 @@ function useResponsive() {
   };
 }
 
+// Écran de détail d'une offre d'emploi, accessible depuis la liste des offres ou le dashboard worker
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useThemeColors();
   const { scale, scaleFont } = useResponsive();
+  const styles = getStyles(scale, scaleFont);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showApplicants, setShowApplicants] = useState(false);
@@ -113,11 +115,11 @@ export default function JobDetailScreen() {
     );
   }
 
-
+	// Vérification du statut de la candidature du worker pour afficher le badge "déjà postulé" ou le message de refus
 	const myOffer = job.jobOffers?.find((offer: any) => offer.status === 'REJECTED' || offer.status === 'CANCELLED' || job.alreadyApplied);
-
+	// Si la candidature a été refusée ou annulée, on considère que le worker ne peut pas postuler à nouveau et on affiche un message de refus
 	const isRejected = myOffer?.status === 'REJECTED' || myOffer?.status === 'CANCELLED';
-	// Filtrer les offres d'emploi pour n'afficher que celles qui sont en cours ou acceptées
+	// Seules les candidatures PENDING et ACCEPTED sont affichées dans le modal (les refusées sont exclues)
 	const activeOffers = Array.isArray(job?.jobOffers) 
     ? job.jobOffers.filter((offer: any) => offer.status === 'PENDING' || offer.status === 'ACCEPTED')
     : [];
@@ -126,26 +128,26 @@ export default function JobDetailScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Header />
       <ScrollView style={styles.main}>
-        <View style={[styles.jobCard, { backgroundColor: "white", margin: scale(25) }]}>
+        <View style={styles.jobCard}>
           {/* Header de la carte */}
           <View style={styles.jobHeader}>
-            <Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{job.title}</Text>
+            <Text style={styles.jobTitle}>{job.title}</Text>
             <View style={styles.salaryBadge}>
-              <Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{job.salary}€</Text>
+              <Text style={styles.salaryText}>{job.salary}€</Text>
             </View>
           </View>
 
           {/* Adresse */}
           <View style={styles.addressRow}>
-            <Text style={[styles.addressTitle, { fontSize: scaleFont(14) }]}>Adresse:</Text>
+            <Text style={styles.addressTitle}>Adresse:</Text>
           </View>
-          <Text style={[styles.addressText, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+          <Text style={styles.addressText} numberOfLines={2} ellipsizeMode="tail">
             {job.company?.address}, {job.company?.city} ({job.company?.postalCode})
           </Text>
 
           {/* Description */}
-          <Text style={[styles.addressTitle, { fontSize: scaleFont(14), marginTop: scale(10) }]}>Description:</Text>
-          <Text style={[styles.jobDescription, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+          <Text style={[styles.addressTitle, styles.descriptionLabel]}>Description:</Text>
+          <Text style={styles.jobDescription} numberOfLines={2} ellipsizeMode="tail">
             {job.description}
           </Text>
 
@@ -155,23 +157,25 @@ export default function JobDetailScreen() {
           {/* Dates et Horaires */}
           <View style={styles.dateRow}>
             <View style={styles.dateItem}>
-              <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
-              <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>{new Date(job.start_time).toLocaleDateString("fr-FR")}</Text>
-              <Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>{new Date(job.start_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</Text>
+              <Text style={styles.dateLabel}>Début</Text>
+              <Text style={styles.dateValue}>{new Date(job.start_time).toLocaleDateString("fr-FR")}</Text>
+              <Text style={styles.timeText}>{new Date(job.start_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</Text>
             </View>
             <View style={styles.dateSeparator} />
             <View style={styles.dateItem}>
-              <Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
-              <Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>{new Date(job.end_time).toLocaleDateString("fr-FR")}</Text>
-              <Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>{new Date(job.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</Text>
+              <Text style={styles.dateLabel}>Fin</Text>
+              <Text style={styles.dateValue}>{new Date(job.end_time).toLocaleDateString("fr-FR")}</Text>
+              <Text style={styles.timeText}>{new Date(job.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</Text>
             </View>
           </View>
           <View style={styles.separator} />
-          <Text style={[styles.Status, { fontSize: scaleFont(12), color: job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>● {job.status}</Text>
+          {/* Vert si ouvert aux candidatures, orange sinon */}
+          <Text style={[styles.Status, { color: job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>● {job.status}</Text>
         </View>
 
         {/* Section des boutons d'action */}
         <View style={styles.buttonContainer}>
+          {/* SECTION WORKER : postuler, afficher le badge "déjà postulé" ou le message de refus */}
           {job.isWorker &&  (
             <>
               {job.alreadyApplied && !isRejected ? (
@@ -210,19 +214,18 @@ export default function JobDetailScreen() {
           )}
         </View>
       </ScrollView>
-      {/* Modal pour afficher les candidats */}
+      {/* MODAL CANDIDATS : accessible uniquement depuis le côté company, liste les candidats avec actions accept/refuser */}
       <Modal visible={showApplicants} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowApplicants(false)}>
         <View style={{ flex: 1, backgroundColor: colors.background }}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { fontSize: scaleFont(20) }]}>Candidats ({activeOffers?.length || 0})</Text>
+            <Text style={styles.modalTitle}>Candidats ({activeOffers?.length || 0})</Text>
           </View>
 
-          <ScrollView contentContainerStyle={{ padding: scale(20) }}>
+          <ScrollView contentContainerStyle={styles.modalScrollContent}>
             {Array.isArray(activeOffers) && activeOffers.length > 0 ? (
               activeOffers.map((offer) => (
                 <View key={offer.id} style={styles.applicantCard}>
                   <View style={styles.profileHeader}>
-										{/*  TODO: a affishe la photo */ }
                     <View style={styles.avatarPlaceholder}>
                       <Text style={styles.avatarText}>
                         {offer.worker?.firstName[0] || ""}
@@ -282,8 +285,8 @@ export default function JobDetailScreen() {
                 </View>
               ))
             ) : (
-              <View style={{ alignItems: "center", marginTop: scale(50) }}>
-                <Text style={{ color: "#888", fontSize: scaleFont(16) }}>Aucun candidat pour cette offre.</Text>
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>Aucun candidat pour cette offre.</Text>
               </View>
             )}
           </ScrollView>
@@ -293,191 +296,219 @@ export default function JobDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  main: { flex: 1 },
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  jobCard: {
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  jobHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  jobTitle: {
-    fontWeight: "bold",
-    flex: 1,
-    marginRight: 10,
-    color: "#264D84",
-  },
-  salaryBadge: {
-    backgroundColor: "#4a90d9",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  salaryText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  jobDescription: {
-    color: "#777",
-    lineHeight: 20,
-  },
-  addressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  addressTitle: {
-    marginRight: 6,
-    fontWeight: "600",
-  },
-  addressText: {
-    color: "#777",
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginVertical: 15,
-  },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dateItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-  dateLabel: {
-    color: "#999",
-    fontWeight: "500",
-    marginBottom: 2,
-  },
-  dateValue: {
-    color: "#333",
-    fontWeight: "600",
-  },
-  timeText: {
-    color: "#777",
-  },
-  Status: {
-    fontSize: 12,
-    fontWeight: "600",
-    alignSelf: "center",
-  },
-  dateSeparator: {
-    width: 1,
-    height: 40,
-    backgroundColor: "#e0e0e0",
-  },
-  buttonContainer: {
-    width: "100%",
-    paddingHorizontal: "6.5%",
-    paddingBottom: 30,
-  },
-  alreadyAppliedBadge: {
-    backgroundColor: "#f0f0f0",
-    padding: 15,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    alignItems: "center",
-  },
-  alreadyAppliedText: {
-    color: "#777",
-    fontWeight: "600",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  applicantCard: {
-    backgroundColor: "white",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  applicantName: {
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#264D84",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  modalTitle: {
-    fontWeight: "bold",
-    color: "#264D84",
-  },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  avatarPlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#4a90d9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
-  },
-  avatarText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  applicantDate: {
-    fontSize: 12,
-    color: "#999",
-  },
-  infoDivider: {
-    height: 1,
-    backgroundColor: "#f0f0f0",
-    marginVertical: 10,
-  },
-  infoGrid: {
-    gap: 8,
-    marginBottom: 15,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  infoText: {
-    color: "#555",
-    fontSize: 14,
-  },
-  decisionRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  actionButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-});
+const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => number) =>
+  StyleSheet.create({
+    main: { flex: 1 },
+    container: { flex: 1, justifyContent: "center", alignItems: "center" },
+    jobCard: {
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      backgroundColor: "white",
+      margin: scale(25),
+    },
+    jobHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    jobTitle: {
+      fontWeight: "bold",
+      flex: 1,
+      marginRight: 10,
+      color: "#264D84",
+      fontSize: scaleFont(20),
+    },
+    salaryBadge: {
+      backgroundColor: "#4a90d9",
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 20,
+    },
+    salaryText: {
+      color: "#fff",
+      fontWeight: "600",
+      fontSize: scaleFont(15),
+    },
+    jobDescription: {
+      color: "#777",
+      lineHeight: 20,
+      fontSize: scaleFont(13),
+      marginLeft: scale(10),
+    },
+    addressRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 2,
+    },
+    addressTitle: {
+      marginRight: 6,
+      fontWeight: "600",
+      fontSize: scaleFont(14),
+    },
+    descriptionLabel: {
+      marginTop: scale(10),
+    },
+    addressText: {
+      color: "#777",
+      fontSize: scaleFont(13),
+      marginLeft: scale(10),
+    },
+    separator: {
+      height: 1,
+      backgroundColor: "#e0e0e0",
+      marginVertical: 15,
+    },
+    dateRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    dateItem: {
+      flex: 1,
+      alignItems: "center",
+    },
+    dateLabel: {
+      color: "#999",
+      fontWeight: "500",
+      marginBottom: 2,
+      fontSize: scaleFont(11),
+    },
+    dateValue: {
+      color: "#333",
+      fontWeight: "600",
+      fontSize: scaleFont(12),
+    },
+    timeText: {
+      color: "#777",
+      fontSize: scaleFont(11),
+    },
+    Status: {
+      fontWeight: "600",
+      alignSelf: "center",
+      fontSize: scaleFont(12),
+    },
+    dateSeparator: {
+      width: 1,
+      height: 40,
+      backgroundColor: "#e0e0e0",
+    },
+    buttonContainer: {
+      width: "100%",
+      paddingHorizontal: "6.5%",
+      paddingBottom: 30,
+    },
+    alreadyAppliedBadge: {
+      backgroundColor: "#f0f0f0",
+      padding: 15,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: "#ccc",
+      alignItems: "center",
+    },
+    alreadyAppliedText: {
+      color: "#777",
+      fontWeight: "600",
+      fontSize: 14,
+      textAlign: "center",
+    },
+    applicantCard: {
+      backgroundColor: "white",
+      padding: 15,
+      borderRadius: 12,
+      marginBottom: 12,
+      elevation: 2,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+    },
+    applicantName: {
+      fontWeight: "bold",
+      fontSize: 16,
+      color: "#264D84",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: "#f0f0f0",
+    },
+    modalTitle: {
+      fontWeight: "bold",
+      color: "#264D84",
+      fontSize: scaleFont(20),
+    },
+    modalScrollContent: {
+      padding: scale(20),
+    },
+    profileHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    avatarPlaceholder: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: "#4a90d9",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 15,
+    },
+    avatarText: {
+      color: "#fff",
+      fontWeight: "bold",
+      fontSize: 18,
+    },
+    applicantDate: {
+      fontSize: 12,
+      color: "#999",
+    },
+    infoDivider: {
+      height: 1,
+      backgroundColor: "#f0f0f0",
+      marginVertical: 10,
+    },
+    infoGrid: {
+      gap: 8,
+      marginBottom: 15,
+    },
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    infoText: {
+      color: "#555",
+      fontSize: 14,
+    },
+    emptyState: {
+      alignItems: "center",
+      marginTop: scale(50),
+    },
+    emptyText: {
+      color: "#888",
+      fontSize: scaleFont(16),
+    },
+    decisionRow: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    actionButtonText: {
+      color: "#fff",
+      fontWeight: "bold",
+    },
+  });

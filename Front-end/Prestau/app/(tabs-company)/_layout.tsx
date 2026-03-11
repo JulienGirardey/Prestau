@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
+// Layout principal pour les tabs de la company, définissant les écrans accessibles et leur apparence dans la barre de navigation
 export default function CompanyTabLayout() {
     const Colors = useThemeColors();
     return (

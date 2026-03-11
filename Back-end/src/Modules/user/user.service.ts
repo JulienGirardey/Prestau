@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { Users } from "@prisma/client";
 import { PrismaService } from "../../prisma.service";
@@ -13,6 +12,7 @@ import { Role } from "../auth/enums/role.enum";
 export class UserService {
   constructor(private Prisma: PrismaService) {}
 
+	// Un utilisateur peut récupérer ses informations (sans le mot de passe)
   async findOne(id: number): Promise<Omit<Users, "password">> {
     const user = await this.Prisma.users.findUnique({
       where: { id },
@@ -32,6 +32,7 @@ export class UserService {
     return user;
   }
 
+	// Un utilisateur peut mettre à jour son email et son rôle (admin uniquement)
   async update(
     id: number,
     updateUserDto: UpdateUserDto,
@@ -71,6 +72,7 @@ export class UserService {
     });
   }
 
+	// Un utilisateur peut supprimer son compte
   async remove(id: number): Promise<Omit<Users, "password">> {
     const user = await this.Prisma.users.findUnique({
       where: { id },

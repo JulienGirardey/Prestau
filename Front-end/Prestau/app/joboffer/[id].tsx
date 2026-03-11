@@ -20,6 +20,7 @@ export default function JobOfferDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
+	const styles = getStyles(scale, scaleFont);
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [role, setRole] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export default function JobOfferDetailScreen() {
         if (!jobOffer) throw new Error("JobOffer introuvable");
         return deleteJobOffer(Number(jobOffer.job.id));
     },
+		// En cas de succès, invalider les queries liées aux offres d'emploi du worker et rediriger vers le dashboard worker
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
 			if (jobOffer?.job?.id) {
@@ -60,6 +62,7 @@ export default function JobOfferDetailScreen() {
 		}
 	});
 
+	// Affichage d'un indicateur de chargement pendant la récupération des données
 	if (isLoading) {
 		return (
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -68,6 +71,7 @@ export default function JobOfferDetailScreen() {
 		);
 	}
 
+	// Si l'offre d'emploi n'est pas trouvée, afficher un message d'erreur
 	if (!jobOffer) {
 		return (
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -81,60 +85,62 @@ export default function JobOfferDetailScreen() {
 			<Header />
 			<ScrollView style={styles.main}>
 
-				{/* INFOS DU JOB ASSOCIÉ */}
-				<View style={[styles.jobCard, { backgroundColor: "white", margin: scale(25) }]}>
+				{/* INFOS DU JOB ASSOCIÉ : récapitulatif de la mission liée à cette candidature */}
+				<View style={styles.jobCard}>
 					<View style={styles.jobHeader}>
-						<Text style={[styles.jobTitle, { fontSize: scaleFont(20) }]}>{jobOffer.job.title}</Text>
+						<Text style={styles.jobTitle}>{jobOffer.job.title}</Text>
 						<View style={styles.salaryBadge}>
-							<Text style={[styles.salaryText, { fontSize: scaleFont(15) }]}>{jobOffer.job.salary}€</Text>
+							<Text style={styles.salaryText}>{jobOffer.job.salary}€</Text>
 						</View>
 					</View>
 
 					{/* Adresse */}
 					<View style={styles.addressRow}>
-						<Text style={[styles.label, { fontSize: scaleFont(14) }]}>Adresse:</Text>
+						<Text style={styles.label}>Adresse:</Text>
 						</View>
-						<Text style={[styles.addressText, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+						<Text style={styles.addressText} numberOfLines={2} ellipsizeMode="tail">
 							{jobOffer.job.company?.address}, {jobOffer.job.company?.city} ({jobOffer.job.company?.postalCode})
 						</Text>
 
 						{/* Description */}
-						<Text style={[styles.label, { fontSize: scaleFont(14), marginTop: scale(10) }]}>Description:</Text>
-						<Text style={[styles.jobDescription, { fontSize: scaleFont(13), marginLeft: scale(10) }]} numberOfLines={2} ellipsizeMode="tail">
+						<Text style={[styles.label, styles.descriptionLabel]}>Description:</Text>
+						<Text style={styles.jobDescription} numberOfLines={2} ellipsizeMode="tail">
 							{jobOffer.job.description}
 					</Text>
 
 					<View style={styles.separator} />
-
+					 {/* Dates et heures de la mission */}
 					<View style={styles.dateRow}>
 						<View style={styles.dateItem}>
-							<Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Début</Text>
-							<Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+							<Text style={styles.dateLabel}>Début</Text>
+							<Text style={styles.dateValue}>
 								{new Date(jobOffer.job.start_time).toLocaleDateString("fr-FR")}
 							</Text>
-							<Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>
+							<Text style={styles.timeText}>
 								{new Date(jobOffer.job.start_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
 							</Text>
 						</View>
 						<View style={styles.dateSeparator} />
 						<View style={styles.dateItem}>
-							<Text style={[styles.dateLabel, { fontSize: scaleFont(11) }]}>Fin</Text>
-							<Text style={[styles.dateValue, { fontSize: scaleFont(12) }]}>
+							<Text style={styles.dateLabel}>Fin</Text>
+							<Text style={styles.dateValue}>
 								{new Date(jobOffer.job.end_time).toLocaleDateString("fr-FR")}
 							</Text>
-							<Text style={[styles.timeText, { fontSize: scaleFont(11) }]}>
+							<Text style={styles.timeText}>
 								{new Date(jobOffer.job.end_time).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
 							</Text>
 						</View>
 					</View>
 					<View style={styles.separator} />
-					<Text style={[styles.jobStatus, { fontSize: scaleFont(12), color: jobOffer.status === "PENDING" ? "#e67e22" : "#27ae60" }]}>
+					{/* si la candidature est en attente ou acceptée */}
+					<Text style={[styles.jobStatus, { color: jobOffer.status === "PENDING" ? "#e67e22" : "#27ae60" }]}>
 							● {jobOffer.status}
 						</Text>
 				</View>
 
-				{/* ACTIONS */}
+				{/* ACTIONS : boutons disponibles selon le statut de la candidature */}
 				<View style={styles.buttonContainer}>
+					{/* Mission terminée sans avis → proposer de laisser un avis */}
 					{jobOffer.status === 'COMPLETED' && !jobOffer.hasReviewed && (
 							<NewButton
 									title="Laisser un avis"
@@ -142,11 +148,13 @@ export default function JobOfferDetailScreen() {
 									style={{ backgroundColor: '#C9A961' }}
 							/>
 					)}
+					{/* Mission terminée avec avis déjà posté → message informatif */}
 					{jobOffer.status === 'COMPLETED' && jobOffer.hasReviewed && (
 							<View style={styles.infoBox}>
 								<Text style={styles.infoText}>Vous avez déjà laissé un avis</Text>
 							</View>
 					)}
+					{/* Candidature en cours → badge informatif */}
 					{jobOffer.status !== 'COMPLETED' && (
 						<View style={styles.alreadyAppliedBadge}>
 							<Text style={styles.alreadyAppliedText}>
@@ -168,121 +176,138 @@ export default function JobOfferDetailScreen() {
 	);
 }
 
-const styles = StyleSheet.create({
-	main: { flex: 1 },
-	container: { flex: 1, justifyContent: "center", alignItems: "center" },
-	jobCard: {
-		borderRadius: 12,
-		padding: 16,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		elevation: 3,
-	},
-	jobHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 8,
-	},
-	jobTitle: {
-		fontWeight: "bold",
-		flex: 1,
-		marginRight: 10,
-		color: "#264D84",
-	},
-	jobStatus: {
-		fontWeight: "600",
-		alignSelf: "center",
-	},
-	salaryBadge: {
-		backgroundColor: "#4a90d9",
-		paddingHorizontal: 12,
-		paddingVertical: 4,
-		borderRadius: 20,
-	},
-	salaryText: {
-		color: "#fff",
-		fontWeight: "600",
-	},
-	jobDescription: {
-		color: "#777",
-		lineHeight: 20,
-	},
-	addressRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginBottom: 8,
-	},
-	label: {
-		marginRight: 6,
-		fontWeight: "600",
-	},
-	addressText: {
-		color: "#777",
-	},
-	separator: {
-		height: 1,
-		backgroundColor: "#e0e0e0",
-		marginVertical: 15,
-	},
-	dateRow: {
-		flexDirection: "row",
-		alignItems: "center",
-	},
-	dateItem: {
-		flex: 1,
-		alignItems: "center",
-	},
-	dateLabel: {
-		color: "#999",
-		fontWeight: "500",
-		marginBottom: 2,
-	},
-	dateValue: {
-		color: "#333",
-		fontWeight: "600",
-	},
-	timeText: {
-		color: "#666",
-	},
-	dateSeparator: {
-		width: 1,
-		height: 40,
-		backgroundColor: "#e0e0e0",
-	},
-	buttonContainer: {
-		width: "100%",
-		paddingHorizontal: "6.5%",
-		paddingBottom: 30,
-	},
-	infoBox: {
-		backgroundColor: "#f0f0f0",
-		padding: 15,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#ccc",
-		alignItems: "center",
-	},
-	infoText: {
-		color: "#666",
-		fontWeight: "600",
-		fontSize: 14,
-		textAlign: "center",
-	},
-	alreadyAppliedBadge: {
-		backgroundColor: "#f0f0f0",
-		padding: 15,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#ccc",
-		alignItems: "center",
-	},
-	alreadyAppliedText: {
-		color: "#777",
-		fontWeight: "600",
-		fontSize: 14,
-		textAlign: "center",
-	},
-});
+const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => number) =>
+	StyleSheet.create({
+		main: { flex: 1 },
+		container: { flex: 1, justifyContent: "center", alignItems: "center" },
+		jobCard: {
+			borderRadius: 12,
+			padding: 16,
+			shadowColor: "#000",
+			shadowOffset: { width: 0, height: 2 },
+			shadowOpacity: 0.1,
+			shadowRadius: 4,
+			elevation: 3,
+			backgroundColor: "white",
+			margin: scale(25),
+		},
+		jobHeader: {
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "center",
+			marginBottom: 8,
+		},
+		jobTitle: {
+			fontWeight: "bold",
+			flex: 1,
+			marginRight: 10,
+			color: "#264D84",
+			fontSize: scaleFont(20),
+		},
+		jobStatus: {
+			fontWeight: "600",
+			alignSelf: "center",
+			fontSize: scaleFont(12),
+		},
+		salaryBadge: {
+			backgroundColor: "#4a90d9",
+			paddingHorizontal: 12,
+			paddingVertical: 4,
+			borderRadius: 20,
+		},
+		salaryText: {
+			color: "#fff",
+			fontWeight: "600",
+			fontSize: scaleFont(15),
+		},
+		jobDescription: {
+			color: "#777",
+			lineHeight: 20,
+			fontSize: scaleFont(13),
+			marginLeft: scale(10),
+		},
+		addressRow: {
+			flexDirection: "row",
+			alignItems: "center",
+			marginBottom: 8,
+		},
+		label: {
+			marginRight: 6,
+			fontWeight: "600",
+			fontSize: scaleFont(14),
+		},
+		descriptionLabel: {
+			marginTop: scale(10),
+		},
+		addressText: {
+			color: "#777",
+			fontSize: scaleFont(13),
+			marginLeft: scale(10),
+		},
+		separator: {
+			height: 1,
+			backgroundColor: "#e0e0e0",
+			marginVertical: 15,
+		},
+		dateRow: {
+			flexDirection: "row",
+			alignItems: "center",
+		},
+		dateItem: {
+			flex: 1,
+			alignItems: "center",
+		},
+		dateLabel: {
+			color: "#999",
+			fontWeight: "500",
+			marginBottom: 2,
+			fontSize: scaleFont(11),
+		},
+		dateValue: {
+			color: "#333",
+			fontWeight: "600",
+			fontSize: scaleFont(12),
+		},
+		timeText: {
+			color: "#666",
+			fontSize: scaleFont(11),
+		},
+		dateSeparator: {
+			width: 1,
+			height: 40,
+			backgroundColor: "#e0e0e0",
+		},
+		buttonContainer: {
+			width: "100%",
+			paddingHorizontal: "6.5%",
+			paddingBottom: 30,
+		},
+		infoBox: {
+			backgroundColor: "#f0f0f0",
+			padding: 15,
+			borderRadius: 12,
+			borderWidth: 1,
+			borderColor: "#ccc",
+			alignItems: "center",
+		},
+		infoText: {
+			color: "#666",
+			fontWeight: "600",
+			fontSize: 14,
+			textAlign: "center",
+		},
+		alreadyAppliedBadge: {
+			backgroundColor: "#f0f0f0",
+			padding: 15,
+			borderRadius: 12,
+			borderWidth: 1,
+			borderColor: "#ccc",
+			alignItems: "center",
+		},
+		alreadyAppliedText: {
+			color: "#777",
+			fontWeight: "600",
+			fontSize: 14,
+			textAlign: "center",
+		},
+	});

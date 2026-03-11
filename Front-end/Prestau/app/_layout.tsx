@@ -2,8 +2,10 @@ import { Stack } from "expo-router";
 import { Keyboard, View } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+// Création d'une instance de QueryClient pour gérer les requêtes et le cache de données dans l'application
 const queryClient = new QueryClient();
 
+// Composant de layout principal de l'application, encapsulant les différentes pages et gérant la navigation entre elles
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>

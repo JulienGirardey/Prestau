@@ -7,7 +7,7 @@ import { InputBar } from "@/components/InputBar";
 import { NewButton } from "@/components/Button";
 import { DefaultCard } from "@/components/DefaultCard";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Image, useWindowDimensions, } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, Image, useWindowDimensions, KeyboardAvoidingView, Platform } from "react-native";
 import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -57,9 +57,10 @@ function FormField({
 	scale: (n: number) => number;
 	scaleFont: (n: number) => number;
 }) {
+	// Le champ prend toute la largeur si une colonne, sinon 50% pour faire 2 colonnes avec espace entre
 	return (
 		<View
-			style={[fieldStyles(scale).wrapper, { width: columns === 2 ? "48%" : "100%", marginBottom: scale(12) }]}
+			style={[fieldStyles(scale).wrapper, { width: columns === 2 ? "50%" : "100%", marginBottom: scale(12) }]}
 			pointerEvents="box-none">
 			<View style={[fieldStyles(scale).labelRow]} pointerEvents="box-none">
 				<ThemedText variant="subtitle2" color="background" style={{ fontSize: scaleFont(13) }}>{label}</ThemedText>
@@ -102,6 +103,7 @@ function WorkerCreationInner() {
 			alert('Permission d\'accès à la galerie refusée');
 			return;
 		}
+		// Lancement de la galerie pour choisir une image
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: "images",
 			allowsEditing: true,
@@ -130,15 +132,16 @@ function WorkerCreationInner() {
 			? ["Choisir dans la galerie", "Prendre une photo", "Supprimer la photo", "Annuler"]
 			: ["Choisir dans la galerie", "Prendre une photo", "Annuler"];
 
+		// Affiche le menu d'options avec les actions correspondantes pour la photo
 		showActionSheetWithOptions(
 			{
 				options,
-				cancelButtonIndex: options.length - 1,
-				destructiveButtonIndex: photo ? 2 : undefined
+				cancelButtonIndex: options.length - 1, // Annuler est toujours la dernière option
+				destructiveButtonIndex: photo ? 2 : undefined // Supprimer si la photo existe
 			},
 			(selectedIndex) => {
-				if (selectedIndex === 0) pickFromGallery();
-				else if (selectedIndex === 1) takePhoto();
+				if (selectedIndex === 0) pickFromGallery(); // Choisir dans la galerie
+				else if (selectedIndex === 1) takePhoto(); // Prendre une photo
 				else if (photo && selectedIndex === 2) setPhoto(null); // Supprimer
 			}
 		);
@@ -161,15 +164,20 @@ function WorkerCreationInner() {
 			cv_url: form.cv_url || undefined,
 			photoURL: photo || undefined,
 		}),
+
+		// En cas de succès, redirige vers le dashboard worker
 		onSuccess: () => {
 			router.push("/(tabs-worker)/dashboard-worker");
 		},
+
+		// En cas d'erreur, affiche une alerte et log l'erreur
 		onError: (error) => {
 			alert('Erreur lors de la création du profil');
 			console.error(error);
 		}
 	});
 
+	// Validation du formulaire avant de soumettre la création du profil
 	const handleCreate = () => {
 		if (!form.firstName || !form.lastName || !form.phoneNumber || !form.city || !form.postalCode || !form.profession || !form.languages || !form.skills) {
 			alert('Merci de remplir tous les champs obligatoires');
@@ -196,26 +204,26 @@ function WorkerCreationInner() {
 
 	// Taille de la photo de profil (responsive)
 	const photoSize = scale(90);
-
+	
+	// Le composant retourne la page de création de profil worker avec en-tête, titre, formulaire dans une carte et bouton de validation
 	return (
 		<View style={[styles.page, { backgroundColor: colors.background }]}>
 			{/* En-tête de la page */}
 			<Header />
+			<ScrollView
+				style={{ flex: 1 }}
+				keyboardShouldPersistTaps="handled"
+				contentContainerStyle={{ flexGrow: 1 }}
+				automaticallyAdjustContentInsets={true}
+			>
+				{/* Titre principal */}
+				<ThemedText
+					variant="headline"
+					color="primary"
+					style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>Profil Worker</ThemedText>
 
-			{/* Titre principal */}
-			<ThemedText
-				variant="headline"
-				color="primary"
-				style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>Profil Worker</ThemedText>
-
-			{/* Carte contenant le formulaire */}
-			<DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
-				<ScrollView
-					style={styles.scroll}
-					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps="handled"
-					scrollEventThrottle={16}
-				>
+				{/* Carte contenant le formulaire */}
+				<DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
 					<View pointerEvents="box-none">
 
 						{/* Sélecteur de photo de profil avec menu d'options */}
@@ -251,10 +259,10 @@ function WorkerCreationInner() {
 							* Champ obligatoire
 						</ThemedText>
 					</View>
-				</ScrollView>
-			</DefaultCard>
-			{/* Bouton de validation */}
-		<NewButton title={isPending ? "Création..." : "Créer mon profil"} onPress={handleCreate} disabled={isPending} style={getButtonStyle(scale)} />
+				</DefaultCard>
+				{/* Bouton de validation */}
+				<NewButton title={isPending ? "Création..." : "Créer mon profil"} onPress={handleCreate} disabled={isPending} style={getButtonStyle(scale)} />
+			</ScrollView>
 		</View>
 	);
 }
@@ -262,9 +270,14 @@ function WorkerCreationInner() {
 // Composant wrapper avec ActionSheetProvider
 export default function WorkerCreation() {
 	return (
-		<ActionSheetProvider>
-			<WorkerCreationInner />
-		</ActionSheetProvider>
+		<KeyboardAvoidingView
+			style={{ flex: 1 }}
+			behavior={Platform.OS === "ios" ? "padding" : "height"}
+		>
+			<ActionSheetProvider>
+				<WorkerCreationInner />
+			</ActionSheetProvider>
+		</KeyboardAvoidingView>
 	);
 }
 

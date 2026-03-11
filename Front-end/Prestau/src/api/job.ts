@@ -10,10 +10,23 @@ export interface Job {
     start_time: string;
     end_time: string;
     status: JobStatus;
-		company?: { companyName: string; address: string; city: string; postalCode: number };
+		company?: { companyName: string; address: string; city: string; postalCode: number; userId?: number };
 		isWorker?: boolean;
     canApply?: boolean;
     alreadyApplied?: boolean;
+    // Champs supplémentaires retournés par getJobById (non présents sur la liste)
+    jobOffers?: {
+        id: number;
+        status: string;
+        createdAt: string;
+        worker?: {
+            firstName: string;
+            lastName: string;
+            city?: string;
+            phoneNumber?: string;
+            profession?: string;
+        };
+    }[];
 }
 
 // créer un job (seulement pour les companies)
