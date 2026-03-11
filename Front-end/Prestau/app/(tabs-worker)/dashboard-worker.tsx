@@ -29,8 +29,9 @@ LocaleConfig.locales['fr'] = {
 LocaleConfig.defaultLocale = 'fr';
 
 export default function DashboardWorker() {
-    const colors = useThemeColors();
-    const { scale, scaleFont } = useResponsive();
+  const colors = useThemeColors();
+  const { scale, scaleFont } = useResponsive();
+  const styles = getStyles(scale, scaleFont);
 	const router = useRouter();
 
     // Récupération des disponibilités via React Query
@@ -167,26 +168,21 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                 styles.innerMissionCard,
                 { 
                     borderColor: getBorderColor(item.status), 
-                    borderWidth: scale(4.5),
-                    width: scale(260),
-                    padding: scale(15),
-                    borderRadius: scale(15),
-                    marginVertical: scale(8),
                 }
             ]}>
-                <Text style={[styles.missionTitle, { fontSize: scaleFont(18), marginBottom: scale(5) }]}>{item.job.title}</Text>
-                <Text style={[styles.missionDate, { fontSize: scaleFont(12.2), marginBottom: scale(10) }]}>
+                <Text style={styles.missionTitle}>{item.job.title}</Text>
+                <Text style={styles.missionDate}>
                     {formatMissionDate(item.job.start_time, item.job.end_time)}
 										
                 </Text>
-                <Text style={[styles.missionSalary, { fontSize: scaleFont(13) }]}>Salaire: {item.job.salary}€/h</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: scale(2), marginBottom: scale(8) }}>
-                    <Text style={[styles.missionAddress, { fontWeight: "600", fontSize: scaleFont(12) }]}>Adresse:</Text>
-                    <Text style={[styles.missionAddress, { marginLeft: scale(6), fontSize: scaleFont(12) }]} numberOfLines={2} ellipsizeMode="tail">
+                <Text style={styles.missionSalary}>Salaire: {item.job.salary}€/h</Text>
+                <View style={styles.addressRow}>
+                    <Text style={styles.missionAddressLabel}>Adresse:</Text>
+                    <Text style={styles.missionAddressValue} numberOfLines={2} ellipsizeMode="tail">
                       📍{item.job.company?.city} ({item.job.company?.postalCode})
                     </Text>
                 </View>
-                <Text style={[styles.missionStatus, { fontSize: scaleFont(14) }]}>Statut: {item.status}</Text>
+                <Text style={styles.missionStatus}>Statut: {item.status}</Text>
             </View>
         </Pressable>
     );
@@ -195,36 +191,37 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
   if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
 	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;
 
-	// --- RENDU UI ---
+	// Si tout est chargé, on affiche le dashboard
 	return (
-		<View style={{ flex: 1 }}>
+		<View style={styles.flex1}>
 			<Header />
 			<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
 				<ScrollView
 					style={styles.body}
-					contentContainerStyle={[styles.scrollContent, { gap: scale(20), paddingBottom: scale(40) }]}
+					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}>
 
 					{ /* MISSIONS */}
 					<DefaultCard style={styles.cardWrapper}>
-                        <Text style={[styles.titleCard, { fontSize: scaleFont(25) }]}>Missions</Text>
+                        <Text style={styles.titleCard}>Missions</Text>
                         {activeMissions.length === 0 ? (
-                            <Text style={[styles.emptyText, { fontSize: scaleFont(16) }]}>Aucune mission pour le moment</Text>
+                            <Text style={styles.emptyText}>Aucune mission pour le moment</Text>
                         ) : (
                             <FlatList
                                 data={activeMissions}
                                 keyExtractor={(item) => String(item.id)}
                                 horizontal={true}
                                 showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={[styles.flatListContent, { paddingVertical: scale(10), paddingHorizontal: scale(45), gap: scale(10) }]}
+                                contentContainerStyle={styles.flatListContent}
                                 renderItem={renderMissionCard}
                             />
                         )}
                     </DefaultCard>
-					{/* CALENDRIER DES DISPONIBILITÉS */}
-                    <DefaultCard style={[styles.cardWrapper, { paddingBottom: scale(15) }]}>
-                        <Text style={[styles.titleCard, { fontSize: scaleFont(25) }]}>Mes disponibilités</Text>
-                        <View style={[styles.calendarWrapper, { marginTop: scale(10), paddingHorizontal: scale(5) }]}>
+								
+								{/* CALENDRIER DES DISPONIBILITÉS */}
+                    <DefaultCard style={styles.calendarCard}>
+                        <Text style={styles.titleCard}>Mes disponibilités</Text>
+                        <View style={styles.calendarWrapper}>
                             <Calendar
                                 markingType={'custom'}
                                 markedDates={markedDates}
@@ -242,19 +239,19 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                                 firstDay={1}
                             />
 							
-							{/* LÉGENDE DU CALENDRIER */}
-                            <View style={[styles.legendContainer, { marginTop: scale(15), paddingHorizontal: scale(10), paddingTop: scale(10) }]}>
+												{/* LÉGENDE DU CALENDRIER */}
+                            <View style={styles.legendContainer}>
                                 <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#4CAF50', width: scale(12), height: scale(12), borderRadius: scale(6), marginRight: scale(6) }]} />
-                                    <Text style={[styles.legendText, { fontSize: scaleFont(12) }]}>Disponible</Text>
+                                    <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
+                                    <Text style={styles.legendText}>Disponible</Text>
                                 </View>
                                 <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#F44336', width: scale(12), height: scale(12), borderRadius: scale(6), marginRight: scale(6) }]} />
-                                    <Text style={[styles.legendText, { fontSize: scaleFont(12) }]}>Occupé(e)</Text>
+                                    <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
+                                    <Text style={styles.legendText}>Occupé(e)</Text>
                                 </View>
                                 <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { borderWidth: 1.5, borderColor: '#fff', width: scale(12), height: scale(12), borderRadius: scale(6), marginRight: scale(6) }]} />
-                                    <Text style={[styles.legendText, { fontSize: scaleFont(12) }]}>Aujourd&apos;hui</Text>
+                                    <View style={[styles.legendDot, styles.legendDotToday]} />
+                                    <Text style={styles.legendText}>Aujourd&apos;hui</Text>
                                 </View>
                             </View>
                         </View>
@@ -265,109 +262,119 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
     );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  body: { flex: 1 },
-  scrollContent: {
-    alignItems: "center",
-    gap: 20,
-    paddingBottom: 40,
-  },
-  cardWrapper: { width: "95%" },
-  flatListContent: {
-    paddingVertical: 10,
-    paddingHorizontal: 45,
-    gap: 10,
-  },
-  buttonCreateAccount: {
-    marginTop: 20,
-    paddingBottom: 20,
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  missionCard: {
-    borderRadius: 8,
-    padding: 16,
-    marginRight: 12,
-  },
-  titleCard: {
-    fontSize: 25,
-    textAlign: "center",
-    color: "#F5F2D9",
-    marginTop: -10,
-  },
-  emptyText: {
-    color: "#F5F2D9",
-    textAlign: "center",
-    marginTop: 15,
-    fontSize: 16,
-  },
-  innerMissionCard: {
-    backgroundColor: "#F5F2D9",
-    borderRadius: 15,
-    padding: 15,
-    marginVertical: 8,
-    width: 260,
-    alignItems: "center",
-  },
-  missionTitle: {
-    color: "#264D84",
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 5,
-  },
-  missionDate: {
-    color: "#264D84",
-    textAlign: "center",
-    marginBottom: 3,
-  },
-  missionSalary: {
-    color: "#264D84",
-    fontSize: 14,
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  missionAddress: {
-    color: "#555",
-    fontSize: 12,
-    textAlign: "center",
-    marginTop: 5,
-  },
-  missionStatus: {
-    color: "#264D84",
-    fontSize: 14,
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  calendarWrapper: {
-    marginTop: 10,
-    width: "100%",
-    paddingHorizontal: 5,
-  },
-  legendContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 15,
-    paddingHorizontal: 10,
-    borderTopWidth: 1,
-    borderTopColor:
-      "rgba(245, 242, 217, 0.2)",
-    paddingTop: 10,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 6,
-  },
-  legendText: {
-    color: "#F5F2D9",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-});
+const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => number) =>
+    StyleSheet.create({
+        flex1: { flex: 1 },
+        container: { flex: 1 },
+        body: { flex: 1 },
+        scrollContent: {
+            alignItems: "center",
+            gap: scale(20),
+            paddingBottom: scale(40),
+        },
+        cardWrapper: { width: "95%" },
+        calendarCard: { width: "95%", paddingBottom: scale(15) },
+        flatListContent: {
+            paddingVertical: scale(10),
+            paddingHorizontal: scale(45),
+            gap: scale(10),
+        },
+        titleCard: {
+            fontSize: scaleFont(25),
+            textAlign: "center",
+            color: "#F5F2D9",
+            marginTop: -10,
+        },
+        emptyText: {
+            color: "#F5F2D9",
+            textAlign: "center",
+            marginTop: scale(15),
+            fontSize: scaleFont(16),
+        },
+        innerMissionCard: {
+            backgroundColor: "#F5F2D9",
+            borderRadius: scale(15),
+            padding: scale(15),
+            marginVertical: scale(8),
+            width: scale(260),
+            alignItems: "center",
+            borderWidth: scale(4.5),
+        },
+        missionTitle: {
+            color: "#264D84",
+            fontSize: scaleFont(18),
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: scale(5),
+        },
+        missionDate: {
+            color: "#264D84",
+            textAlign: "center",
+            marginBottom: scale(10),
+            fontSize: scaleFont(12.2),
+        },
+        missionSalary: {
+            color: "#264D84",
+            fontSize: scaleFont(13),
+            textAlign: "center",
+            fontWeight: "600",
+        },
+        addressRow: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: scale(2),
+            marginBottom: scale(8),
+        },
+        missionAddressLabel: {
+            color: "#555",
+            fontSize: scaleFont(12),
+            textAlign: "center",
+            fontWeight: "600",
+        },
+        missionAddressValue: {
+            color: "#555",
+            fontSize: scaleFont(12),
+            textAlign: "center",
+            marginLeft: scale(6),
+        },
+        missionStatus: {
+            color: "#264D84",
+            fontSize: scaleFont(14),
+            textAlign: "center",
+            fontWeight: "600",
+        },
+        calendarWrapper: {
+            marginTop: scale(10),
+            width: "100%",
+            paddingHorizontal: scale(5),
+        },
+        legendContainer: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: scale(15),
+            paddingHorizontal: scale(10),
+            borderTopWidth: 1,
+            borderTopColor: "rgba(245, 242, 217, 0.2)",
+            paddingTop: scale(10),
+        },
+        legendItem: {
+            flexDirection: "row",
+            alignItems: "center",
+        },
+        legendDot: {
+            width: scale(12),
+            height: scale(12),
+            borderRadius: scale(6),
+            marginRight: scale(6),
+        },
+        legendDotToday: {
+            borderWidth: 1.5,
+            borderColor: '#fff',
+            backgroundColor: 'transparent',
+        },
+        legendText: {
+            color: "#F5F2D9",
+            fontSize: scaleFont(12),
+            fontWeight: "500",
+        },
+    });

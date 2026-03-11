@@ -4,13 +4,14 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { JobOffer } from "@/src/api/joboffer";
 
-
+// Props du composant MissionHistory
 interface MissionHistoryProps {
     missions: JobOffer[];
     role: 'WORKER' | 'COMPANY';
 		onMissionPress?: () => void;
 }
 
+// Composant principal de l'historique des missions terminées, affichant les détails de chaque mission et les avis associés
 export function MissionHistory({ missions, role, onMissionPress }: MissionHistoryProps) {
     const colors = useThemeColors();
 		const router = useRouter();
@@ -30,6 +31,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                 </View>
             </View>
 
+                {/* Adresse de la mission */}
             <Text style={styles.address}>{item.job.company?.address}, {item.job.company?.city} ({item.job.company?.postalCode})</Text>
             {role === 'WORKER' && item.job.company && (
                 <Text style={styles.subtitle}>
@@ -44,6 +46,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
 
             <View style={styles.separator} />
 
+            {/* Dates de début et fin de la mission */}
             <View style={styles.dateRow}>
                 <View style={styles.dateItem}>
                     <Text style={styles.dateLabel}>Début</Text>
@@ -74,6 +77,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                         <Text style={[styles.ratingText, { color: "#C9A961" }]}>{item.receivedRating}/5</Text>
                         <Text style={styles.ratingFrom}>
                             {" "}· de{" "}
+														{/* Affiche le nom de l'autre partie qui a laissé l'avis, selon le rôle de l'utilisateur */}
                             {role === "WORKER" && item.job.company
                                 ? item.job.company.companyName
                                 : role === "COMPANY" && item.worker
@@ -95,7 +99,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                         <Text style={[styles.ratingText, { color: "#4a90d9" }]}>{item.myRating}/5</Text>
                         <Text style={styles.ratingFrom}> · votre avis</Text>
                     </View>
-                    {item.myComment ? (
+                    {item.myComment ? ( // Affiche le commentaire que l'utilisateur a laissé, s'il existe
                         <Text style={styles.receivedComment}>"{item.myComment}"</Text>
                     ) : null}
                 </View>
@@ -113,6 +117,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
 			</Pressable>
     );
 
+		// Si aucune mission terminée, afficher un message
     if (missions.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -121,13 +126,13 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
         );
     }
 
+		// Afficher la liste des missions terminées avec leurs avis
     return (
         <FlatList
-            data={missions}
-            renderItem={renderMission}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.list}
+            data={missions} // missions terminées à afficher
+            renderItem={renderMission} // fonction pour afficher chaque mission
+            keyExtractor={(item) => item.id.toString()} // clé unique pour chaque item, ici l'id de la mission
+            contentContainerStyle={styles.list} // style pour le conteneur de la liste
         />
     );
 }

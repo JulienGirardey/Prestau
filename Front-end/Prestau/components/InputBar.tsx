@@ -1,6 +1,7 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { View, TextInput, StyleSheet, StyleProp, ViewStyle } from "react-native"
 
+// Props du composant InputBar
 type Props = {
     value: string,
     onChange: (s: string) => void,

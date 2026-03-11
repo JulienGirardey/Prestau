@@ -51,7 +51,7 @@ function FormField({
 }) {
 	return (
 		<View
-			style={[fieldStyles(scale).wrapper, { width: columns === 2 ? "48%" : "100%", marginBottom: scale(12) }]}
+			style={[fieldStyles(scale).wrapper, { width: columns === 2 ? "50%" : "100%", marginBottom: scale(12) }]}
 			pointerEvents="box-none">
 			<View style={[fieldStyles(scale).labelRow]} pointerEvents="box-none">
 				<ThemedText variant="subtitle2" color="background" style={{ fontSize: scaleFont(13) }}>{label}</ThemedText>
@@ -66,6 +66,7 @@ function FormField({
 function MissionCreationInner() {
 	const colors = useThemeColors();
 	const { scale, scaleFont, columns } = useResponsive();
+	const styles = getStyles(scale, scaleFont);
 	const queryClient = useQueryClient();
 	const [form, setForm] = useState({
 		title: "",
@@ -81,6 +82,7 @@ function MissionCreationInner() {
 	const set = (key: keyof typeof form) => (value: string) =>
 		setForm((prev) => ({ ...prev, [key]: value }));
 
+	// Mutation pour créer une mission, avec gestion du succès et de l'erreur
 	const { mutate: createMission, isPending } = useMutation({
 		mutationFn: createJob,
 		onSuccess: () => {
@@ -101,29 +103,35 @@ function MissionCreationInner() {
 			Alert.alert("Erreur", "Tous les champs sont obligatoires");
 			return;
 		}
+		// Validation et conversion des dates et heures, avec gestion des erreurs de format et de logique temporelle
 			const startDate = dayjs(form.start_date, "DD/MM/YYYY", true);
 			const startHour = dayjs(form.start_hour, "HH:mm", true);
 			const endDate = dayjs(form.end_date, "DD/MM/YYYY", true);
 			const endHour = dayjs(form.end_hour, "HH:mm", true);
 
+			// Validation des formats de date et d'heure
 			if (!startDate.isValid() || !startHour.isValid() || !endDate.isValid() || !endHour.isValid()) {
 				Alert.alert("Erreur", "Date ou heure invalide");
 				return;
 			}
 
+			// Validation de la logique temporelle (pas de date passée, fin après début)
 			if (startDate.isBefore(dayjs(), "day")) {
 				Alert.alert("Erreur", "La date de début ne peut pas être antérieure à aujourd'hui");
 				return;
 			}
 
+			// La date de fin peut être le même jour que la date de début, mais pas avant
 			if (endDate.isBefore(dayjs(), "day")) {
 				Alert.alert("Erreur", "La date de fin ne peut pas être antérieure à aujourd'hui");
 				return;
 			}
 
+			// Combinaison des dates et heures
 			const start_time = startDate.hour(startHour.hour()).minute(startHour.minute()).second(0).toISOString();
 			const end_time = endDate.hour(endHour.hour()).minute(endHour.minute()).second(0).toISOString();
 
+			// Validation que la date de fin est après la date de début
 			if (dayjs(end_time).isBefore(dayjs(start_time))) {
 				Alert.alert("Erreur", "La date de fin ne peut pas être antérieure à la date de début");
 				return;
@@ -153,19 +161,19 @@ function MissionCreationInner() {
 			{/* En-tête de la page */}
 			<Header />
 			<ScrollView
-				style={{ flex: 1 }}
+				style={styles.scrollView}
 				keyboardShouldPersistTaps="handled"
-				contentContainerStyle={{ flexGrow: 1 }}
+				contentContainerStyle={styles.scrollContent}
 				automaticallyAdjustContentInsets={true}
 			>
 				{/* Titre principal */}
 				<ThemedText
 					variant="headline"
 					color="primary"
-					style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>Création de mission</ThemedText>
+					style={styles.pageTitle}>Création de mission</ThemedText>
 
 				{/* Carte contenant le formulaire */}
-				<DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
+				<DefaultCard style={styles.card}>
 					<View pointerEvents="box-none">
 
 						{/* Conteneur des champs du formulaire (flex wrap) */}
@@ -208,44 +216,36 @@ export default function CreateMission() {
 }
 
 
-// Styles
-const styles = StyleSheet.create({
-	page: {
-		flex: 1,
-	},
-	pageTitle: {
-		textAlign: "center",
-	},
-	card: {
-		flex: 1,
-		alignSelf: "stretch",
-	},
-	scroll: {
-		flex: 1,
-	},
-	photoPicker: {
-		alignSelf: "center",
-		backgroundColor: "#e0e0e0",
-		justifyContent: "center",
-		alignItems: "center",
-		overflow: "hidden",
-	},
-	photo: {
-		width: "100%",
-		height: "100%",
-	},
-	photoPlaceholder: {
-		textAlign: "center",
-	},
-	requiredHint: {
-		textAlign: "right",
-	},
-	fieldsContainer: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		justifyContent: "space-between",
-	},
-});
+const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => number) =>
+	StyleSheet.create({
+		page: {
+			flex: 1,
+		},
+		scrollView: {
+			flex: 1,
+		},
+		scrollContent: {
+			flexGrow: 1,
+		},
+		pageTitle: {
+			textAlign: "center",
+			fontSize: scaleFont(24),
+			paddingTop: scale(25),
+		},
+		card: {
+			flex: 1,
+			alignSelf: "stretch",
+			margin: scale(25),
+			marginBottom: scale(30),
+			marginTop: scale(20),
+			paddingBottom: scale(5),
+		},
+		fieldsContainer: {
+			flexDirection: "row",
+			flexWrap: "wrap",
+			justifyContent: "space-between",
+		},
+	});
 
 const getButtonStyle = (scale: (n: number) => number) => ({
 	alignSelf: "center" as const,

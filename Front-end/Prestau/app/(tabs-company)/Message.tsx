@@ -1,10 +1,17 @@
-import { StyleSheet, Text, View, ActivityIndicator, FlatList } from "react-native"; 
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, useWindowDimensions } from "react-native"; 
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
+
+function useResponsive() {
+    const { width, height } = useWindowDimensions();
+    const scale = (size: number) => (width / 390) * size;
+    const scaleFont = (size: number) => Math.min(scale(size), size * 1.4);
+    return { width, height, scale, scaleFont };
+}
 
 interface MessageData {
     id: number;
@@ -16,11 +23,13 @@ interface MessageData {
 
 export default function Message() {
     const colors = useThemeColors();
+    const { scale, scaleFont } = useResponsive();
+    const styles = getStyles(scale, scaleFont);
     const [messages, setMessages] = useState<MessageData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // TODO: remplacer par un vrai appel API (ex: useQuery) une fois le back-end prêt
     useEffect(() => {
-        // Simuler le chargement avec des données d'exemple
         setTimeout(() => {
             setMessages([
                 {
@@ -56,6 +65,7 @@ export default function Message() {
         }, 1000);
     }, []);
 
+    // Affiche l'heure pour les messages du jour, la date courte sinon
     const formatTimestamp = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -74,26 +84,28 @@ export default function Message() {
         }
     };
 
+    // Carte d'un message : avatar, badge non-lu, nom, aperçu du message et horodatage
     const renderMessageCard = ({ item }: { item: MessageData }) => (
-        <DefaultCard style={[styles.card, { backgroundColor: colors.cardBackground || "#ffffff" }]}>
+        <DefaultCard style={[styles.card, { backgroundColor: colors.background || "#ffffff" }]}>
             <View style={styles.cardHeader}>
                 <View style={styles.avatarContainer}>
-                    <Ionicons name="person-circle" size={50} color={colors.primary || "#007AFF"} />
+                    <Ionicons name="person-circle" size={scale(50)} color={colors.primary || "#007AFF"} />
+                    {/* Point rouge si le message n'a pas encore été lu */}
                     {item.unread && <View style={styles.unreadBadge} />}
                 </View>
                 <View style={styles.messageContent}>
                     <View style={styles.headerRow}>
-                        <Text style={[styles.username, { color: colors.text }]}>
+                        <Text style={[styles.username, { color: '#000000' }]}>
                             {item.username}
                         </Text>
-                        <Text style={[styles.timestamp, { color: colors.textSecondary || "#666" }]}>
+                        <Text style={[styles.timestamp, { color: colors.secondary || "#666" }]}>
                             {formatTimestamp(item.timestamp)}
                         </Text>
                     </View>
                     <Text 
                         style={[
                             styles.lastMessage, 
-                            { color: colors.textSecondary || "#666" },
+                            { color: colors.secondary || "#666" },
                             item.unread && styles.unreadText
                         ]}
                         numberOfLines={1}
@@ -107,26 +119,26 @@ export default function Message() {
 
     if (isLoading) {
         return (
-            <View style={{ flex: 1 }}>
+            <View style={styles.flex1}>
                 <Header />
-                <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
-                    <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={{ marginTop: 50 }} />
+                <SafeAreaView style={[styles.container, { backgroundColor: colors.background, paddingTop: 0 }]}>
+                    <ActivityIndicator size="large" color={colors.primary || "#007AFF"} style={styles.loader} />
                 </SafeAreaView>
             </View>
         );
     }
 
     return (
-        <View style={{ flex: 1 }}> 
+        <View style={styles.flex1}> 
             <Header />
-            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }, { paddingTop: 0 }]}>
-                <Text style={{ color: colors.text, fontSize: 24, fontWeight: "bold", marginBottom: 20, alignSelf: "center" }}>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background, paddingTop: 0 }]}>
+                <Text style={[styles.pageTitle, { color: '#000000' }]}>
                     Messages
                 </Text>
                 {messages.length === 0 ? (
                     <View style={styles.emptyState}>
-                        <Ionicons name="chatbubbles-outline" size={60} color={colors.textSecondary || "#666"} />
-                        <Text style={[styles.emptyText, { color: colors.textSecondary || "#666" }]}>
+                        <Ionicons name="chatbubbles-outline" size={scale(60)} color={colors.secondary|| "#666"} />
+                        <Text style={[styles.emptyText, { color: colors.secondary || "#666" }]}>
                             Aucun message
                         </Text>
                     </View>
@@ -137,8 +149,7 @@ export default function Message() {
                         keyExtractor={(item) => item.id.toString()}
 						inverted={true}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingTop: 100 }}
-						
+                        contentContainerStyle={styles.listContent}
                     />
                 )}
             </SafeAreaView>
@@ -146,64 +157,80 @@ export default function Message() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-    },
-    card: {
-        marginBottom: 15,
-        width: '100%',
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    avatarContainer: {
-        position: 'relative',
-    },
-    unreadBadge: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: '#FF3B30',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    messageContent: {
-        flex: 1,
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    username: {
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    timestamp: {
-        fontSize: 12,
-    },
-    lastMessage: {
-        fontSize: 14,
-    },
-    unreadText: {
-        fontWeight: "600",
-    },
-    emptyState: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 100,
-    },
-    emptyText: {
-        fontSize: 16,
-        marginTop: 12,
-    },
-});
+const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => number) =>
+    StyleSheet.create({
+        flex1: {
+            flex: 1,
+        },
+        container: {
+            flex: 1,
+            padding: scale(20),
+        },
+        pageTitle: {
+            fontSize: scaleFont(24),
+            fontWeight: "bold",
+            marginBottom: scale(20),
+            alignSelf: "center",
+        },
+        loader: {
+            marginTop: scale(50),
+        },
+        listContent: {
+            paddingTop: scale(100),
+        },
+        card: {
+            marginBottom: scale(15),
+            width: '100%',
+        },
+        cardHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: scale(12),
+        },
+        avatarContainer: {
+            position: 'relative',
+        },
+        unreadBadge: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: scale(12),
+            height: scale(12),
+            borderRadius: scale(6),
+            backgroundColor: '#FF3B30',
+            borderWidth: 2,
+            borderColor: '#fff',
+        },
+        messageContent: {
+            flex: 1,
+        },
+        headerRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: scale(4),
+        },
+        username: {
+            fontSize: scaleFont(16),
+            fontWeight: "600",
+        },
+        timestamp: {
+            fontSize: scaleFont(12),
+        },
+        lastMessage: {
+            fontSize: scaleFont(14),
+        },
+        unreadText: {
+            fontWeight: "600",
+        },
+        emptyState: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: scale(100),
+        },
+        emptyText: {
+            fontSize: scaleFont(16),
+            marginTop: scale(12),
+        },
+    });
