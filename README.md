@@ -428,6 +428,15 @@ npm run lint
 | **Front-end README** | [Front-end/Prestau/README.md](Front-end/Prestau/README.md) | Screens, components, navigation, design system |
 
 ---
+
+## Authors
+
+| Name | Role |
+|---|---|
+| Aurélie DI MARTINO | Full-stack Developer |
+| Julien GIRARDEY | Full-stack Developer |
+| Nicolai CARABET | Full-stack Developer |
+---
 ---
 
 # Prestau
@@ -859,3 +868,13 @@ npm run lint
 | **README Général** | [README.md](README.md) | Vue d'ensemble, installation, architecture |
 | **README Back-end** | [Back-end/README.md](Back-end/README.md) | Référence API complète, schéma BDD, flux d'auth |
 | **README Front-end** | [Front-end/Prestau/README.md](Front-end/Prestau/README.md) | Écrans, composants, navigation, système de design |
+
+---
+
+## Authors
+
+| Name | Role |
+|---|---|
+| Aurélie DI MARTINO | Full-stack Developer |
+| Julien GIRARDEY | Full-stack Developer |
+| Nicolai CARABET | Full-stack Developer |
