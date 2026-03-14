@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Modal, TouchableOpacity } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { getJobById } from "@/src/api/job";
-import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer } from "@/src/api/joboffer"; // Import de la fonction de suppression
+import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer, deleteJob } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -98,6 +98,38 @@ export default function JobDetailScreen() {
 		},
 		onError: () => Alert.alert("Erreur", "Impossible de refuse cette candidature.")
 	});
+
+	// Mutation pour supprimer le job
+	const { mutate: deleteJobMutation, isPending: isDeletingJob } = useMutation({
+		mutationFn: () => deleteJob(Number(id)),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["jobs"] });
+			router.push("/(tabs-company)/dashboard-company");
+			Alert.alert("Succès", "Le job a été supprimé.");
+		},
+		onError: (err: any) => {
+			console.error("Erreur lors de la suppression du job :", err);
+			Alert.alert("Erreur", err.message || "Impossible de supprimer ce job.");
+		},
+	});
+
+	const handleDeleteJob = () => {
+		Alert.alert(
+			"Supprimer le job",
+			"Êtes-vous sûr de vouloir supprimer ce job ? Cette action est irréversible.",
+			[
+				{
+					text: "Annuler",
+					style: "cancel",
+				},
+				{
+					text: "Supprimer",
+					onPress: () => deleteJobMutation(),
+					style: "destructive",
+				},
+			]
+		);
+	};
 
   if (isLoading) {
     return (
@@ -202,15 +234,14 @@ export default function JobDetailScreen() {
 
           {/* SECTION COMPANY */}
           {!job.isWorker && (
-            <>
-              {Array.isArray(job.jobOffers) && job.jobOffers.length > 0 ? (
-                <NewButton title={`Voir les candidats (${activeOffers.length})`} onPress={() => setShowApplicants(true)} />
-              ) : (
-                <View style={styles.alreadyAppliedBadge}>
-                  <Text style={styles.alreadyAppliedText}>Aucune candidature pour le moment</Text>
-                </View>
-              )}
-            </>
+            <View>
+              <NewButton title="Voir les candidats" onPress={() => setShowApplicants(true)} style={{ backgroundColor: colors.primary }} />
+							{(!job.jobOffers || job.jobOffers.length === 0) ? (
+								<View style={{ marginTop: scale(15) }}>
+									<NewButton title={isDeletingJob ? "Suppression..." : "Supprimer la mission"} onPress={handleDeleteJob} disabled={isDeletingJob} style={{ backgroundColor: "#FF3B30" }} />
+								</View>
+							) : null}
+            </View>
           )}
         </View>
       </ScrollView>

@@ -150,12 +150,21 @@ export class JobService {
 			throw new NotFoundException('Company not found');
 		}
 
-		const job = await this.findOne(id)
-
+		const job = await this.findOne(id);
 		// Vérifie que la company est bien propriétaire du job pour pouvoir le supprimer
 		if (job.companyId !== company.id) {
-			throw new ForbiddenException(`You are not authorized to delete this job`)
+			throw new ForbiddenException('You are not authorized to delete this job');
 		}
+
+		// Vérifie si des workers ont déjà postulé
+		const jobOffers = await this.prisma.jobOffer.findMany({
+			where: { jobId: id }
+		});
+
+		if (jobOffers.length > 0) {
+			throw new ForbiddenException('You cannot delete this job because workers have already applied');
+		}
+
 		return this.prisma.job.delete({
 			where: { id },
 		});

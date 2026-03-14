@@ -46,93 +46,21 @@ export default function DashboardWorker() {
         queryFn: () => getJobOffersByWorker(),
     });
 
-    // États locaux pour une mise à jour réactive du calendrier
-    const [freeDays, setFreeDays] = useState<string[]>([]);
-    const [busyDays, setBusyDays] = useState<string[]>([]);
+    // ...existing code...
 
-    // Synchronisation des états locaux avec les données de l'API
-    useEffect(() => {
-        if (availability?.data) {
-            setFreeDays(availability.data.freeDays || []);
-            setBusyDays(availability.data.busyDays || []);
-        }
-    }, [availability]);
-
-		// Mutation pour mettre à jour la disponibilité d'un jour
-    const { mutate: updateAvailability } = useMutation({
-        mutationFn: ({ dateStr, status }: { dateStr: string; status: string }) =>
-            updateWorkerAvailability(dateStr, status),
-        onError: (error) => {
-            console.error("Erreur de mise à jour de la date", error);
-        }
-    });
-
-    const handleDayPress = (day: any) => {
-        const dateStr = day.dateString;
-        let newStatus = 'neutral';
-
-        if (freeDays.includes(dateStr)) {
-            setFreeDays(prev => prev.filter(d => d !== dateStr));
-            setBusyDays(prev => [...prev, dateStr]);
-            newStatus = 'busy';
-        } else if (busyDays.includes(dateStr)) {
-            setBusyDays(prev => prev.filter(d => d !== dateStr));
-            newStatus = 'neutral';
-        } else {
-            setFreeDays(prev => [...prev, dateStr]);
-            newStatus = 'free';
-        }
-
-        updateAvailability({ dateStr, status: newStatus });
-    };
-
-// Construction de l'objet pour la coloration du calendrier
-	const markedDates = useMemo(() => {
-		let marks: Record<string, any> = {};
-
-		// Obtention de la date d'aujourd'hui au format YYYY-MM-DD (en respectant le fuseau horaire local)
-		const today = new Date();
-		const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-		// Coloration des jours disponibles (Vert)
-		freeDays.forEach(day => {
-			marks[day] = {
-				marked: true,
-				customStyles: {
-					container: { backgroundColor: '#4CAF50', borderRadius: 10 },
-					text: { color: '#fff', fontWeight: 'bold' }
-				}
-			};
-		});
-
-		// Coloration des jours occupés (Rouge)
-		busyDays.forEach(day => {
-			marks[day] = {
-				marked: true,
-				customStyles: {
-					container: { backgroundColor: '#F44336', borderRadius: 10 },
-					text: { color: '#fff', fontWeight: 'bold' }
-				}
-			};
-		});
-
-		// Contour blanc pour la date d'aujourd'hui
-		if (marks[todayStr]) {
-			// Si aujourd'hui est déjà marqué (vert ou rouge), on ajoute juste la bordure
-			marks[todayStr].customStyles.container.borderWidth = 1.5;
-			marks[todayStr].customStyles.container.borderColor = '#ffffff';
-		} else {
-			// Si aujourd'hui est neutre, on crée le style avec la bordure seule
-			marks[todayStr] = {
-				customStyles: {
-					container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#ffffff', borderRadius: 10 },
-					text: { color: '#F5F2D9', fontWeight: 'bold' }
-				}
-			};
-		}
-
-		return marks;
-	}, [freeDays, busyDays]);
+// Construction de l'objet pour la coloration du calendrier (uniquement aujourd'hui)
+    const markedDates = useMemo(() => {
+        let marks: Record<string, any> = {};
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        marks[todayStr] = {
+            customStyles: {
+                container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#ffffff', borderRadius: 10 },
+                text: { color: '#F5F2D9', fontWeight: 'bold' }
+            }
+        };
+        return marks;
+    }, []);
 
 	const formatMissionDate = (start: string, end: string) => {
 		const options: Intl.DateTimeFormatOptions = { dateStyle: 'short', timeStyle: 'short' };
@@ -158,7 +86,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
             onPress={() => {
                 router.push({
                     pathname: '/joboffer/[id]', 
-                    params: { id: item.id }
+                    params: { id: item.id, from: 'dashboard' }
                 });
             }}
             style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
@@ -233,21 +161,13 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                                     arrowColor: '#fff',
                                     monthTextColor: '#fff',
                                 }}
-                                onDayPress={handleDayPress}
+                                // onDayPress supprimé
                                 hideExtraDays={true}
                                 firstDay={1}
                             />
 							
 												{/* LÉGENDE DU CALENDRIER */}
                             <View style={styles.legendContainer}>
-                                <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-                                    <Text style={styles.legendText}>Disponible</Text>
-                                </View>
-                                <View style={styles.legendItem}>
-                                    <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
-                                    <Text style={styles.legendText}>Occupé(e)</Text>
-                                </View>
                                 <View style={styles.legendItem}>
                                     <View style={[styles.legendDot, styles.legendDotToday]} />
                                     <Text style={styles.legendText}>Aujourd&apos;hui</Text>
@@ -310,7 +230,7 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
             color: "#264D84",
             textAlign: "center",
             marginBottom: scale(10),
-            fontSize: scaleFont(12.2),
+            fontSize: scaleFont(12),
         },
         missionSalary: {
             color: "#264D84",
