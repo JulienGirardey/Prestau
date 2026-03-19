@@ -93,6 +93,7 @@ export class JobService {
 
 		let alreadyApplied = false;
 		let isWorker = false;
+		let hasReviewed = false;
 
 		if (userId) {
 			const worker = await this.prisma.worker.findUnique({
@@ -109,6 +110,20 @@ export class JobService {
 					}
 				});
 				alreadyApplied = !!existingOffer;
+			} else {
+				// Vérifier si la company a déjà laissé un commentaire pour ce job
+				const company = await this.prisma.company.findUnique({
+					where: { userId }
+				});
+				if (company) {
+					const existingReview = await this.prisma.review.findFirst({
+						where: {
+							jobId: id,
+							reviewerId: userId
+						}
+					});
+					hasReviewed = !!existingReview;
+				}
 			}
 		}
 
@@ -116,7 +131,8 @@ export class JobService {
 			...job,
 			isWorker,
 			alreadyApplied,
-			canApply: isWorker && !alreadyApplied
+			canApply: isWorker && !alreadyApplied,
+			hasReviewed
 		};
 	}
 
@@ -150,12 +166,21 @@ export class JobService {
 			throw new NotFoundException('Company not found');
 		}
 
-		const job = await this.findOne(id)
-
+		const job = await this.findOne(id);
 		// Vérifie que la company est bien propriétaire du job pour pouvoir le supprimer
 		if (job.companyId !== company.id) {
-			throw new ForbiddenException(`You are not authorized to delete this job`)
+			throw new ForbiddenException('You are not authorized to delete this job');
 		}
+
+		// Vérifie si des workers ont déjà postulé
+		const jobOffers = await this.prisma.jobOffer.findMany({
+			where: { jobId: id }
+		});
+
+		if (jobOffers.length > 0) {
+			throw new ForbiddenException('You cannot delete this job because workers have already applied');
+		}
+
 		return this.prisma.job.delete({
 			where: { id },
 		});

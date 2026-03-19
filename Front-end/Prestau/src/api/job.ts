@@ -14,6 +14,7 @@ export interface Job {
 		isWorker?: boolean;
     canApply?: boolean;
     alreadyApplied?: boolean;
+    hasReviewed?: boolean;
     // Champs supplémentaires retournés par getJobById (non présents sur la liste)
     jobOffers?: {
         id: number;

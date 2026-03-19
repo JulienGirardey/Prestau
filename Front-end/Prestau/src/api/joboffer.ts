@@ -16,6 +16,7 @@ export interface JobOffer {
     createdAt: string;
     updatedAt: string;
     hasReviewed?: boolean;
+		hasBeenReviewedByOtherParty?: boolean;
     myRating?: number | null;
     myComment?: string | null;
     receivedRating?: number | null;
@@ -82,7 +83,13 @@ export const completeJobOffer = async (offerId: number) => {
 		const response = await api.post(`/joboffer/${offerId}/complete`);
 		return response.data;
 };
+
 export const cancelJobOffer = async (offerId: number) => {
 		const response = await api.post(`/joboffer/${offerId}/cancel`);
 		return response.data;
-}
+};
+
+export const deleteJob = async (jobId: number) => {
+	const response = await api.delete(`/job/${jobId}`);
+	return response.data;
+};

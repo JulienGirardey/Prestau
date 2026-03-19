@@ -272,6 +272,7 @@ export class JobofferService {
                 return {
                     ...offer, // Inclure les données de base de l'offre
                     hasReviewed: !!existingReview, // Indique si l'utilisateur a déjà laissé un avis pour cette mission
+                    hasBeenReviewedByOtherParty: !!receivedReview, // Indique si l'autre partie a laissé un avis
                     myRating: existingReview?.rating ?? null, // Indique la note que l'utilisateur a laissée, ou null s'il n'a pas encore laissé d'avis
                     myComment: existingReview?.comment ?? null, // Indique le commentaire que l'utilisateur a laissé, ou null s'il n'a pas encore laissé d'avis
                     receivedRating: existingReview && receivedReview ? receivedReview.rating : null, // Indique la note que l'utilisateur a reçue de l'autre partie, ou null s'il n'a pas encore reçu d'avis
@@ -311,6 +312,7 @@ export class JobofferService {
         return {
             ...jobOffer,
             hasReviewed: !!existingReview,
+            hasBeenReviewedByOtherParty: !!receivedReview,
             receivedRating: existingReview && receivedReview ? receivedReview.rating : null,
             receivedComment: existingReview && receivedReview ? receivedReview.comment : null,
         };

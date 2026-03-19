@@ -141,7 +141,7 @@ export default function DashboardCompany() {
 										{/* Statut de la mission (OPEN ou autre) avec couleur */}
 										<Text style={[
 											styles.Status,
-											{ color: job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
+											{ color: job.status === "COMPLETED" ? "#27ae60" : job.status === 'OPEN' ? '#27ae60' : '#e67e22' }
 										]}>
 											● {job.status}
 										</Text>

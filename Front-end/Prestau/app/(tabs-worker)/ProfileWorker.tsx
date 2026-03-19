@@ -154,7 +154,7 @@ export default function ProfileWorker() {
                 presentationStyle="pageSheet"
                 onRequestClose={() => setShowHistory(false)}
             >
-                <View style={[styles.modalContainer, { backgroundColor: colors.background }]}> {/* Conteneur du modal */}
+                <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                     <View style={styles.modalHeader}>
                         <ThemedText
                             variant="headline"

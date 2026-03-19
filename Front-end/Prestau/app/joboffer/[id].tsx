@@ -17,7 +17,7 @@ function useResponsive() {
 }
 
 export default function JobOfferDetailScreen() {
-	const { id } = useLocalSearchParams<{ id: string }>();
+	const { id, from } = useLocalSearchParams<{ id: string, from?: string }>();
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const styles = getStyles(scale, scaleFont);
@@ -155,7 +155,7 @@ export default function JobOfferDetailScreen() {
 							</View>
 					)}
 					{/* Candidature en cours → badge informatif */}
-					{jobOffer.status !== 'COMPLETED' && (
+					{from !== 'dashboard' && jobOffer.status !== 'COMPLETED' && (
 						<View style={styles.alreadyAppliedBadge}>
 							<Text style={styles.alreadyAppliedText}>
 								Vous avez déjà postulé pour cette offre
