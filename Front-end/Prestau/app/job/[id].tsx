@@ -202,7 +202,7 @@ export default function JobDetailScreen() {
           </View>
           <View style={styles.separator} />
           {/* Vert si ouvert aux candidatures, orange sinon */}
-          <Text style={[styles.Status, { color: job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>● {job.status}</Text>
+          <Text style={[styles.Status, { color: job.status === "COMPLETED" ? "#27ae60" : job.status === "OPEN" ? "#27ae60" : "#e67e22" }]}>● {job.status}</Text>
         </View>
 
         {/* Section des boutons d'action */}
@@ -235,12 +235,43 @@ export default function JobDetailScreen() {
           {/* SECTION COMPANY */}
           {!job.isWorker && (
             <View>
-              <NewButton title="Voir les candidats" onPress={() => setShowApplicants(true)} style={{ backgroundColor: colors.primary }} />
-							{(!job.jobOffers || job.jobOffers.length === 0) ? (
-								<View style={{ marginTop: scale(15) }}>
-									<NewButton title={isDeletingJob ? "Suppression..." : "Supprimer la mission"} onPress={handleDeleteJob} disabled={isDeletingJob} style={{ backgroundColor: "#FF3B30" }} />
-								</View>
-							) : null}
+              {job.status === 'COMPLETED' ? (
+                job.hasReviewed ? (
+                  <View style={{ backgroundColor: '#f0f0f0', padding: scale(15), borderRadius: 12, borderColor: "#ccc", borderWidth: 1, alignItems: 'center' }}>
+                    <Text style={{ color: '#666', fontWeight: '600' }}>Vous avez déjà laissé un avis</Text>
+                  </View>
+                ) : (
+                  <NewButton
+                    title="Laisser un avis"
+                    onPress={() => {
+                      if (job.jobOffers && job.jobOffers.length > 0) {
+                        router.push({ pathname: '/review/[id]', params: { id: job.jobOffers[0].id } });
+                      } else {
+                        Alert.alert("Erreur", "Impossible de trouver l'offre associée à cette mission.");
+                      }
+                    }}
+                    style={{ backgroundColor: '#C9A961' }}
+                  />
+                )
+              ) : (
+                <>
+                  <NewButton 
+                    title="Voir les candidats" 
+                    onPress={() => setShowApplicants(true)} 
+                    style={{ backgroundColor: colors.primary }} 
+                  />
+                </>
+              )}
+              {(!job.jobOffers || job.jobOffers.length === 0) && job.status !== 'COMPLETED' && (
+                <View style={{ marginTop: scale(15) }}>
+                  <NewButton 
+                    title={isDeletingJob ? "Suppression..." : "Supprimer la mission"} 
+                    onPress={handleDeleteJob} 
+                    disabled={isDeletingJob} 
+                    style={{ backgroundColor: "#FF3B30" }} 
+                  />
+                </View>
+              )}
             </View>
           )}
         </View>

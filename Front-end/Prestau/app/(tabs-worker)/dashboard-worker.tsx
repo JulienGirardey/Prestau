@@ -41,9 +41,10 @@ export default function DashboardWorker() {
     });
 
     // Récupération des offres d'emploi via React Query
-    const { data: joboffers = [], isLoading: isLoadingJoboffer, error: errorJoboffer } = useQuery<JobOffer[]>({
+    const { data: joboffers = [], isLoading: isLoadingJoboffer, error: errorJoboffer, refetch: refetchJobOffers } = useQuery<JobOffer[]>({
         queryKey: ["dashboard-worker-joboffers"],
         queryFn: () => getJobOffersByWorker(),
+        refetchInterval: 5000, // Rafraîchissement toutes les 5 secondes
     });
 
     // ...existing code...
@@ -68,9 +69,14 @@ export default function DashboardWorker() {
 	};
 
 	const activeMissions = useMemo(() => {
-    return joboffers.filter(offer => 
-        offer.status === 'PENDING' || offer.status === 'ACCEPTED'
-    );
+    return joboffers.filter(offer => {
+        const isCompleted = offer.status === 'COMPLETED';
+        const hasBothReviewed = offer.hasReviewed && offer.hasBeenReviewedByOtherParty;
+        if (isCompleted && hasBothReviewed) {
+            return false; // Ne pas montrer si complété et les deux ont commenté
+        }
+        return ['PENDING', 'ACCEPTED', 'COMPLETED'].includes(offer.status);
+    });
 }, [joboffers]);
 
 	// COMPOSANT DE CARTE EXTERNALISÉ : pour éviter la duplication de code
@@ -80,6 +86,12 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
         if (status === 'ACCEPTED') return '#34C759';
         return '#E5E5E5';
     };
+
+		const getStatusColor = (status: string) => {
+			if (status === 'COMPLETED' || status === 'ACCEPTED') return '#34C759';
+			if (status === 'PENDING') return '#FF9500';
+			return '#264D84';
+		};
 
     return (
         <Pressable 
@@ -109,7 +121,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                       📍{item.job.company?.city} ({item.job.company?.postalCode})
                     </Text>
                 </View>
-                <Text style={styles.missionStatus}>Statut: {item.status}</Text>
+                <Text style={[styles.missionStatus, { color: getStatusColor(item.status) }]}>Statut: {item.status}</Text>
             </View>
         </Pressable>
     );

@@ -16,6 +16,7 @@ export interface JobOffer {
     createdAt: string;
     updatedAt: string;
     hasReviewed?: boolean;
+		hasBeenReviewedByOtherParty?: boolean;
     myRating?: number | null;
     myComment?: string | null;
     receivedRating?: number | null;

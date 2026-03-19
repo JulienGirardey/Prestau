@@ -93,6 +93,7 @@ export class JobService {
 
 		let alreadyApplied = false;
 		let isWorker = false;
+		let hasReviewed = false;
 
 		if (userId) {
 			const worker = await this.prisma.worker.findUnique({
@@ -109,6 +110,20 @@ export class JobService {
 					}
 				});
 				alreadyApplied = !!existingOffer;
+			} else {
+				// Vérifier si la company a déjà laissé un commentaire pour ce job
+				const company = await this.prisma.company.findUnique({
+					where: { userId }
+				});
+				if (company) {
+					const existingReview = await this.prisma.review.findFirst({
+						where: {
+							jobId: id,
+							reviewerId: userId
+						}
+					});
+					hasReviewed = !!existingReview;
+				}
 			}
 		}
 
@@ -116,7 +131,8 @@ export class JobService {
 			...job,
 			isWorker,
 			alreadyApplied,
-			canApply: isWorker && !alreadyApplied
+			canApply: isWorker && !alreadyApplied,
+			hasReviewed
 		};
 	}
 
