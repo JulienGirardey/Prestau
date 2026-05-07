@@ -117,7 +117,7 @@ export default function Register() {
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled">
 					<DefaultCard style={{ width: "100%", maxWidth: 450, alignSelf: "center" }}>
-						<View style={styles.form}>
+						<View>
 							<Image
 								style={[styles.baseImageStyle, { borderColor: colors.secondary }]}
 								source={require('@/assets/images/logo-prestau.jpg')}
@@ -158,12 +158,18 @@ export default function Register() {
 						</View>
 						<View style={styles.roleRow}>
 							<TouchableOpacity
-								onPress={() => setRole('WORKER')}
+								onPress={() => {
+									setRole('WORKER');
+									if (errorMsg.includes("rôle")) setErrorMsg("");
+								}}
 								style={[styles.roleButton, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}> 
 								<ThemedText style={styles.roleText}>Worker</ThemedText>
 							</TouchableOpacity>
 							<TouchableOpacity
-								onPress={() => setRole('COMPANY')}
+								onPress={() => {
+									setRole('COMPANY');
+									if (errorMsg.includes("rôle")) setErrorMsg("");
+								}}
 								style={[styles.roleButton, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}> 
 								<ThemedText style={styles.roleText}>Company</ThemedText>
 							</TouchableOpacity>
@@ -195,9 +201,6 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 			padding: scale(40),
 			paddingTop: scale(60),
 		},
-		form: {
-			width: "100%",
-		},
 		baseImageStyle: {
 			alignSelf: "center",
 			borderWidth: 2,
@@ -224,7 +227,7 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 		},
 		roleButton: {
 			flex: 1,
-			padding: scale(7),
+			padding: scale(8),
 			borderRadius: scale(13),
 			borderWidth: 2,
 			borderColor: Colors.light.secondary,

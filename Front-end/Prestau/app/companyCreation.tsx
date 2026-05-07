@@ -150,7 +150,7 @@ export default function CompanyCreation() {
 						variant="headline"
 						color="primary"
 						style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>Profil Company</ThemedText>
-					<DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
+					<DefaultCard style={{ margin: scale(20), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }}>
 						<View pointerEvents="box-none">
 							<View style={styles.fieldsContainer} pointerEvents="box-none">
 								{fields.map(({ label, key, placeholder, required }) => (
@@ -187,10 +187,6 @@ const styles = StyleSheet.create({
 	},
 	pageTitle: {
 		textAlign: "center",
-	},
-	card: {
-		flex: 1,
-		alignSelf: "stretch",
 	},
 	scroll: {
 		flex: 1,

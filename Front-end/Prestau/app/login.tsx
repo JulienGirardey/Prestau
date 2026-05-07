@@ -76,7 +76,7 @@ export default function Login() {
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled">
 					<DefaultCard style={{ width: "100%", maxWidth: 450, alignSelf: "center" }}>
-						<View style={styles.form}>
+						<View>
 							<Image
 								style={[styles.baseImageStyle, { borderColor: colors.secondary }]}
 								source={require('@/assets/images/logo-prestau.jpg')}
@@ -106,9 +106,6 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 			justifyContent: "center",
 			padding: scale(40),
 			paddingTop: scale(60),
-		},
-		form: {
-			width: "100%",
 		},
 		baseImageStyle: {
 			alignSelf: "center",
