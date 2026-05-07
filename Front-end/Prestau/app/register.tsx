@@ -29,6 +29,9 @@ export default function Register() {
 	const [inputVerifyPassword, setInputVerifyPassword] = useState("");
 	const [role, setRole] = useState<'WORKER' | 'COMPANY' | null>(null);
 	const [errorMsg, setErrorMsg] = useState("");
+	const [errorEmail, setErrorEmail] = useState("");
+	const [errorPassword, setErrorPassword] = useState("");
+
 
 	// Mutation pour gérer l'inscription, avec gestion des succès et erreurs
 	const { mutate: submitRegister, isPending } = useMutation({
@@ -47,48 +50,67 @@ export default function Register() {
 			console.error(error);
 			const msg = error?.response?.data?.message;
 			if (typeof msg === 'string' && msg.toLowerCase().includes('exist')) {
-				setErrorMsg("Cet email est déjà utilisé.");
+				setErrorEmail("Cet email est déjà utilisé.");
 			} else {
 				setErrorMsg("Erreur lors de l'inscription. Veuillez réessayer.");
 			}
 		}
 	});
 
+	// Fonction de validation du mot de passe, vérifiant les critères définis dans le DTO de l'API
+	const validatePassword = (password: string) => {
+	const hasUpperCase = /[A-Z]/.test(password);
+	const hasNumber = /[0-9]/.test(password);
+	const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+	const hasMinLength = password.length >= 8;
+
+	return hasUpperCase && hasNumber && hasSpecialChar && hasMinLength;
+};
+
 	// Handler pour le bouton d'inscription, vérifiant que le rôle est sélectionné avant de lancer la mutation
 	const handleRegister = () => {
+		let hasError = false;
+		let emailError = "";
+		let passwordError = "";
+		let generalError = "";
+
 		if (!inputEmail.trim() || !inputPassword.trim() || !inputVerifyPassword.trim()) {
-			setErrorMsg("Veuillez remplir tous les champs.");
-			return;
+			generalError = "Veuillez remplir tous les champs.";
+			hasError = true;
 		}
-		// Validation de l'email avec une regex simple
+
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(inputEmail.trim())) {
-			setErrorMsg("Veuillez entrer une adresse email valide.");
-			return;
+			emailError = "Veuillez entrer une adresse email valide.";
+			hasError = true;
 		}
-		// Validation du mot de passe : correspondance
-		if (inputPassword !== inputVerifyPassword) {
-			setErrorMsg("Les mots de passe ne correspondent pas.");
-			return;
+
+		if (!validatePassword(inputPassword)) {
+			passwordError = "Le mot de passe doit contenir au minimum 8 caractères, une majuscule, un chiffre, un caractère spécial et ne doit pas dépasser 20 caractères.";
+			hasError = true;
+		} else if (inputPassword !== inputVerifyPassword) {
+			passwordError = "Les mots de passe ne correspondent pas.";
+			hasError = true;
 		}
-		// Validation du mot de passe : longueur minimale
-		if (inputPassword.length < 6) {
-			setErrorMsg("Le mot de passe doit contenir au moins 6 caractères.");
-			return;
-		}
-		// Validation du rôle sélectionné
+
 		if (!role) {
-			setErrorMsg("Veuillez sélectionner un rôle.");
-			return;
+			generalError = (generalError ? generalError + "\n" : "") + "Veuillez sélectionner un rôle.";
+			hasError = true;
 		}
-		// Si toutes les validations passent, lancer la mutation d'inscription
-		setErrorMsg("");
+
+		setErrorEmail(emailError);
+		setErrorPassword(passwordError);
+		setErrorMsg(generalError);
+
+		if (hasError) return;
+
+		// Si aucune erreur, lancer la mutation
 		submitRegister();
 	};
 
 	// Le rendu de la page d'inscription, avec un formulaire pour l'email, le mot de passe, la vérification du mot de passe et la sélection du rôle
 	return (
-		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
 			<KeyboardAvoidingView style={{ flex: 1, width: "100%" }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
 				<ScrollView
 					contentContainerStyle={styles.scrollContent}
@@ -103,23 +125,49 @@ export default function Register() {
 							<ThemedText variant="headline" style={styles.title}>
 								Create Account
 							</ThemedText>
-							<InputBar style={styles.inputEmail} placeholder="Email" value={inputEmail} onChange={setEmail} />
-							<InputBar style={styles.inputPassword} placeholder="Password" secureTextEntry={true} value={inputPassword} onChange={setInputPassword} />
-							<InputBar placeholder="Verify password" secureTextEntry={true} value={inputVerifyPassword} onChange={setInputVerifyPassword} />
+							<InputBar
+								style={styles.inputEmail}
+								placeholder="Email"
+								value={inputEmail}
+								onChange={(text) => {
+									setEmail(text);
+									if (errorEmail) setErrorEmail("");
+								}}
+							/>
+							{errorEmail ? <Text style={styles.errorText}>{errorEmail}</Text> : null}
+							<InputBar
+								style={styles.inputPassword}
+								placeholder="Password"
+								secureTextEntry={true}
+								value={inputPassword}
+								onChange={(text) => {
+									setInputPassword(text);
+									if (errorPassword) setErrorPassword("");
+								}}
+							/>
+							<InputBar
+								placeholder="Verify password"
+								secureTextEntry={true}
+								value={inputVerifyPassword}
+								onChange={(text) => {
+									setInputVerifyPassword(text);
+									if (errorPassword) setErrorPassword("");
+								}}
+							/>
+							{errorPassword ? <Text style={styles.errorText}>{errorPassword}</Text> : null}
 						</View>
 						<View style={styles.roleRow}>
 							<TouchableOpacity
 								onPress={() => setRole('WORKER')}
-								style={[styles.roleButton, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}>
+								style={[styles.roleButton, { backgroundColor: role === 'WORKER' ? Colors.light.secondary : 'transparent' }]}> 
 								<ThemedText style={styles.roleText}>Worker</ThemedText>
 							</TouchableOpacity>
 							<TouchableOpacity
 								onPress={() => setRole('COMPANY')}
-								style={[styles.roleButton, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}>
+								style={[styles.roleButton, { backgroundColor: role === 'COMPANY' ? Colors.light.secondary : 'transparent' }]}> 
 								<ThemedText style={styles.roleText}>Company</ThemedText>
 							</TouchableOpacity>
 						</View>
-						{errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 						<View style={styles.spacer} />
 						<NewButton
 							title={isPending ? "Création..." : "Create Account"}
@@ -127,6 +175,7 @@ export default function Register() {
 							disabled={isPending}
 							style={{ opacity: role === null ? 0.7 : 1 }}
 						/>
+						{errorMsg ? <Text style={[styles.errorText, { marginTop: scale(4) }, {alignContent: "center"}]}>{errorMsg}</Text> : null}
 					</DefaultCard>
 				</ScrollView>
 			</KeyboardAvoidingView>
@@ -162,10 +211,10 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 			fontSize: scaleFont(28),
 		},
 		inputEmail: {
-			marginBottom: scale(15),
 			marginTop: scale(15),
 		},
 		inputPassword: {
+			marginTop: scale(15),
 			marginBottom: scale(-4),
 		},
 		roleRow: {
@@ -190,8 +239,9 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 		},
 		errorText: {
 			color: "#D32F2F",
-			textAlign: "center",
-			marginTop: scale(10),
-			fontSize: scaleFont(14),
+			fontSize: scaleFont(12),
+			fontStyle: "italic",
+			marginLeft: scale(10),
+			marginTop: scale(-4),
 		},
 	});
