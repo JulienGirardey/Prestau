@@ -75,7 +75,7 @@ export default function DashboardWorker() {
         if (isCompleted && hasBothReviewed) {
             return false; // Ne pas montrer si complété et les deux ont commenté
         }
-        return ['PENDING', 'ACCEPTED', 'COMPLETED'].includes(offer.status);
+        return ['PENDING', 'ACCEPTED', 'COMPLETED', 'REJECTED', 'CANCELLED'].includes(offer.status);
     });
 }, [joboffers]);
 
@@ -84,20 +84,27 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
     const getBorderColor = (status: string) => {
         if (status === 'PENDING') return '#FF9500';
         if (status === 'ACCEPTED') return '#34C759';
+        if (status === 'REJECTED' || status === 'CANCELLED') return '#EE4832';
         return '#E5E5E5';
     };
 
 		const getStatusColor = (status: string) => {
 			if (status === 'COMPLETED' || status === 'ACCEPTED') return '#34C759';
 			if (status === 'PENDING') return '#FF9500';
+			if (status === 'REJECTED' || status === 'CANCELLED') return '#EE4832';
 			return '#264D84';
 		};
 
+		const getStatusLabel = (status: string) => {
+			if (status === 'REJECTED' || status === 'CANCELLED') return 'Candidature refusée';
+			return status;
+		};
+
     return (
-        <Pressable 
+        <Pressable
             onPress={() => {
                 router.push({
-                    pathname: '/joboffer/[id]', 
+                    pathname: '/joboffer/[id]',
                     params: { id: item.id, from: 'dashboard' }
                 });
             }}
@@ -105,14 +112,14 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
         >
             <View style={[
                 styles.innerMissionCard,
-                { 
-                    borderColor: getBorderColor(item.status), 
+                {
+                    borderColor: getBorderColor(item.status),
                 }
             ]}>
                 <Text style={styles.missionTitle}>{item.job.title}</Text>
                 <Text style={styles.missionDate}>
                     {formatMissionDate(item.job.start_time, item.job.end_time)}
-										
+
                 </Text>
                 <Text style={styles.missionSalary}>Salaire: {item.job.salary}€/h</Text>
                 <View style={styles.addressRow}>
@@ -121,7 +128,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                       📍{item.job.company?.city} ({item.job.company?.postalCode})
                     </Text>
                 </View>
-                <Text style={[styles.missionStatus, { color: getStatusColor(item.status) }]}>Statut: {item.status}</Text>
+                <Text style={[styles.missionStatus, { color: getStatusColor(item.status) }]}>Statut: {getStatusLabel(item.status)}</Text>
             </View>
         </Pressable>
     );
@@ -156,7 +163,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                             />
                         )}
                     </DefaultCard>
-								
+
 								{/* CALENDRIER DES DISPONIBILITÉS */}
                     <DefaultCard style={styles.calendarCard}>
                         <Text style={styles.titleCard}>Mes disponibilités</Text>
@@ -177,7 +184,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
                                 hideExtraDays={true}
                                 firstDay={1}
                             />
-							
+
 												{/* LÉGENDE DU CALENDRIER */}
                             <View style={styles.legendContainer}>
                                 <View style={styles.legendItem}>

@@ -2,12 +2,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
-import { getJobOfferById, deleteJobOffer, JobOffer } from "@/src/api/joboffer";
+import { getJobOfferById, deleteJobOffer, JobOffer, JobOfferStatus } from "@/src/api/joboffer";
 import { jwtDecode } from "jwt-decode";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { JwtPayload } from "@/src/api/auth";
 
 function useResponsive() {
 	const { width, height } = useWindowDimensions();
@@ -17,7 +18,7 @@ function useResponsive() {
 }
 
 export default function JobOfferDetailScreen() {
-	const { id, from } = useLocalSearchParams<{ id: string, from?: string }>();
+	const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
 	const colors = useThemeColors();
 	const { scale, scaleFont } = useResponsive();
 	const styles = getStyles(scale, scaleFont);
@@ -36,7 +37,7 @@ export default function JobOfferDetailScreen() {
 	useEffect(() => {
 		SecureStore.getItemAsync('access_token').then((token) => {
 			if (token) {
-				const decoded: any = jwtDecode(token);
+				const decoded = jwtDecode<JwtPayload>(token);
 				setRole(decoded.role);
 			}
 		});
@@ -45,22 +46,62 @@ export default function JobOfferDetailScreen() {
 	// Mutation pour annuler la candidature
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
 		mutationFn: () => {
-        if (!jobOffer) throw new Error("JobOffer introuvable");
-        return deleteJobOffer(Number(jobOffer.job.id));
-    },
+			if (!jobOffer) throw new Error("JobOffer introuvable");
+			return deleteJobOffer(Number(jobOffer.job.id));
+		},
 		// En cas de succès, invalider les queries liées aux offres d'emploi du worker et rediriger vers le dashboard worker
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
 			if (jobOffer?.job?.id) {
-        queryClient.invalidateQueries({ queryKey: ["job", jobOffer.job.id] });
-      }
+				queryClient.invalidateQueries({ queryKey: ["job", jobOffer.job.id] });
+			}
 			router.push('/(tabs-worker)/dashboard-worker');
 		},
-		onError: (err: any) => {
+		onError: (err: unknown) => {
 			console.error("Erreur lors de l'annulation :", err);
 			Alert.alert("Erreur", "Impossible d'annuler la candidature.");
-		}
+		},
 	});
+
+	// Alerte de confirmation avant d'annuler une candidature
+	const handleCancelRequest = () => {
+		Alert.alert(
+			"Annuler la candidature",
+			"Êtes-vous sûr de vouloir annuler cette candidature ? Cette action est irréversible.",
+			[
+				{ text: "Retour", style: "cancel" },
+				{ text: "Annuler la candidature", style: "destructive", onPress: () => cancelApply() },
+			]
+		);
+	};
+
+	// Alerte de confirmation avant de supprimer une candidature refusée
+	const handleDeleteRequest = () => {
+		Alert.alert(
+			"Supprimer la candidature",
+			"Êtes-vous sûr de vouloir supprimer cette candidature ? Cette action est irréversible.",
+			[
+				{ text: "Retour", style: "cancel" },
+				{ text: "Supprimer", style: "destructive", onPress: () => cancelApply() },
+			]
+		);
+	};
+
+	// Détermine la couleur du statut affiché
+	const getStatusColor = (status: string) => {
+		if (status === JobOfferStatus.REJECTED || status === JobOfferStatus.CANCELLED) return "#EE4832";
+		if (status === JobOfferStatus.PENDING) return "#e67e22";
+		return "#27ae60";
+	};
+
+	// Détermine le label du statut affiché
+	const getStatusLabel = (status: string) => {
+		if (status === JobOfferStatus.REJECTED || status === JobOfferStatus.CANCELLED) return "Candidature refusée";
+		return status;
+	};
+
+	const isRejectedOrCancelled =
+		jobOffer?.status === JobOfferStatus.REJECTED || jobOffer?.status === JobOfferStatus.CANCELLED;
 
 	// Affichage d'un indicateur de chargement pendant la récupération des données
 	if (isLoading) {
@@ -97,10 +138,10 @@ export default function JobOfferDetailScreen() {
 					{/* Adresse */}
 					<View style={styles.addressRow}>
 						<Text style={styles.label}>Adresse:</Text>
-						</View>
 						<Text style={styles.addressText} numberOfLines={2} ellipsizeMode="tail">
 							{jobOffer.job.company?.address}, {jobOffer.job.company?.city} ({jobOffer.job.company?.postalCode})
 						</Text>
+					</View>
 
 						{/* Description */}
 						<Text style={[styles.label, styles.descriptionLabel]}>Description:</Text>
@@ -131,46 +172,70 @@ export default function JobOfferDetailScreen() {
 							</Text>
 						</View>
 					</View>
+
 					<View style={styles.separator} />
-					{/* si la candidature est en attente ou acceptée */}
-					<Text style={[styles.jobStatus, { color: jobOffer.status === "PENDING" ? "#e67e22" : "#27ae60" }]}>
-							● {jobOffer.status}
-						</Text>
+
+					{/* Statut de la candidature */}
+					<Text style={[styles.jobStatus, { color: getStatusColor(jobOffer.status) }]}>
+						● {getStatusLabel(jobOffer.status)}
+					</Text>
 				</View>
 
 				{/* ACTIONS : boutons disponibles selon le statut de la candidature */}
 				<View style={styles.buttonContainer}>
-					{/* Mission terminée sans avis → proposer de laisser un avis */}
-					{jobOffer.status === 'COMPLETED' && !jobOffer.hasReviewed && (
+
+					{/* Candidature refusée ou annulée */}
+					{isRejectedOrCancelled && (
+						<>
+							<View style={styles.rejectedBadge}>
+								<Text style={styles.rejectedText}>Votre candidature a été refusée</Text>
+							</View>
 							<NewButton
-									title="Laisser un avis"
-									onPress={() => router.push({ pathname: '/review/[id]', params: { id: Number(id) } })}
-									style={{ backgroundColor: '#C9A961' }}
+								title={isCancelling ? "Suppression..." : "Supprimer cette candidature"}
+								onPress={handleDeleteRequest}
+								disabled={isCancelling}
+								style={styles.dangerButton}
 							/>
+						</>
+					)}
+					{/* Mission terminée sans avis → proposer de laisser un avis */}
+					{jobOffer.status === JobOfferStatus.COMPLETED && !jobOffer.hasReviewed && (
+						<NewButton
+							title="Laisser un avis"
+							onPress={() => router.push({ pathname: "/review/[id]", params: { id: Number(id) } })}
+							style={styles.reviewButton}
+						/>
 					)}
 					{/* Mission terminée avec avis déjà posté → message informatif */}
-					{jobOffer.status === 'COMPLETED' && jobOffer.hasReviewed && (
-							<View style={styles.infoBox}>
-								<Text style={styles.infoText}>Vous avez déjà laissé un avis</Text>
-							</View>
-					)}
-					{/* Candidature en cours → badge informatif */}
-					{from !== 'dashboard' && jobOffer.status !== 'COMPLETED' && (
-						<View style={styles.alreadyAppliedBadge}>
-							<Text style={styles.alreadyAppliedText}>
-								Vous avez déjà postulé pour cette offre
-							</Text>
+					{jobOffer.status === JobOfferStatus.COMPLETED && jobOffer.hasReviewed && (
+						<View style={styles.infoBox}>
+							<Text style={styles.infoText}>Vous avez déjà laissé un avis</Text>
 						</View>
 					)}
-					{jobOffer.status !== 'COMPLETED' && role === 'WORKER' && (
+
+					{/* Candidature en cours → badge informatif */}
+					{from !== "dashboard" &&
+						jobOffer.status !== JobOfferStatus.COMPLETED &&
+						!isRejectedOrCancelled && (
+							<View style={styles.alreadyAppliedBadge}>
+								<Text style={styles.alreadyAppliedText}>
+									Vous avez déjà postulé pour cette offre
+								</Text>
+							</View>
+						)}
+
+					{/* Annuler la candidature (worker uniquement, avec confirmation) */}
+					{jobOffer.status !== JobOfferStatus.COMPLETED &&
+						!isRejectedOrCancelled &&
+						role === "WORKER" && (
 							<NewButton
-									title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
-									onPress={() => cancelApply()}
-									disabled={isCancelling}
-									style={{ backgroundColor: '#FF3B30', marginTop: 15 }}
+								title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
+								onPress={handleCancelRequest}
+								disabled={isCancelling}
+								style={styles.cancelButton}
 							/>
-					)}
-			</View>
+						)}
+				</View>
 			</ScrollView>
 		</View>
 	);
@@ -240,6 +305,7 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 			marginTop: scale(10),
 		},
 		addressText: {
+			flex: 1,
 			color: "#777",
 			fontSize: scaleFont(13),
 			marginLeft: scale(10),
@@ -309,5 +375,30 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 			fontWeight: "600",
 			fontSize: 14,
 			textAlign: "center",
+		},
+		rejectedBadge: {
+			backgroundColor: "#ffe5e5",
+			padding: 15,
+			borderRadius: 12,
+			borderWidth: 1,
+			borderColor: "#EE4832",
+			alignItems: "center",
+		},
+		rejectedText: {
+			color: "#EE4832",
+			fontWeight: "600",
+			fontSize: 14,
+			textAlign: "center",
+		},
+		dangerButton: {
+			backgroundColor: "#EE4832",
+			marginTop: 15,
+		},
+		cancelButton: {
+			backgroundColor: "#EE4832",
+			marginTop: 15,
+		},
+		reviewButton: {
+			backgroundColor: "#C9A961",
 		},
 	});

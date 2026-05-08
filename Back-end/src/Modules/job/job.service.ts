@@ -30,7 +30,7 @@ export class JobService {
     const company = await this.prisma.company.findUnique({
       where: { userId } // Trouve la company associée à l'utilisateur
     });
-    
+
     if (!company) {
       throw new NotFoundException('Company not found');
     }
@@ -38,7 +38,7 @@ export class JobService {
 		// Récupère tous les jobs liés à cette company, avec les offres d'emploi associées qui sont encore en statut PENDING
     return this.prisma.job.findMany({
       where: { companyId: company.id },
-      include: { 
+      include: {
 				company: true,
 				jobOffers: { where: { status: 'PENDING' } }
 			},
@@ -78,7 +78,7 @@ export class JobService {
 	async findOne(id: number, userId?: number) {
 		const job = await this.prisma.job.findUnique({
 			where: { id },
-			include: { 
+			include: {
 				company: true,
 				jobOffers: {
 					include: {
@@ -149,6 +149,14 @@ export class JobService {
 		// Vérifie que la company est bien propriétaire du job pour pouvoir le mettre à jour
 		if (job.companyId !== company.id) {
 			throw new ForbiddenException('You are not authorized to update this job');
+		}
+
+		// Vérifier s'il y a des candidats qui ont postulé
+		const jobOffers = await this.prisma.jobOffer.findMany({
+			where: { jobId: id }
+		});
+		if (jobOffers.length > 0) {
+			throw new ForbiddenException('You cannot edit a job posting that has applicants. Please reject all applications before editing it.');
 		}
 
 		return this.prisma.job.update({
