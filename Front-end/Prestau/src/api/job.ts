@@ -45,8 +45,14 @@ export const getJobs = async (search?: string): Promise<Job[]> => {
 // la company peut réupérer la liste de ses jobs postés
 export const getMyJobs = async (): Promise<Job[]> => (await api.get('/job/my-jobs')).data;
 
-// Obtnenir les détails d'un job spécifique par son id
+// Obtenir les détails d'un job spécifique par son id
 export const getJobById = async (id: number): Promise<Job> => {
     const response = await api.get<Job>(`/job/${id}`);
     return response.data;
+};
+
+// Modifier un job (seulement pour la company qui a créé le job)
+export const updateJob = async (id: number, jobData: Partial<Omit<Job, 'id' | 'status' | 'company'>>): Promise<Job> => {
+	const response = await api.patch(`/job/${id}`, jobData);
+	return response.data;
 };
