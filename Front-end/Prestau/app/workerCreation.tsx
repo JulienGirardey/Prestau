@@ -223,7 +223,7 @@ function WorkerCreationInner() {
 					style={[styles.pageTitle, { fontSize: scaleFont(24), paddingTop: scale(25) }]}>Profil Worker</ThemedText>
 
 				{/* Carte contenant le formulaire */}
-				<DefaultCard style={[styles.card, { margin: scale(25), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
+				<DefaultCard style={[styles.card, { margin: scale(20), marginBottom: scale(30), marginTop: scale(20), paddingBottom: scale(5) }]}>
 					<View pointerEvents="box-none">
 
 						{/* Sélecteur de photo de profil avec menu d'options */}
