@@ -4,3 +4,4 @@ Back-end/jest.config.js
 Back-end/src/Modules/joboffer/joboffer.service.spec.ts
 Back-end/src/app.module.spec.ts
 Back-end/test/jest-e2e.json
+Prestau/.editorconfig

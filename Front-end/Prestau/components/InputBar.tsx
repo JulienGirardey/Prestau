@@ -22,6 +22,7 @@ export function InputBar({ value, onChange, placeholder, style, secureTextEntry 
 				value={value}
 				onChangeText={onChange}
 				placeholder={placeholder}
+        placeholderTextColor="#898E95"
 				secureTextEntry={secureTextEntry && !isVisible}
 				selection={selection}
 				onFocus={() => {

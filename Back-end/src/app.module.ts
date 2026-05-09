@@ -11,9 +11,11 @@ import { UserModule } from './Modules/user/user.module';
 import { ReviewModule } from './Modules/review/review.module';
 import { MessageModule } from './Modules/message/message.module'
 import { AuthModule } from './Modules/auth/auth.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
 	imports: [
+    ScheduleModule.forRoot(),
 		ConfigModule.forRoot({
 			isGlobal: true,
 			validationSchema: Joi.object({

@@ -1,6 +1,14 @@
 import api from './axios';
 import * as SecureStore from 'expo-secure-store';
 
+// Interface pour typer le payload JWT
+export interface JwtPayload {
+    role: string;
+    sub: number;
+    iat?: number;
+    exp?: number;
+}
+
 export const register = async (email: string, password: string, role: 'WORKER' | 'COMPANY') => {
   const response = await api.post('/auth/register', { email, password, role });
   console.log('Réponse register:', response.data);
@@ -10,7 +18,6 @@ export const register = async (email: string, password: string, role: 'WORKER' |
   }
   return response.data;
 };
-
 
 export const login = async (email: string, password: string) => {
   const response = await api.post('/auth/login', { email, password });

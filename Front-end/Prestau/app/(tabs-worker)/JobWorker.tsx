@@ -9,14 +9,14 @@ import {
     TextInput,
     useWindowDimensions,
 } from "react-native";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { ThemedText } from "@/components/ThemedText";
 import { getJobs, Job } from "@/src/api/job";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -44,12 +44,19 @@ export default function MissionScreen() {
     const [searchText, setSearchText] = useState('');
     const [salaryFilter, setSalaryFilter] = useState<'all' | 'lt10' | '10to12' | '12to15' | '15to20' | 'gt20'>('all');
     const [debouncedQuery, setDebouncedQuery] = useState("");
-
-    // Récupération des missions via React Query
+    // Récupération des jobs depuis l'API avec React Query
     const { data: jobs = [], isLoading: isLoadingJob, error: errorJob, refetch } = useQuery<Job[]>({
         queryKey: ["dashboard-worker-jobs", debouncedQuery],
         queryFn: () => getJobs(debouncedQuery || undefined),
+        refetchInterval: 60_000,
+        staleTime: 0,
     });
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     // Liste des filtres de salaire disponibles (labels affichés dans les chips)
     const SALARY_FILTERS = [
@@ -191,7 +198,7 @@ export default function MissionScreen() {
                     ) : (
                         filteredJobs.map((job) => (
                             <View key={job.id} style={[styles.jobCard, { backgroundColor: colors.background }]}>
-                                <Pressable 
+                                <Pressable
                                     onPress={() => router.push({
                                         pathname: '/job/[id]',
                                         params: { id: job.id }
