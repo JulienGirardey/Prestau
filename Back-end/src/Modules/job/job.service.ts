@@ -62,19 +62,31 @@ export class JobService {
 				where: { userId: user.id } // Trouve la company associée à l'utilisateur
 			});
 
-			if (!company) {
-				throw new NotFoundException('Company not found');
-			}
-			// Récupère tous les jobs liés à cette companyy
-			return this.prisma.job.findMany({
-				where: { companyId: company.id, ...searchFilter },
-				include: { company: true },
-			});
+		if (!company) {
+			throw new NotFoundException('Company not found');
 		}
-		// Si c'est un worker, il voit tous les jobs disponibles (filtrés par recherche si fournie)
-		return this.prisma.job.findMany({ where: searchFilter, include: { company: true } })
+
+		return this.prisma.job.findMany({
+			where: {
+				companyId: company.id,
+				...searchFilter,
+			},
+			include: { company: true },
+		});
 	}
 
+	// Si c'est un worker, il voit tous les jobs sauf ceux qui sont COMPLETED ou IN_PROGRESS
+	return this.prisma.job.findMany({
+		where: {
+			status: {
+				notIn: ['COMPLETED', 'IN_PROGRESS'], },
+			...searchFilter,
+		},
+		include: {
+			company: true,
+		},
+	});
+}
 	async findOne(id: number, userId?: number) {
 		const job = await this.prisma.job.findUnique({
 			where: { id },
@@ -106,7 +118,8 @@ export class JobService {
 				const existingOffer = await this.prisma.jobOffer.findFirst({
 					where: {
 						jobId: id,
-						workerId: worker.id
+						workerId: worker.id,
+            status: { not: 'CANCELLED' }
 					}
 				});
 				alreadyApplied = !!existingOffer;
@@ -151,12 +164,15 @@ export class JobService {
 			throw new ForbiddenException('You are not authorized to update this job');
 		}
 
-		// Vérifier s'il y a des candidats qui ont postulé
+		// Vérifier s'il y a des candidatures non rejetées et non annulées(par le worker) pour ce job avant de permettre la mise à jour
 		const jobOffers = await this.prisma.jobOffer.findMany({
-			where: { jobId: id }
+			where: {
+				jobId: id,
+				status: { notIn: ['REJECTED', 'CANCELLED'] },
+			}
 		});
 		if (jobOffers.length > 0) {
-			throw new ForbiddenException('You cannot edit a job posting that has applicants. Please reject all applications before editing it.');
+			throw new ForbiddenException('You cannot edit a job posting that has non-rejected applicants. Please reject all applications before editing it.');
 		}
 
 		return this.prisma.job.update({
@@ -175,18 +191,21 @@ export class JobService {
 		}
 
 		const job = await this.findOne(id);
+
 		// Vérifie que la company est bien propriétaire du job pour pouvoir le supprimer
 		if (job.companyId !== company.id) {
 			throw new ForbiddenException('You are not authorized to delete this job');
 		}
 
-		// Vérifie si des workers ont déjà postulé
+		// Vérifie s'il existe des candidatures non rejetées et non annulées(par le worker) pour ce job avant de le supprimer
 		const jobOffers = await this.prisma.jobOffer.findMany({
-			where: { jobId: id }
+			where: {
+				jobId: id,
+				status: { notIn: ['REJECTED', 'CANCELLED'] },
+			}
 		});
-
 		if (jobOffers.length > 0) {
-			throw new ForbiddenException('You cannot delete this job because workers have already applied');
+			throw new ForbiddenException('You cannot delete this job because there are applicants who have not been rejected. Please reject all applications before deleting it.');
 		}
 
 		return this.prisma.job.delete({

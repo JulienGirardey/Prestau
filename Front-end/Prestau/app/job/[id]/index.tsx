@@ -77,29 +77,29 @@ export default function JobDetailScreen() {
   });
 
 
-	// Mutation pour anuler la candidature du candidat (refuser après acceptation)
+  // Mutation pour refuser une candidature (PENDING)
   const { mutate: rejectMutation, isPending: isRejecting } = useMutation({
     mutationFn: (offerId: number) => rejectJobOffer(offerId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["job", id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["job", id] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] }); // Ajout pour rafraîchir le dashboard
-      Alert.alert("Succès", "Le candidat a été annulé.");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] });
+      Alert.alert("Succès", "La candidature a été refusée.");
     },
-    onError: () => Alert.alert("Erreur", "Impossible d'annuler ce candidat.")
+    onError: () => Alert.alert("Erreur", "Impossible de refuser cette candidature.")
   });
 
-	// Mutation pour refuser le candidat
-	const { mutate: cancelMutation, isPending: isCancellingCandidate } = useMutation({
-		mutationFn: (offerId: number) => cancelJobOffer(offerId),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["job", id] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] }); // Ajout pour rafraîchir le dashboard
-			Alert.alert("Succès", "La candidature a été refuse.");
-		},
-		onError: () => Alert.alert("Erreur", "Impossible de refuse cette candidature.")
-	});
+  // Mutation pour annuler une candidature acceptée (ACCEPTED)
+  const { mutate: cancelMutation, isPending: isCancellingCandidate } = useMutation({
+    mutationFn: (offerId: number) => cancelJobOffer(offerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["job", id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-company-jobs"] });
+      Alert.alert("Succès", "La candidature acceptée a été annulée.");
+    },
+    onError: () => Alert.alert("Erreur", "Impossible d'annuler cette candidature acceptée.")
+  });
 
 	// Mutation pour supprimer le job
 	const { mutate: deleteJobMutation, isPending: isDeletingJob } = useMutation({
@@ -136,17 +136,6 @@ export default function JobDetailScreen() {
 		);
 	};
 
-	const handleRejectAcceptedCandidate = (offerId: number) => {
-		Alert.alert(
-			"Annuler la candidature",
-			"Êtes-vous sûr de vouloir annuler ce candidat ? Cette action est irréversible.",
-			[
-				{ text: "Retour", style: "cancel" },
-				{ text: "Confirmer", style: "destructive", onPress: () => rejectMutation(offerId) }
-			]
-		);
-	};
-
   if (isLoading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -162,11 +151,14 @@ export default function JobDetailScreen() {
       </View>
     );
   }
-
-	// Vérification du statut de la candidature du worker pour afficher le badge "déjà postulé" ou le message de refus
-	const myOffer = job.jobOffers?.find((offer: any) => offer.status === 'REJECTED' || offer.status === 'CANCELLED' || job.alreadyApplied);
-	// Si la candidature a été refusée ou annulée, on considère que le worker ne peut pas postuler à nouveau et on affiche un message de refus
-	const isRejected = myOffer?.status === 'REJECTED' || myOffer?.status === 'CANCELLED';
+  // Recherche de l'offre du worker connecté pour déterminer si elle a été refusée ou annulée
+  const myOffer = job.jobOffers?.find((offer: any) =>
+      offer.status === 'REJECTED' || offer.status === 'CANCELLED'
+  );
+  // Si une offre existe avec le statut REJECTED, cela signifie que la candidature a été refusée par l'entreprise
+  const isRejected = myOffer?.status === 'REJECTED';
+  // Si une offre existe avec le statut CANCELLED, cela signifie que la candidature a été annulée par le worker
+  const isCancelled = myOffer?.status === 'CANCELLED';
 	// Seules les candidatures PENDING et ACCEPTED sont affichées dans le modal (les refusées sont exclues)
 	const activeOffers = Array.isArray(job?.jobOffers)
     ? job.jobOffers.filter((offer: any) => offer.status === 'PENDING' || offer.status === 'ACCEPTED')
@@ -224,29 +216,59 @@ export default function JobDetailScreen() {
         {/* Section des boutons d'action */}
         <View style={styles.buttonContainer}>
           {/* SECTION WORKER : postuler, afficher le badge "déjà postulé" ou le message de refus */}
-          {job.isWorker &&  (
-            <>
-              {job.alreadyApplied && !isRejected ? (
-                <View>
-                  <View style={styles.alreadyAppliedBadge}>
+          {job.isWorker && (
+    <>
+        {/* Candidature en attente ou acceptée → badge + bouton annuler */}
+        {job.alreadyApplied && !isRejected && !isCancelled ? (
+            <View>
+                <View style={styles.alreadyAppliedBadge}>
                     <Text style={styles.alreadyAppliedText}>Vous avez déjà postulé pour cette offre</Text>
-                  </View>
-                  {/* Bouton pour ANNULER la candidature */}
-                  <View style={{ marginTop: 15 }}>
-                    <NewButton title={isCancelling ? "Annulation..." : "Annuler ma candidature"} onPress={() => cancelApply()} disabled={isCancelling} style={{ backgroundColor: "#FF3B30" }} />
-                  </View>
                 </View>
-              ) : isRejected ? (
-								<View style={styles.alreadyAppliedBadge}>
-									<Text style={[styles.alreadyAppliedText, { color: '#FF3B30' }]}>
-										Votre candidature a été refusée
-									</Text>
-								</View>
-							) : (
-                job.canApply && <NewButton title={isApplying ? "En cours..." : "Postuler"} onPress={() => applyToJob()} disabled={isApplying} />
-              )}
-            </>
-          )}
+                <View style={{ marginTop: 15 }}>
+                    <NewButton
+                        title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
+                        onPress={() => cancelApply()}
+                        disabled={isCancelling}
+                        style={{ backgroundColor: "#FF3B30" }}
+                    />
+                </View>
+            </View>
+        ) : isCancelled ? (
+            // Candidature annulée → proposer de re-postuler
+            <View>
+                <View style={[styles.alreadyAppliedBadge, { backgroundColor: "#fff3e0", borderColor: "#e67e22" }]}>
+                    <Text style={[styles.alreadyAppliedText, { color: '#e67e22' }]}>
+                        Vous avez annulé cette candidature
+                    </Text>
+                </View>
+                <View style={{ marginTop: 15 }}>
+                    <NewButton
+                        title={isApplying ? "Repostulation..." : "Re-postuler"}
+                        onPress={() => applyToJob()}
+                        disabled={isApplying}
+                        style={{ backgroundColor: "#27ae60" }}
+                    />
+                </View>
+            </View>
+        ) : isRejected ? (
+            // Refusé par la company → ne peut plus re-postuler
+            <View style={styles.alreadyAppliedBadge}>
+                <Text style={[styles.alreadyAppliedText, { color: '#FF3B30' }]}>
+                    Votre candidature a été refusée
+                </Text>
+            </View>
+        ) : (
+            // Pas de candidature → peut postuler
+            job.canApply && (
+                <NewButton
+                    title={isApplying ? "En cours..." : "Postuler"}
+                    onPress={() => applyToJob()}
+                    disabled={isApplying}
+                />
+            )
+        )}
+    </>
+)}
 
           {/* SECTION COMPANY */}
           {!job.isWorker && (
@@ -347,27 +369,38 @@ export default function JobDetailScreen() {
                   </View>
 
                   <View style={styles.decisionRow}>
-										{offer.status === "ACCEPTED" ? (
-											<TouchableOpacity
-												style={[styles.actionButton, { backgroundColor: "#FF3B30", flex: 1 }]}
-												onPress={() => handleRejectAcceptedCandidate(offer.id)}
-												disabled={isRejecting}
-											>
-												<Text style={styles.actionButtonText}>
-													{isRejecting ? "En cours..." : "Annuler la candidature"}
-												</Text>
-											</TouchableOpacity>
-										) : (
-											<>
-												<TouchableOpacity style={[styles.actionButton, { backgroundColor: "#FF3B30" }]} onPress={() => cancelMutation(offer.id)} disabled={isCancellingCandidate}>
-													<Text style={styles.actionButtonText}>{isCancellingCandidate ? "En cours..." : "Refuser"}</Text>
-												</TouchableOpacity>
-
-												<TouchableOpacity style={[styles.actionButton, { backgroundColor: "#27ae60" }]} onPress={() => acceptMutation(offer.id)} disabled={isAccepting}>
-													<Text style={styles.actionButtonText}>{isAccepting ? "En cours..." : "Accepter"}</Text>
-												</TouchableOpacity>
-											</>
-										)}
+                    {offer.status === "ACCEPTED" ? (
+                      <TouchableOpacity
+                        style={[styles.actionButton, { backgroundColor: "#FF3B30", flex: 1 }]}
+                        onPress={() => cancelMutation(offer.id)}
+                        disabled={isCancellingCandidate}
+                      >
+                        <Text style={styles.actionButtonText}>
+                          {isCancellingCandidate ? "En cours..." : "Annuler la candidature"}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <>
+                        <TouchableOpacity
+                          style={[styles.actionButton, { backgroundColor: "#FF3B30" }]}
+                          onPress={() => rejectMutation(offer.id)}
+                          disabled={isRejecting}
+                        >
+                          <Text style={styles.actionButtonText}>
+                            {isRejecting ? "En cours..." : "Refuser"}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.actionButton, { backgroundColor: "#27ae60" }]}
+                          onPress={() => acceptMutation(offer.id)}
+                          disabled={isAccepting}
+                        >
+                          <Text style={styles.actionButtonText}>
+                            {isAccepting ? "En cours..." : "Accepter"}
+                          </Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
                   </View>
                 </View>
               ))

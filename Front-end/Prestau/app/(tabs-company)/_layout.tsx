@@ -47,15 +47,6 @@ export default function CompanyTabLayout() {
                     ),
                 }}
             />
-            <Tabs.Screen
-                name="Message"
-                options={{
-                    tabBarLabel: "Messages",
-                    tabBarIcon: ({ color, size }) => (
-                        <FontAwesome name="envelope" color={color} size={size} />
-                    ),
-                }}
-            />
         </Tabs>
     );
 }

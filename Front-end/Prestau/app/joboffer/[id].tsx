@@ -5,7 +5,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
-import { getJobOfferById, deleteJobOffer, JobOffer, JobOfferStatus } from "@/src/api/joboffer";
+import { getJobOfferById, deleteJobOffer, createJobOffer, JobOffer, JobOfferStatus } from "@/src/api/joboffer";
 import { jwtDecode } from "jwt-decode";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { JwtPayload } from "@/src/api/auth";
@@ -47,7 +47,7 @@ export default function JobOfferDetailScreen() {
 	const { mutate: cancelApply, isPending: isCancelling } = useMutation({
 		mutationFn: () => {
 			if (!jobOffer) throw new Error("JobOffer introuvable");
-			return deleteJobOffer(Number(jobOffer.job.id));
+			return deleteJobOffer(Number(jobOffer.jobId));
 		},
 		// En cas de succès, invalider les queries liées aux offres d'emploi du worker et rediriger vers le dashboard worker
 		onSuccess: () => {
@@ -60,6 +60,23 @@ export default function JobOfferDetailScreen() {
 		onError: (err: unknown) => {
 			console.error("Erreur lors de l'annulation :", err);
 			Alert.alert("Erreur", "Impossible d'annuler la candidature.");
+		},
+	});
+
+	// Mutation pour re-postuler à une offre
+	const { mutate: reApply, isPending: isReApplying } = useMutation({
+		mutationFn: () => {
+			if (!jobOffer) throw new Error("JobOffer introuvable");
+			return createJobOffer(Number(jobOffer.jobId));
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["joboffer", id] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard-worker-joboffers"] });
+			Alert.alert("Succès", "Vous avez repostulé à cette offre!");
+		},
+		onError: (err: unknown) => {
+			console.error("Erreur lors de la repostulation :", err);
+			Alert.alert("Erreur", "Impossible de repostuler à cette offre.");
 		},
 	});
 
@@ -87,6 +104,11 @@ export default function JobOfferDetailScreen() {
 		);
 	};
 
+	// Handler pour re-postuler
+	const handleReApply = () => {
+		reApply();
+	};
+
 	// Détermine la couleur du statut affiché
 	const getStatusColor = (status: string) => {
 		if (status === JobOfferStatus.REJECTED || status === JobOfferStatus.CANCELLED) return "#EE4832";
@@ -95,13 +117,17 @@ export default function JobOfferDetailScreen() {
 	};
 
 	// Détermine le label du statut affiché
-	const getStatusLabel = (status: string) => {
-		if (status === JobOfferStatus.REJECTED || status === JobOfferStatus.CANCELLED) return "Candidature refusée";
-		return status;
-	};
+  const getStatusLabel = (status: string) => {
+      if (status === JobOfferStatus.REJECTED) return "Candidature refusée";
+      if (status === JobOfferStatus.CANCELLED) return "Candidature annulée";
+      if (status === JobOfferStatus.PENDING) return "En attente";
+      if (status === JobOfferStatus.ACCEPTED) return "Candidature acceptée";
+      if (status === JobOfferStatus.COMPLETED) return "Mission terminée";
+      return status;
+  };
 
-	const isRejectedOrCancelled =
-		jobOffer?.status === JobOfferStatus.REJECTED || jobOffer?.status === JobOfferStatus.CANCELLED;
+  const isRejected = jobOffer?.status === JobOfferStatus.REJECTED;
+  const isCancelled = jobOffer?.status === JobOfferStatus.CANCELLED;
 
 	// Affichage d'un indicateur de chargement pendant la récupération des données
 	if (isLoading) {
@@ -184,20 +210,26 @@ export default function JobOfferDetailScreen() {
 				{/* ACTIONS : boutons disponibles selon le statut de la candidature */}
 				<View style={styles.buttonContainer}>
 
-					{/* Candidature refusée ou annulée */}
-					{isRejectedOrCancelled && (
-						<>
-							<View style={styles.rejectedBadge}>
-								<Text style={styles.rejectedText}>Votre candidature a été refusée</Text>
-							</View>
-							<NewButton
-								title={isCancelling ? "Suppression..." : "Supprimer cette candidature"}
-								onPress={handleDeleteRequest}
-								disabled={isCancelling}
-								style={styles.dangerButton}
-							/>
-						</>
-					)}
+					{/* Candidature REFUSÉE par la company → ne peut plus re-postuler */}
+		  {isRejected && (
+			  <View style={styles.rejectedBadge}>
+				  <Text style={styles.rejectedText}>Votre candidature a été refusée</Text>
+			  </View>
+		  )}
+				{/* Candidature ANNULÉE → proposer de re-postuler */}
+				{isCancelled && (
+					<>
+						<View style={styles.cancelledBadge}>
+							<Text style={styles.cancelledText}>Vous avez annulé cette candidature</Text>
+						</View>
+						<NewButton
+							title={isReApplying ? "Repostulation..." : "Re-postuler"}
+							onPress={handleReApply}
+							disabled={isReApplying}
+							style={styles.reapplyButton}
+						/>
+					</>
+				)}
 					{/* Mission terminée sans avis → proposer de laisser un avis */}
 					{jobOffer.status === JobOfferStatus.COMPLETED && !jobOffer.hasReviewed && (
 						<NewButton
@@ -216,7 +248,7 @@ export default function JobOfferDetailScreen() {
 					{/* Candidature en cours → badge informatif */}
 					{from !== "dashboard" &&
 						jobOffer.status !== JobOfferStatus.COMPLETED &&
-						!isRejectedOrCancelled && (
+						!isRejected && !isCancelled && (
 							<View style={styles.alreadyAppliedBadge}>
 								<Text style={styles.alreadyAppliedText}>
 									Vous avez déjà postulé pour cette offre
@@ -226,7 +258,7 @@ export default function JobOfferDetailScreen() {
 
 					{/* Annuler la candidature (worker uniquement, avec confirmation) */}
 					{jobOffer.status !== JobOfferStatus.COMPLETED &&
-						!isRejectedOrCancelled &&
+						!isRejected && !isCancelled &&
 						role === "WORKER" && (
 							<NewButton
 								title={isCancelling ? "Annulation..." : "Annuler ma candidature"}
@@ -396,6 +428,24 @@ const getStyles = (scale: (n: number) => number, scaleFont: (n: number) => numbe
 		},
 		cancelButton: {
 			backgroundColor: "#EE4832",
+			marginTop: 15,
+		},
+		cancelledBadge: {
+			backgroundColor: "#fff3e0",
+			padding: 15,
+			borderRadius: 12,
+			borderWidth: 1,
+			borderColor: "#e67e22",
+			alignItems: "center",
+		},
+		cancelledText: {
+			color: "#e67e22",
+			fontWeight: "600",
+			fontSize: 14,
+			textAlign: "center",
+		},
+		reapplyButton: {
+			backgroundColor: "#27ae60",
 			marginTop: 15,
 		},
 		reviewButton: {

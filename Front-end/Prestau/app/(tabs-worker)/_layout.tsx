@@ -38,22 +38,13 @@ export default function WorkerTabLayout() {
 					),
 				}}
 			/>
-			
+
             <Tabs.Screen
                 name="ProfileWorker"
                 options={{
                     tabBarLabel: "Profile",
                     tabBarIcon: ({ color, size }) => (
                         <FontAwesome name="user" color={color} size={size} />
-                    ),
-                }}
-            />
-						<Tabs.Screen
-                name="Message"
-                options={{
-                    tabBarLabel: "Messages",
-                    tabBarIcon: ({ color, size }) => (
-                        <FontAwesome name="envelope" color={color} size={size} />
                     ),
                 }}
             />
