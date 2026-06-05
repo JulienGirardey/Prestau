@@ -365,22 +365,22 @@ export class JobofferService {
         // Pour chaque jobOffer, ajouter hasReviewed et receivedRating
         return Promise.all(
             jobOffers.map(async (offer) => {
-							// Récupérer l'avis que l'utilisateur a laissé pour cette mission, s'il existe
+						// Récupérer l'avis que l'utilisateur a laissé pour cette candidature, s'il existe
                 const existingReview = await this.Prisma.review.findFirst({
-                    where: { jobId: offer.jobId, reviewerId: userId },
+                    where: { jobOfferId: offer.id, reviewerId: userId },
                 });
-							// Récupérer la note reçue de l'autre partie
+						// Récupérer la note reçue de l'autre partie
                 const receivedReview = await this.Prisma.review.findFirst({
-                    where: { jobId: offer.jobId, revieweeId: userId },
+                    where: { jobOfferId: offer.id, revieweeId: userId },
                 });
 
                 return {
                     ...offer, // Inclure les données de base de l'offre
-                    hasReviewed: !!existingReview, // Indique si l'utilisateur a déjà laissé un avis pour cette mission
+                    hasReviewed: !!existingReview, // Indique si l'utilisateur a déjà laissé un avis pour cette candidature
                     hasBeenReviewedByOtherParty: !!receivedReview, // Indique si l'autre partie a laissé un avis
                     myRating: existingReview?.rating ?? null, // Indique la note que l'utilisateur a laissée, ou null s'il n'a pas encore laissé d'avis
                     myComment: existingReview?.comment ?? null, // Indique le commentaire que l'utilisateur a laissé, ou null s'il n'a pas encore laissé d'avis
-                                        // La note reçue n'est visible que si les deux parties ont reviewé
+                    // La note reçue n'est visible que si les deux parties ont reviewé
                     receivedRating: existingReview && receivedReview ? receivedReview.rating : null, // Indique la note que l'utilisateur a reçue de l'autre partie, ou null s'il n'a pas encore reçu d'avis
                     receivedComment: existingReview && receivedReview ? receivedReview.comment : null, // Indique le commentaire que l'utilisateur a reçue de l'autre partie, ou null s'il n'a pas encore reçu d'avis
                 };
@@ -405,13 +405,13 @@ export class JobofferService {
             throw new NotFoundException(`JobOffer with ID ${id} not found`);
         }
 
-        // Récupérer l'avis que l'utilisateur a laissé pour cette mission, s'il existe
+        // Récupérer l'avis que l'utilisateur a laissé pour cette candidature, s'il existe
         const existingReview = await this.Prisma.review.findFirst({
-            where: { jobId: jobOffer.jobId, reviewerId: userId },
+            where: { jobOfferId: jobOffer.id, reviewerId: userId },
         });
 
         const receivedReview = await this.Prisma.review.findFirst({
-            where: { jobId: jobOffer.jobId, revieweeId: userId },
+            where: { jobOfferId: jobOffer.id, revieweeId: userId },
         });
 
         return {

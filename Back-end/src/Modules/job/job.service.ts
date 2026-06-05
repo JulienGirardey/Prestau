@@ -129,9 +129,10 @@ export class JobService {
 					where: { userId }
 				});
 				if (company) {
+					// Récupérer tous les jobOffers pour ce job et vérifier s'il y a une review
 					const existingReview = await this.prisma.review.findFirst({
 						where: {
-							jobId: id,
+							jobOffer: { jobId: id },
 							reviewerId: userId
 						}
 					});

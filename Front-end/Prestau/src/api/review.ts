@@ -3,7 +3,7 @@ import api from './axios';
 export interface CreateReviewPayload {
     rating: number;
     comment?: string;
-    jobId: number;
+    jobOfferId: number;
     reviewerType: string;
     reviewerId: number;
     revieweeType: string;

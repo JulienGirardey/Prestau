@@ -63,7 +63,7 @@ export default function ReviewScreen() {
 			return createReview({
 				rating,
 				comment: comment || undefined,
-				jobId: jobOffer!.job.id,
+				jobOfferId: Number(id),
 				reviewerType,
 				revieweeType,
 				revieweeId,
