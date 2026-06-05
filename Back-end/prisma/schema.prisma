@@ -117,6 +117,7 @@ model JobOffer {
 	worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 	messages            Message[]
 	reviews     Review[]
+  @@unique([workerId, jobId])
   @@index([jobId], name: "idx_jobId")
   @@index([workerId], name: "idx_workerId")
 }
