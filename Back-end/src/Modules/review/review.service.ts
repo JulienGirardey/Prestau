@@ -14,10 +14,10 @@ export class ReviewService {
             throw new BadRequestException('Vous ne pouvez pas vous évaluer vous-même.');
         }
 
-				// Vérifier si l'utilisateur a déjà posté un avis pour ce job
+				// Vérifier si l'utilisateur a déjà posté un avis pour cette candidature
     const existingReview = await this.Prisma.review.findFirst({
         where: {
-            jobId: createReviewDto.jobId,
+            jobOfferId: createReviewDto.jobOfferId,
             reviewerId: userId,
         },
     });
@@ -34,7 +34,7 @@ export class ReviewService {
         });
     }
 
-	// Récupérer une review par ID 
+	// Récupérer une review par ID
     async findOne(id: number): Promise<Review> {
         const review = await this.Prisma.review.findUnique({
             where: { id },

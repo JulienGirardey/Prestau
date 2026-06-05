@@ -21,7 +21,7 @@ export class CreateReviewDto {
   comment?: string;
 
   @IsInt()
-  jobId!: number;
+  jobOfferId!: number;
 
   @IsString()
   reviewerType!: string;

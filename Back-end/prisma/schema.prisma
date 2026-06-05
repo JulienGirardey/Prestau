@@ -90,7 +90,6 @@ model Job {
 
 	company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jobOffers   JobOffer[]
-	reviews     Review[]
   @@index([companyId], name: "idx_companyId")
 }
 enum JobStatus {
@@ -117,6 +116,8 @@ model JobOffer {
 	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 	worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 	messages            Message[]
+	reviews     Review[]
+  @@unique([workerId, jobId])
   @@index([jobId], name: "idx_jobId")
   @@index([workerId], name: "idx_workerId")
 }
@@ -133,7 +134,7 @@ model Review {
   id          Int      @id @default(autoincrement())
   rating      Int
   comment     String?  @db.Text
-  jobId       Int
+  jobOfferId  Int?
   reviewerType   String   @db.VarChar(50)
   reviewerId     Int
   revieweeType   String   @db.VarChar(50)
@@ -142,9 +143,9 @@ model Review {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+	jobOffer    JobOffer? @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
 
-	@@index([jobId], name: "idx_review_jobId")
+	@@index([jobOfferId], name: "idx_review_jobOfferId")
   @@index([reviewerId, reviewerType], name: "idx_reviewer")
   @@index([revieweeId, revieweeType], name: "idx_reviewee")
 }
