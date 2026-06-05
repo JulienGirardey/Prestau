@@ -11,20 +11,15 @@ export interface JwtPayload {
 
 export const register = async (email: string, password: string, role: 'WORKER' | 'COMPANY') => {
   const response = await api.post('/auth/register', { email, password, role });
-  console.log('Réponse register:', response.data);
   await SecureStore.setItemAsync('access_token', response.data.access_token);
-  if (response.data.refresh_token) {
-    await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
-  }
+  await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
   return response.data;
 };
 
 export const login = async (email: string, password: string) => {
   const response = await api.post('/auth/login', { email, password });
   await SecureStore.setItemAsync('access_token', response.data.access_token);
-  if (response.data.refresh_token) {
-    await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
-  }
+  await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
   return response.data;
 };
 
@@ -41,10 +36,9 @@ export const logout = async () => {
 
 export const refreshToken = async () => {
   const token = await SecureStore.getItemAsync('refresh_token');
+  if (!token) throw new Error('No refresh token available'); // cas où le token aurait déjà été supprimé
   const response = await api.post('/auth/refresh-token', { refreshToken: token });
   await SecureStore.setItemAsync('access_token', response.data.access_token);
-  if (response.data.refresh_token) {
-    await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
-  }
+  await SecureStore.setItemAsync('refresh_token', response.data.refresh_token);
   return response.data;
 };

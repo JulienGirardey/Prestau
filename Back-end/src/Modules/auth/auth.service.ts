@@ -61,7 +61,7 @@ export class AuthService {
 
 		return {
 			access_token,
-			refreshToken, // retourne en clair pour etre stocke cote client
+			refresh_token : refreshToken, // retourne en clair pour etre stocke cote client
 			user: {
 				id: newUser.id,
 				email: newUser.email,
@@ -78,7 +78,7 @@ export class AuthService {
 		const user = await this.prisma.users.findUnique({
 			where: { email: loginDto.email }
 		});
- 
+
 		// Check si le user existe
 		if (!user) {
 			throw new UnauthorizedException('Invalid credentials');
@@ -137,7 +137,7 @@ export class AuthService {
 
 		return {
 			access_token,
-			refreshToken, // retourne en clair pour etre stocke cote client
+			refresh_token: refreshToken, // retourne en clair pour etre stocke cote client
 			user: {
 				id: user.id,
 				email: user.email,
@@ -229,8 +229,8 @@ export class AuthService {
 			});
 
 			return {
-				accessToken: newAccessToken,
-				refreshToken: newRefreshToken, // retourne en clair pour le client
+				access_token: newAccessToken,
+				refresh_token: newRefreshToken, // retourne en clair pour le client
 			};
 
 		} catch (error) {
