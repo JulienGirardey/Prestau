@@ -133,7 +133,7 @@ model Review {
   id          Int      @id @default(autoincrement())
   rating      Int
   comment     String?  @db.Text
-  jobId       Int
+  jobId       Int?
   reviewerType   String   @db.VarChar(50)
   reviewerId     Int
   revieweeType   String   @db.VarChar(50)
@@ -142,7 +142,7 @@ model Review {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+	job         Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
 	@@index([jobId], name: "idx_review_jobId")
   @@index([reviewerId, reviewerType], name: "idx_reviewer")
