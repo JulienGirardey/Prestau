@@ -126,7 +126,7 @@ export class JobofferService {
             );
         }
 
-        // Accepter la candidature sélectionnée + passer le job en IN_PROGRESS
+        // On accepte la candidature et on marque selected_by_company à true
         const updatedOffer = await this.Prisma.jobOffer.update({
             where: { id },
             data: {

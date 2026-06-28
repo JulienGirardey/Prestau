@@ -25,15 +25,17 @@ export class JobController {
 		return this.jobService.findAll(req.user, search);
 	}
 
-  	@Get('my-jobs') // Endpoint pour récupérer les jobs d'une entreprise spécifique
+  @Get('my-jobs') // Endpoint pour récupérer les jobs d'une entreprise spécifique
+  @UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company
+  @Roles(Role.COMPANY) // Seules les entreprises peuvent récupérer leurs propres jobs
 	findMyJobs(@Req() req: CurrentUserRequest) {
 		return this.jobService.findByUserId(req.user.id);
 	}
 
-    @Get(':id')
-    findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
-        return this.jobService.findOne(id, req.user.id);
-    }
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: CurrentUserRequest) {
+      return this.jobService.findOne(id, req.user.id);
+  }
 
 	@Patch(':id')
 	@UseGuards(RolesGuard) // pour vérifier que l'utilisateur a le rôle de company

@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, NotFoundException, ForbiddenException 
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PrismaService } from '../../prisma.service';
 import { Review } from '@prisma/client';
-import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
 export class ReviewService {
@@ -32,18 +31,5 @@ export class ReviewService {
                 reviewerId: userId,
             },
         });
-    }
-
-	// Récupérer une review par ID
-    async findOne(id: number): Promise<Review> {
-        const review = await this.Prisma.review.findUnique({
-            where: { id },
-        });
-
-        if (!review) {
-            throw new NotFoundException(`Avis introuvable.`);
-        }
-
-        return review;
     }
 }
