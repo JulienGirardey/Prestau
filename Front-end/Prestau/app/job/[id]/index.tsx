@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Modal, TouchableOpacity } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { getJobById } from "@/src/api/job";
-import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer, deleteJob, JobOfferStatus } from "@/src/api/joboffer"; // Import de la fonction de suppression
+import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer, deleteJob } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

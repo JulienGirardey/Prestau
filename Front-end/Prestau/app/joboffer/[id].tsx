@@ -92,18 +92,6 @@ export default function JobOfferDetailScreen() {
 		);
 	};
 
-	// Alerte de confirmation avant de supprimer une candidature refusée
-	const handleDeleteRequest = () => {
-		Alert.alert(
-			"Supprimer la candidature",
-			"Êtes-vous sûr de vouloir supprimer cette candidature ? Cette action est irréversible.",
-			[
-				{ text: "Retour", style: "cancel" },
-				{ text: "Supprimer", style: "destructive", onPress: () => cancelApply() },
-			]
-		);
-	};
-
 	// Handler pour re-postuler
 	const handleReApply = () => {
 		reApply();
