@@ -1,0 +1,35 @@
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { PrismaService } from '../../prisma.service';
+import { Review } from '@prisma/client';
+
+@Injectable()
+export class ReviewService {
+    constructor(private Prisma: PrismaService) { }
+
+    async create(createReviewDto: CreateReviewDto, userId: number): Promise<Review> {
+        // Empêcher l'auto-évaluation
+        if (userId === createReviewDto.revieweeId) {
+            throw new BadRequestException('Vous ne pouvez pas vous évaluer vous-même.');
+        }
+
+				// Vérifier si l'utilisateur a déjà posté un avis pour cette candidature
+    const existingReview = await this.Prisma.review.findFirst({
+        where: {
+            jobOfferId: createReviewDto.jobOfferId,
+            reviewerId: userId,
+        },
+    });
+
+    if (existingReview) {
+        throw new BadRequestException('Vous avez déjà posté un avis pour cette mission.');
+    }
+
+        return this.Prisma.review.create({
+            data: {
+                ...createReviewDto,
+                reviewerId: userId,
+            },
+        });
+    }
+}

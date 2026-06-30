@@ -5,9 +5,161 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  companyName String   @db.VarChar(255)
+  address     String  @db.VarChar(255)
+	postalCode  Int
+	city        String  @db.VarChar(100)
+  siret       String  @db.VarChar(14)
+	phoneNumber String  @db.VarChar(20)
+  establishment_type String  @db.VarChar(100)
+  description  String?  @db.Text
+  website     String?  @db.VarChar(255)
+  social_media String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+	userId      Int      @unique
+  user       	Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+	jobs        Job[]
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      Role
+  refreshToken  String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company?
+	worker    Worker?
+}
+enum Role {
+	COMPANY
+	WORKER
+}
+
+model Worker {
+  id           Int      @id @default(autoincrement())
+  firstName    String   @db.VarChar(100)
+  lastName     String   @db.VarChar(100)
+  dateOfBirth  DateTime?
+  city         String  @db.VarChar(100)
+  postalCode   Int
+  photoURL     String?  @db.VarChar(255)
+  profession   String  @db.VarChar(100)
+  experience_years Int?
+  languages    String  @db.Text
+  qualifications String?  @db.Text
+  cv_url       String?  @db.VarChar(255)
+  availability  Boolean  @default(true)
+  phoneNumber  String  @db.VarChar(20)
+  skills       String  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  freeDays     String[] @default([])
+  busyDays     String[] @default([])
+
+	userId       Int       @unique
+  user         Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+	jobOffers        JobOffer[]
+}
+
+model Job {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(100)
+  description String   @db.Text
+  salary      Float
+  start_time  DateTime
+  end_time    DateTime
+  companyId   Int
+  status      JobStatus @default(OPEN)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+	company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jobOffers   JobOffer[]
+  @@index([companyId], name: "idx_companyId")
+}
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model JobOffer {
+  id          Int      @id @default(autoincrement())
+  request_at DateTime @default(now())
+  response_at DateTime?
+  contract_url String?  @db.VarChar(255)
+  contract_signed Boolean? @default(false)
+  signed_at   DateTime?
+  selected_by_company Boolean? @default(false)
+  jobId       Int
+  workerId    Int
+  status      JobOfferStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+	job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+	worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+	messages            Message[]
+	reviews     Review[]
+  @@unique([workerId, jobId])
+  @@index([jobId], name: "idx_jobId")
+  @@index([workerId], name: "idx_workerId")
+}
+enum JobOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  rating      Int
+  comment     String?  @db.Text
+  jobOfferId  Int?
+  reviewerType   String   @db.VarChar(50)
+  reviewerId     Int
+  revieweeType   String   @db.VarChar(50)
+  revieweeId     Int
+  is_visible  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+	jobOffer    JobOffer? @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
+
+	@@index([jobOfferId], name: "idx_review_jobOfferId")
+  @@index([reviewerId, reviewerType], name: "idx_reviewer")
+  @@index([revieweeId, revieweeType], name: "idx_reviewee")
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  jobOfferId  Int
+  senderId    Int
+  receiverId  Int
+  content     String   @db.Text
+  sentAt      DateTime @default(now())
+  is_read     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+	jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
 }
