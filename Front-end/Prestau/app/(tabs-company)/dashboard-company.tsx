@@ -4,7 +4,6 @@ import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
 import { getMyJobs, Job } from "@/src/api/job";
 import { ThemedText } from "@/components/ThemedText";
-import { NewButton } from "@/components/Button";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
@@ -40,7 +39,7 @@ export default function DashboardCompany() {
 	if (errorMyJobs) return <Text>Erreur lors de la récupération des missions</Text>;
 
 	return (
-		<View style={[styles.page, { backgroundColor: colors.background }]}> 
+		<View style={[styles.page, { backgroundColor: colors.background }]}>
 			<Header />
 			<ThemedText
 				variant="headline"
@@ -96,7 +95,7 @@ export default function DashboardCompany() {
 												)}
 											</View>
 											{/* Badge salaire */}
-											<View style={styles.salaryBadge}> 
+											<View style={styles.salaryBadge}>
 												<Text style={styles.salaryText}>
 													{job.salary}€
 												</Text>
@@ -117,12 +116,12 @@ export default function DashboardCompany() {
 											{job.description}
 										</Text>
 										{/* Séparateur */}
-										<View style={styles.separator} /> 
+										<View style={styles.separator} />
 
 										{/* Dates de début et fin */}
 										<View style={styles.dateRow}>
 											{/* Date de début */}
-											<View style={styles.dateItem}> 
+											<View style={styles.dateItem}>
 												<Text style={styles.dateLabel}>Début</Text>
 												<Text style={styles.dateValue}>
 													{new Date(job.start_time).toLocaleDateString()}
@@ -130,7 +129,7 @@ export default function DashboardCompany() {
 											</View>
 											<View style={styles.dateSeparator} />
 											{/* Date de fin */}
-											<View style={styles.dateItem}> 
+											<View style={styles.dateItem}>
 												<Text style={styles.dateLabel}>Fin</Text>
 												<Text style={styles.dateValue}>
 													{new Date(job.end_time).toLocaleDateString()}

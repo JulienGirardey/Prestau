@@ -3,11 +3,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Header } from "@/components/Header";
 import { DefaultCard } from "@/components/DefaultCard";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback} from "react";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { getWorkerAvailability, updateWorkerAvailability } from "@/src/api/worker";
+import { getWorkerAvailability } from "@/src/api/worker";
 import { JobOffer, getJobOffersByWorker } from "@/src/api/joboffer";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
 // Hook responsive
@@ -31,23 +31,21 @@ LocaleConfig.defaultLocale = 'fr';
 export default function DashboardWorker() {
   const colors = useThemeColors();
   const { scale, scaleFont } = useResponsive();
-  const styles = getStyles(scale, scaleFont);
+  const styles = useMemo(() => getStyles(scale, scaleFont), [scale, scaleFont]);
 	const router = useRouter();
 
     // Récupération des disponibilités via React Query
-    const { data: availability, isLoading: isLoadingAvailability, error: errorAvailability } = useQuery({
+    const { isLoading: isLoadingAvailability, error: errorAvailability } = useQuery({
         queryKey: ["dashboard-worker-availability"],
         queryFn: () => getWorkerAvailability(),
     });
 
     // Récupération des offres d'emploi via React Query
-    const { data: joboffers = [], isLoading: isLoadingJoboffer, error: errorJoboffer, refetch: refetchJobOffers } = useQuery<JobOffer[]>({
+    const { data: joboffers = [], isLoading: isLoadingJoboffer, error: errorJoboffer } = useQuery<JobOffer[]>({
         queryKey: ["dashboard-worker-joboffers"],
         queryFn: () => getJobOffersByWorker(),
         refetchInterval: 5000, // Rafraîchissement toutes les 5 secondes
     });
-
-    // ...existing code...
 
 // Construction de l'objet pour la coloration du calendrier (uniquement aujourd'hui)
     const markedDates = useMemo(() => {
@@ -63,10 +61,10 @@ export default function DashboardWorker() {
         return marks;
     }, []);
 
-	const formatMissionDate = (start: string, end: string) => {
+	const formatMissionDate = useCallback((start: string, end: string) => {
 		const options: Intl.DateTimeFormatOptions = { dateStyle: 'short', timeStyle: 'short' };
 		return `${new Date(start).toLocaleString('fr-FR', options)} - ${new Date(end).toLocaleString('fr-FR', options)}`;
-	};
+	}, []);
 
 	const activeMissions = useMemo(() => {
     return joboffers.filter(offer => {
@@ -132,7 +130,7 @@ const renderMissionCard = useCallback(({ item }: { item: JobOffer }) => {
             </View>
         </Pressable>
     );
-}, [router, scale, scaleFont]);
+}, [router, styles, formatMissionDate]);
 
   if (isLoadingAvailability || isLoadingJoboffer) return <Text>Chargement...</Text>;
 	if (errorAvailability || errorJoboffer) return <Text>Erreur lors de la récupération des données</Text>;

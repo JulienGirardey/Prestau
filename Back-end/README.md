@@ -1,22 +1,22 @@
 # Prestau — Back-end
 
-> **[🇫🇷 Version française ci-dessous](#-prestau--back-end-1)**
+> **[🇫🇷 Version française ci-dessous](#-prestau--back-end)**
 
 ---
 
 ## Table of Contents
 
-- [Overview](#-overview)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Environment Variables](#-environment-variables)
-- [Database Setup](#-database-setup)
-- [Running the Application](#-running-the-application)
-- [Available Scripts](#-available-scripts)
-- [Project Architecture](#-project-architecture)
-- [Database Schema](#-database-schema)
-- [API Reference](#-api-reference)
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Database Setup](#database-setup)
+- [Running the Application](#running-the-application)
+- [Available Scripts](#available-scripts)
+- [Project Architecture](#project-architecture)
+- [Database Schema](#database-schema)
+- [API Reference](#api-reference)
   - [Authentication](#authentication---auth)
   - [Users](#users---user)
   - [Companies](#companies---company)
@@ -25,10 +25,10 @@
   - [Job Offers](#job-offers---joboffer)
   - [Messages](#messages---message)
   - [Reviews](#reviews---review)
-- [Authentication Flow](#-authentication-flow)
-- [Role-Based Access Control](#-role-based-access-control)
-- [Testing](#-testing)
-- [Migration History](#-migration-history)
+- [Authentication Flow](#authentication-flow)
+- [Role-Based Access Control](#role-based-access-control)
+- [Testing](#testing)
+- [Migration History](#migration-history)
 
 ---
 
@@ -268,7 +268,7 @@ Back-end/
 
 ```
 ┌──────────┐       ┌───────────┐       ┌──────────┐
-│  Users   │───1:1─│  Company  │───1:N─│   Job    │
+│  Users   │───1:1─│  Company  │───0:N─│   Job    │
 │          │       └───────────┘       │          │
 │ id       │                           │ id       │
 │ email    │       ┌───────────┐       │ title    │
@@ -278,12 +278,12 @@ Back-end/
 │ Token    │       │ firstName │            │
 └──────────┘       │ lastName  │            │ 1:N
                    │ skills    │       ┌────┴─────┐
-                   │ freeDays  │───1:N─│ JobOffer │───1:N─┌──────────┐
-                   │ busyDays  │       │          │       │ Message  │
+                   │           │───0:N─│ JobOffer │───0:N─┌──────────┐
+                   │           │       │          │       │ Message  │
                    └───────────┘       │ id       │       │          │
                                        │ status   │       │ content  │
                                        └────┬─────┘       │ senderId │
-                                            │             │ is_read  │
+                                           0:2            │ is_read  │
                                        ┌────┴─────┐       └──────────┘
                                        │  Review  │
                                        │          │
@@ -743,7 +743,7 @@ Worker applies → PENDING
         ┌───────────┼───────────┐
         ▼           ▼           ▼
     ACCEPTED     REJECTED    CANCELLED
-        │                    (by company)
+        │                   
         │
         ▼
     COMPLETED
@@ -787,20 +787,6 @@ Returns completed offers with review information:
 | `GET` | `/message` | ✅ | Any | Get all messages |
 | `GET` | `/message/:id` | ✅ | Any | Get a specific message |
 
-<details>
-<summary><strong>POST /message</strong></summary>
-
-**Request Body:**
-```json
-{
-  "content": "Hello, I'm interested in this position!",
-  "jobOfferId": 1
-}
-```
-
-**Note:** The `receiverId` is automatically determined based on the sender's role and the job offer context. Only participants (company owner or applicant worker) can send messages.
-</details>
-
 ---
 
 ### Reviews — `/review`
@@ -839,45 +825,45 @@ Returns completed offers with review information:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                  REGISTRATION                        │
-│  POST /auth/register                                 │
-│  { email, password, role }                           │
-│  → Returns: access_token (15min) + refreshToken (7d) │
+│                  REGISTRATION                       │
+│  POST /auth/register                                │
+│  { email, password, role }                          │
+│  → Returns: access_token (15min) + refreshToken (7d)│
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│               PROFILE CREATION                       │
-│  POST /company  (if role = COMPANY)                  │
-│  POST /worker   (if role = WORKER)                   │
-│  → Creates the associated profile                    │
+│               PROFILE CREATION                      │
+│  POST /company  (if role = COMPANY)                 │
+│  POST /worker   (if role = WORKER)                  │
+│  → Creates the associated profile                   │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│                    LOGIN                             │
-│  POST /auth/login                                    │
-│  { email, password }                                 │
-│  → Validates profile exists                          │
-│  → Returns: access_token (15min) + refreshToken (7d) │
+│                    LOGIN                            │
+│  POST /auth/login                                   │
+│  { email, password }                                │
+│  → Validates profile exists                         │
+│  → Returns: access_token (15min) + refreshToken (7d)│
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│              AUTHENTICATED REQUESTS                  │
-│  Authorization: Bearer <access_token>                │
-│  → Access protected endpoints                        │
+│              AUTHENTICATED REQUESTS                 │
+│  Authorization: Bearer <access_token>               │
+│  → Access protected endpoints                       │
 └──────────────────────┬──────────────────────────────┘
                        │
           Token expires (15 min)
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│                TOKEN REFRESH                         │
-│  POST /auth/refresh-token                            │
-│  { refreshToken }                                    │
-│  → Returns: new access_token + new refreshToken      │
-│  → Token rotation (old refreshToken invalidated)     │
+│                TOKEN REFRESH                        │
+│  POST /auth/refresh-token                           │
+│  { refreshToken }                                   │
+│  → Returns: new access_token + new refreshToken     │
+│  → Token rotation (old refreshToken invalidated)    │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -909,9 +895,6 @@ The API implements a dual-guard system:
 | View available jobs | ✅ (own) | ✅ (all) |
 | Send messages | ✅ | ✅ |
 | Leave reviews | ✅ | ✅ |
-| View company profiles | ❌ | ✅ |
-| View worker profiles | ✅ | ❌ |
-| Manage availability calendar | ❌ | ✅ |
 
 ---
 
@@ -921,11 +904,6 @@ The API implements a dual-guard system:
 # Run all tests
 npm test
 
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage report
-npm run test:cov
 ```
 
 Test files are located alongside their source files with the `.spec.ts` suffix. The project uses **Jest** as the testing framework with **@nestjs/testing** for module mocking.
@@ -954,29 +932,30 @@ Modules with test coverage:
 | 7 | `20260308221621_add_postal_code_and_city_company` | Add city & postal code to Company |
 | 8 | `20260309004650_remove_address_from_job` | Remove address from Job |
 | 9 | `20260309143732_add_cascade_delete` | Change all FK constraints to CASCADE delete |
+| 10 | `20260605_change_review_to_joboffer` | Link the review to the application rather than the assignment. |
+| 11 | `20260605_add_unique_worker_job_offer` | adds a uniqueness constraint|
+
 
 ---
 ---
 
-# Prestau — Back-end
-
-> **🇫🇷 Version française**
+# 🇫🇷 Prestau — Back-end
 
 ---
 
 ## Table des matières
 
-- [Présentation](#-présentation)
-- [Stack technique](#-stack-technique)
-- [Prérequis](#-prérequis)
-- [Installation](#-installation-1)
-- [Variables d'environnement](#-variables-denvironnement)
-- [Configuration de la base de données](#-configuration-de-la-base-de-données)
-- [Lancement de l'application](#-lancement-de-lapplication)
-- [Scripts disponibles](#-scripts-disponibles)
-- [Architecture du projet](#-architecture-du-projet)
-- [Schéma de la base de données](#-schéma-de-la-base-de-données-1)
-- [Référence API](#-référence-api)
+- [Présentation](#présentation)
+- [Stack technique](#stack-technique)
+- [Prérequis](#prérequis)
+- [Installation](#installation-1)
+- [Variables d'environnement](#variables-denvironnement)
+- [Configuration de la base de données](#configuration-de-la-base-de-données)
+- [Lancement de l'application](#lancement-de-lapplication)
+- [Scripts disponibles](#scripts-disponibles)
+- [Architecture du projet](#architecture-du-projet)
+- [Schéma de la base de données](#schéma-de-la-base-de-données)
+- [Référence API](#référence-api)
   - [Authentification](#authentification---auth)
   - [Utilisateurs](#utilisateurs---user)
   - [Entreprises](#entreprises---company)
@@ -985,10 +964,10 @@ Modules with test coverage:
   - [Candidatures](#candidatures---joboffer)
   - [Messages](#messages---message-1)
   - [Avis](#avis---review)
-- [Flux d'authentification](#-flux-dauthentification)
-- [Contrôle d'accès par rôle](#-contrôle-daccès-par-rôle)
-- [Tests](#-tests)
-- [Historique des migrations](#-historique-des-migrations)
+- [Flux d'authentification](#flux-dauthentification)
+- [Contrôle d'accès par rôle](#contrôle-daccès-par-rôle)
+- [Tests](#tests)
+- [Historique des migrations](#historique-des-migrations)
 
 ---
 
@@ -1177,19 +1156,19 @@ Back-end/
 │  Users   │───1:1─│ Entreprise│───1:N─│ Mission  │
 │          │       └───────────┘       │          │
 │ id       │                           │ id       │
-│ email    │       ┌───────────┐       │ titre    │
-│ password │───1:1─│Travailleur│       │ salaire  │
-│ rôle     │       │           │       │ statut   │
-│ refresh  │       │ id        │       └────┬─────┘
-│ Token    │       │ prénom    │            │
-└──────────┘       │ nom       │            │ 1:N
-                   │ compétences│      ┌────┴──────┐
-                   │ joursLibres│──1:N─│Candidature│───1:N─┌──────────┐
-                   │joursOccupés│      │           │       │ Message  │
-                   └───────────┘       │ id        │       │          │
+│ email    │       ┌─────────────┐     │ titre    │
+│ password │───1:1─│ Travailleur │     │ salaire  │
+│ rôle     │       │             │     │ statut   │
+│ refresh  │       │ id          │     └────┬─────┘
+│ Token    │       │ prénom      │          │
+└──────────┘       │ nom         │          │ 0:N
+                   │ compétences │     ┌────┴──────┐
+                   │             │─0:N─│Candidature│       ┌──────────┐
+                   │             │     │           │───0:N─│ Message  │
+                   └─────────────┘     │ id        │       │          │
                                        │ statut    │       │ contenu  │
                                        └────┬──────┘       │ lu       │
-                                            │              └──────────┘
+                                           0:2             └──────────┘
                                        ┌────┴─────┐
                                        │   Avis   │
                                        │          │
@@ -1497,30 +1476,9 @@ Tous les endpoints protégés nécessitent l'en-tête `Authorization: Bearer <to
 ```
 
 **Requis :** `firstName`, `lastName`, `city`, `postalCode`, `profession`, `languages`, `phoneNumber`, `skills`  
-**Optionnel :** `dateOfBirth`, `photoURL`, `experience_years`, `qualifications`, `cv_url`, `availability`
+**Optionnel :** `dateOfBirth`, `photoURL`, `experience_years`, `qualifications`, `cv_url`, ``
 </details>
 
-<details>
-<summary><strong>PATCH /worker/availability</strong></summary>
-
-**Corps de la requête :**
-```json
-{
-  "date": "2026-03-15",
-  "status": "busy"
-}
-```
-
-**Valeurs de status :** `free` (libre) | `busy` (occupé) | `neutral` (neutre)
-
-**Réponse (200) :**
-```json
-{
-  "freeDays": ["2026-03-10", "2026-03-12"],
-  "busyDays": ["2026-03-15", "2026-03-20"]
-}
-```
-</details>
 
 ---
 
@@ -1587,7 +1545,7 @@ Le travailleur postule → PENDING (en attente)
                 ┌───────────┼───────────┐
                 ▼           ▼           ▼
            ACCEPTED      REJECTED    CANCELLED
-          (acceptée)    (refusée)    (annulée)
+          (acceptée)    (refusée)   
                 │
                 ▼
            COMPLETED
@@ -1610,20 +1568,6 @@ Le travailleur postule → PENDING (en attente)
 | `POST` | `/message` | ✅ | Tous | Envoyer un message |
 | `GET` | `/message` | ✅ | Tous | Obtenir tous ses messages |
 | `GET` | `/message/:id` | ✅ | Tous | Obtenir un message spécifique |
-
-<details>
-<summary><strong>POST /message</strong></summary>
-
-**Corps de la requête :**
-```json
-{
-  "content": "Bonjour, je suis intéressé par ce poste !",
-  "jobOfferId": 1
-}
-```
-
-**Note :** Le `receiverId` est déterminé automatiquement en fonction du rôle de l'expéditeur et du contexte de la candidature. Seuls les participants (entreprise propriétaire ou travailleur candidat) peuvent envoyer des messages.
-</details>
 
 ---
 
@@ -1731,11 +1675,7 @@ L'API implémente un système de double garde :
 | Accepter/refuser des candidatures | ✅ | ❌ |
 | Terminer/annuler des candidatures | ✅ | ❌ |
 | Voir les missions disponibles | ✅ (les siennes) | ✅ (toutes) |
-| Envoyer des messages | ✅ | ✅ |
 | Laisser des avis | ✅ | ✅ |
-| Voir les profils entreprise | ❌ | ✅ |
-| Voir les profils travailleur | ✅ | ❌ |
-| Gérer le calendrier de disponibilité | ❌ | ✅ |
 
 ---
 
@@ -1745,11 +1685,6 @@ L'API implémente un système de double garde :
 # Lancer tous les tests
 npm test
 
-# Lancer les tests en mode surveillance
-npm run test:watch
-
-# Lancer les tests avec rapport de couverture
-npm run test:cov
 ```
 
 Les fichiers de tests se trouvent aux côtés de leurs fichiers sources avec le suffixe `.spec.ts`. Le projet utilise **Jest** comme framework de test avec **@nestjs/testing** pour le mocking des modules.
@@ -1778,3 +1713,6 @@ Modules avec couverture de tests :
 | 7 | `20260308_add_postal_code_and_city` | Ajout ville et code postal à l'entreprise |
 | 8 | `20260309_remove_address_from_job` | Suppression de l'adresse des missions |
 | 9 | `20260309_add_cascade_delete` | Passage de toutes les FK en suppression CASCADE |
+| 10 | `20260605_change_review_to_joboffer` | Associé review à la candidature plutôt qu'à la mission |
+| 11 | `20260605_add_unique_worker_job_offer` | ajoute contrainte d'unicité |
+

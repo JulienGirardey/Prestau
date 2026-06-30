@@ -106,6 +106,7 @@ export class JobService {
 		let alreadyApplied = false;
 		let isWorker = false;
 		let hasReviewed = false;
+    let myOffer = null;
 
 		if (userId) {
 			const worker = await this.prisma.worker.findUnique({
@@ -123,6 +124,14 @@ export class JobService {
 					}
 				});
 				alreadyApplied = !!existingOffer;
+
+        myOffer = await this.prisma.jobOffer.findFirst({
+          where: {
+            jobId: id,
+            workerId: worker.id
+          }
+        });
+
 			} else {
 				// Vérifier si la company a déjà laissé un commentaire pour ce job
 				const company = await this.prisma.company.findUnique({
@@ -146,7 +155,8 @@ export class JobService {
 			isWorker,
 			alreadyApplied,
 			canApply: isWorker && !alreadyApplied,
-			hasReviewed
+			hasReviewed,
+			myOffer
 		};
 	}
 

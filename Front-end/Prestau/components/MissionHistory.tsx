@@ -70,7 +70,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
 
             {/* Avis reçu (doré) */}
             {item.receivedRating != null && (
-                <View style={[styles.receivedReviewBox, { borderLeftColor: "#C9A961", backgroundColor: "#fff8e1" }]}> 
+                <View style={[styles.receivedReviewBox, { borderLeftColor: "#C9A961", backgroundColor: "#fff8e1" }]}>
                     <View style={styles.ratingRow}>
                         <Ionicons name="star" size={16} color="#C9A961" />
                         <Text style={[styles.ratingText, { color: "#C9A961" }]}>{item.receivedRating}/5</Text>
@@ -85,21 +85,21 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
                         </Text>
                     </View>
                     {item.receivedComment ? (
-                        <Text style={styles.receivedComment}>"{item.receivedComment}"</Text>
+                        <Text style={styles.receivedComment}>`{item.receivedComment}`</Text>
                     ) : null}
                 </View>
             )}
 
             {/* Avis laissé (bleu) */}
             {item.myRating != null && (
-                <View style={[styles.receivedReviewBox, { borderLeftColor: "#4a90d9", backgroundColor: "#f0f4ff" }]}> 
+                <View style={[styles.receivedReviewBox, { borderLeftColor: "#4a90d9", backgroundColor: "#f0f4ff" }]}>
                     <View style={styles.ratingRow}>
                         <Ionicons name="star" size={16} color="#4a90d9" />
                         <Text style={[styles.ratingText, { color: "#4a90d9" }]}>{item.myRating}/5</Text>
                         <Text style={styles.ratingFrom}> · votre avis</Text>
                     </View>
                     {item.myComment ? (
-                        <Text style={styles.receivedComment}>"{item.myComment}"</Text>
+                        <Text style={styles.receivedComment}>`{item.myComment}`</Text>
                     ) : null}
                 </View>
             )}
@@ -108,7 +108,7 @@ export function MissionHistory({ missions, role, onMissionPress }: MissionHistor
             {item.status === 'COMPLETED' && !item.hasReviewed && (
                 <View style={styles.pendingReviewBox}>
                     <Text style={styles.pendingReviewText}>
-                        Laissez votre avis pour voir celui de l'autre partie
+                        Laissez votre avis pour voir celui de l`autre partie
                     </Text>
                 </View>
             )}

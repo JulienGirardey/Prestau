@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions, Alert, Modal, TouchableOpacity } from "react-native";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { getJobById } from "@/src/api/job";
-import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer, deleteJob, JobOfferStatus } from "@/src/api/joboffer"; // Import de la fonction de suppression
+import { createJobOffer, deleteJobOffer, acceptJobOffer, rejectJobOffer, cancelJobOffer, deleteJob } from "@/src/api/joboffer"; // Import de la fonction de suppression
 import { Header } from "@/components/Header";
 import { NewButton } from "@/components/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -151,10 +151,8 @@ export default function JobDetailScreen() {
       </View>
     );
   }
-  // Recherche de l'offre du worker connecté pour déterminer si elle a été refusée ou annulée
-  const myOffer = job.jobOffers?.find((offer: any) =>
-      offer.status === 'REJECTED' || offer.status === 'CANCELLED'
-  );
+
+  const myOffer = (job as any).myOffer;
   // Si une offre existe avec le statut REJECTED, cela signifie que la candidature a été refusée par l'entreprise
   const isRejected = myOffer?.status === 'REJECTED';
   // Si une offre existe avec le statut CANCELLED, cela signifie que la candidature a été annulée par le worker

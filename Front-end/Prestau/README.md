@@ -1,30 +1,30 @@
 # Prestau — Front-end
 
-> **[🇫🇷 Version française ci-dessous](#-prestau--front-end-1)**
+> **[🇫🇷 Version française ci-dessous](#-prestau--front-end)**
 
 ---
 
 ## Table of Contents
 
-- [Overview](#-overview)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Environment Variables](#-environment-variables)
-- [Running the Application](#-running-the-application)
-- [Available Scripts](#-available-scripts)
-- [Project Architecture](#-project-architecture)
-- [Navigation Structure](#-navigation-structure)
-- [Screens & Features](#-screens--features)
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
+- [Available Scripts](#available-scripts)
+- [Project Architecture](#project-architecture)
+- [Navigation Structure](#navigation-structure)
+- [Screens & Features](#screens--features)
   - [Authentication Screens](#authentication-screens)
   - [Company Screens](#company-screens-tabs-company)
   - [Worker Screens](#worker-screens-tabs-worker)
   - [Shared Screens](#shared-screens)
-- [Components](#-components)
-- [API Layer](#-api-layer)
-- [State Management](#-state-management)
-- [Design System](#-design-system)
-- [Configuration Files](#-configuration-files)
+- [Components](#components)
+- [API Layer](#api-layer)
+- [State Management](#state-management)
+- [Design System](#design-system)
+- [Configuration Files](#configuration-files)
 
 ---
 
@@ -125,7 +125,7 @@ After starting, scan the QR code with the **Expo Go** app on your mobile device,
 |---|---|
 | `npm start` | Start Expo development server |
 | `npm run start:lan` | Start with LAN network mode |
-| `npm run start:tunnel` | Start with tunnel (ngrok) |
+| `npx expo start --tunnel` | Start with tunnel (ngrok) |
 | `npm run android` | Start on Android emulator |
 | `npm run ios` | Start on iOS simulator |
 | `npm run web` | Start web version |
@@ -454,7 +454,7 @@ Root Stack (app/_layout.tsx)
 
 ### `MissionHistory.tsx` — Mission History List
 ```tsx
-<MissionHistory missions={history} role="COMPANY" />
+<MissionHistory missions={history} />
 ```
 - Displays completed/past missions:
   - Mission title and salary badge
@@ -595,8 +595,8 @@ The application uses **React Query** (`@tanstack/react-query` v5) for server sta
 |---|---|---|
 | `OPEN` | Green | Job available |
 | `PENDING` | Orange/Yellow | Application pending |
-| `ACCEPTED` | Blue | Application accepted |
-| `IN_PROGRESS` | Blue | Mission in progress |
+| `ACCEPTED` | Green | Application accepted |
+| `IN_PROGRESS` | Orange/Yellow | Mission in progress |
 | `COMPLETED` | Green | Mission completed |
 | `REJECTED` | Red | Application rejected |
 | `CANCELLED` | Gray | Offer/job cancelled |
@@ -616,9 +616,6 @@ The application uses **React Query** (`@tanstack/react-query` v5) for server sta
 - **Plugins**: `expo-router`, `expo-splash-screen`, `expo-secure-store`
 - **Experimental**: Typed routes enabled, React Compiler enabled
 
-### `tsconfig.json`
-- Extends `expo/tsconfig.base`
-- Strict mode enabled
 
 ### `eslint.config.js`
 - Uses `eslint-config-expo/flat`
@@ -627,39 +624,37 @@ The application uses **React Query** (`@tanstack/react-query` v5) for server sta
 ---
 ---
 
-# Prestau — Front-end
-
-> **[🇫🇷 Version française ci-dessous](#-prestau--front-end-1)**
+# 🇫🇷 Prestau — Front-end
 
 ---
 
 ## Table des matières
 
-- [Présentation](#-présentation)
-- [Stack technique](#-stack-technique)
-- [Prérequis](#-prérequis)
-- [Installation](#-installation-1)
-- [Variables d'environnement](#-variables-denvironnement-1)
-- [Lancement de l'application](#-lancement-de-lapplication)
-- [Scripts disponibles](#-scripts-disponibles)
-- [Architecture du projet](#-architecture-du-projet)
-- [Structure de navigation](#-structure-de-navigation)
-- [Écrans & Fonctionnalités](#-écrans--fonctionnalités)
+- [Présentation](#présentation)
+- [Stack technique](#stack-technique)
+- [Prérequis](#prérequis)
+- [Installation](#installation-1)
+- [Variables d'environnement](#variables-denvironnement-1)
+- [Lancement de l'application](#lancement-de-lapplication)
+- [Scripts disponibles](#scripts-disponibles)
+- [Architecture du projet](#architecture-du-projet)
+- [Structure de navigation](#structure-de-navigation)
+- [Écrans & Fonctionnalités](#écrans--fonctionnalités)
   - [Écrans d'authentification](#écrans-dauthentification)
   - [Écrans Entreprise](#écrans-entreprise-tabs-company)
   - [Écrans Travailleur](#écrans-travailleur-tabs-worker)
   - [Écrans partagés](#écrans-partagés)
-- [Composants](#-composants)
-- [Couche API](#-couche-api)
-- [Gestion d'état](#-gestion-détat)
-- [Système de design](#-système-de-design)
-- [Fichiers de configuration](#-fichiers-de-configuration)
+- [Composants](#composants)
+- [Couche API](#couche-api)
+- [Gestion d'état](#gestion-détat)
+- [Système de design](#système-de-design)
+- [Fichiers de configuration](#fichiers-de-configuration)
 
 ---
 
 ## Présentation
 
-Le Front-end Prestau est une **application mobile** construite avec **React Native** et **Expo** qui fournit l'interface utilisateur de la plateforme Prestau — une marketplace mettant en relation des **entreprises** (restaurants, bars) avec des **travailleurs** du secteur de la restauration, pour des missions de courtes durée de type extras.
+Le Front-end Prestau est une **application mobile** construite avec **React Native** et **Expo** qui fournit l'interface utilisateur de la plateforme Prestau — une plateforme mettant en relation des **entreprises** (restaurants, bars) avec des **travailleurs** du secteur de la restauration, pour des missions de courte durée de type extras.
 
 L'application propose deux expériences utilisateur distinctes :
 - **Tableau de bord Entreprise** : Publier des missions, gérer les candidatures, suivre les missions, communiquer avec les travailleurs
@@ -736,7 +731,7 @@ npm start
 npm run start:lan
 
 # Démarrer avec tunnel (quand le LAN ne fonctionne pas)
-npm run start:tunnel
+npx expo start--tunnel
 
 # Démarrer pour une plateforme spécifique
 npm run android
@@ -754,7 +749,7 @@ Après le démarrage, scannez le QR code avec l'application **Expo Go** sur votr
 |---|---|
 | `npm start` | Démarrer le serveur de développement Expo |
 | `npm run start:lan` | Démarrer en mode réseau LAN |
-| `npm run start:tunnel` | Démarrer avec tunnel (ngrok) |
+| `npx expo start --tunnel` | Démarrer avec tunnel (ngrok) |
 | `npm run android` | Démarrer sur émulateur Android |
 | `npm run ios` | Démarrer sur simulateur iOS |
 | `npm run web` | Démarrer la version web |
@@ -983,7 +978,7 @@ Stack Racine (app/_layout.tsx)
   - 10–12€/h
   - 12–15€/h
   - 15–20€/h
-  - 20€/h
+  - > 20€/h
 - **Cartes de missions** affichant :
   - Titre, Nom de l'entreprise
   - Ville & adresse
@@ -1227,7 +1222,7 @@ L'application utilise **React Query** (`@tanstack/react-query` v5) pour la gesti
 | `IN_PROGRESS` | Orange/Jaune | Mission en cours |
 | `COMPLETED` | Vert | Mission terminée |
 | `REJECTED` | Rouge | Candidature refusée |
-| `CANCELLED` | Rouge | Offre/mission annulée |
+| `CANCELLED` | Gris | Offre/mission annulée |
 
 ---
 
@@ -1238,15 +1233,11 @@ L'application utilise **React Query** (`@tanstack/react-query` v5) pour la gesti
 - **Schéma** : `prestau` (deep linking)
 - **Orientation** : Portrait uniquement
 - **Icône** : `./assets/images/logo-prestau.jpg`
-- **Écran de démarrage** : Logo sur fond blanc (mode sombre : fond noir)
+- **Écran de démarrage** : Logo sur fond blanc
 - **Android** : Icône adaptative avec fond `#E6F4FE`, edge-to-edge activé
 - **iOS** : Support tablette activé
 - **Plugins** : `expo-router`, `expo-splash-screen`, `expo-secure-store`
 - **Expérimental** : Routes typées activées, React Compiler activé
-
-### `tsconfig.json`
-- Étend `expo/tsconfig.base`
-- Mode strict activé
 
 ### `eslint.config.js`
 - Utilise `eslint-config-expo/flat`

@@ -1,6 +1,6 @@
 # Prestau
 
-> **[🇫🇷 Version française ci-dessous](#-prestau-1)**
+> **[🇫🇷 Version française ci-dessous](#prestau-1)**
 
 ---
 
@@ -16,21 +16,21 @@
 
 ## Table of Contents
 
-- [About the Project](#-about-the-project)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
+- [About the Project](#about-the-project)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Back-end Setup](#back-end-setup)
   - [Front-end Setup](#front-end-setup)
-- [Architecture Overview](#-architecture-overview)
-- [User Flows](#-user-flows)
-- [API Overview](#-api-overview)
-- [Database Schema](#-database-schema)
-- [Security](#-security)
-- [Testing](#-testing)
-- [Documentation](#-documentation)
+- [Architecture Overview](#architecture-overview)
+- [User Flows](#user-flows)
+- [API Overview](#api-overview)
+- [Database Schema](#database-schema)
+- [Security](#security)
+- [Testing](#testing)
+- [Documentation](#documentation)
 
 ---
 
@@ -41,7 +41,7 @@
 The platform allows businesses to quickly post temporary job offers and find staff, while workers can view available assignments, manage their availability, and build a professional reputation through a rating system.
 
 ### The Problem
-The food service industry frequently needs temporary staff for events, peak seasons, or to cover absences. Finding available, qualified workers quickly is a challenge, and workers often struggle to find consistent temporary work.
+The food service industry frequently needs temporary staff for events, peak seasons, or to cover absences. Finding available, workers quickly is a challenge, and workers often struggle to find consistent temporary work.
 
 ### The Solution
 Prestau provides a streamlined, mobile-first experience where:
@@ -57,12 +57,11 @@ Prestau provides a streamlined, mobile-first experience where:
 - **Applicant Management**: Review, accept, or reject worker applications
 - **Mission Lifecycle**: Track missions from open → in progress → completed
 - **Worker Discovery**: View worker profiles, skills, experience, and ratings
-- **Messaging**: Direct communication with applicants and hired workers
 - **Mission History**: View completed missions with mutual reviews
 - **Company Profile**: Showcase establishment type, location, and description
 
 ### For Workers
-- **Job Discovery**: Browse and search available missions with salary filters
+- **Job Discovery**: Browse and search available missions
 - **One-Tap Apply**: Quick application process for available jobs
 - **Availability Calendar**: Interactive calendar to mark free/busy days
 - **Active Missions**: Track current mission status and details
@@ -73,11 +72,11 @@ Prestau provides a streamlined, mobile-first experience where:
 ### Platform Features
 - **JWT Authentication**: Secure access with token rotation and refresh
 - **Role-Based Access**: Separate experiences for companies and workers
-- **Real-Time Status Updates**: Live mission and application status tracking
+- **Automatic Status Updates**: Mission and application status updated automatically via scheduled jobs
 - **Mutual Review System**: Both parties rate each other after mission completion
-- **Search & Filters**: Find jobs by title, location, and salary range
+- **Search & Filters**: Find jobs by title and location
 - **Responsive Design**: Adapts to any mobile device size
-- **Cross-Platform**: Runs on iOS, Android, and Web
+- **Cross-Platform**: Runs on iOS and Android via Expo Go
 
 ---
 
@@ -118,9 +117,10 @@ Prestau/
 ├── Back-end/                    # NestJS REST API
 │   ├── README.md                # Detailed back-end documentation
 │   ├── package.json
+│   ├── jest.config.js           # Jest configuration (ts-jest)
 │   ├── prisma/
 │   │   ├── schema.prisma        # Database schema (7 models, 4 enums)
-│   │   └── migrations/          # 9 migration files
+│   │   └── migrations/          # Migration files
 │   └── src/
 │       ├── main.ts              # Entry point (port 3000)
 │       ├── app.module.ts        # Root module
@@ -144,11 +144,11 @@ Prestau/
         │   ├── register.tsx     # Registration
         │   ├── (tabs-company)/  # Company dashboard (4 tabs)
         │   ├── (tabs-worker)/   # Worker dashboard (3 tabs)
-        │   ├── job/[id].tsx     # Job details
+        │   ├── job/[id]/        # Job details + edit
         │   ├── joboffer/[id].tsx # Application details
         │   └── review/[id].tsx  # Review submission
-        ├── components/          # 6 reusable UI components
-        ├── src/api/             # 7 API service modules
+        ├── components/          # Reusable UI components
+        ├── src/api/             # API service modules
         └── constants/           # Theme & colors
 ```
 
@@ -288,12 +288,12 @@ Mobile App → Axios Interceptor (inject JWT) → NestJS Controller
 
 ```
 1. Worker opens "Browse Jobs" tab
-2. Searches/filters available jobs
+2. Searches available jobs
 3. Taps a job → views full details
 4. Taps "Postuler" (Apply)
 5. POST /joboffer/:jobId → Application created with status PENDING
-6. Application appears in worker's "My Applications"
-7. Company sees notification dot on their dashboard
+6. Application appears in worker's dashboard
+7. Company sees a notification dot on their dashboard
 ```
 
 ### Company: Managing Applications
@@ -304,21 +304,36 @@ Mobile App → Axios Interceptor (inject JWT) → NestJS Controller
 3. Sees list of workers with name, city, phone, profession
 4. Taps "Accept" → POST /joboffer/:id/accept
    - Application status → ACCEPTED
-   - Job status → IN_PROGRESS
+   - Other pending applications → automatically REJECTED
+   - Job status → stays OPEN until start_time is reached
 5. Or taps "Reject" → POST /joboffer/:id/reject
    - Application status → REJECTED
+```
+
+### Automatic Mission Status Transitions (Cron Jobs)
+
+```
+Every minute, two scheduled jobs run on the server:
+
+handleJobStart:
+  - Finds OPEN jobs with an ACCEPTED application whose start_time has passed
+  - Updates job status → IN_PROGRESS
+
+handleJobEnd:
+  - Finds IN_PROGRESS jobs whose end_time has passed
+  - Updates job status → COMPLETED
+  - Updates the ACCEPTED application → COMPLETED (via Prisma transaction)
 ```
 
 ### Mission Completion & Reviews
 
 ```
-1. Company marks mission as done → POST /joboffer/:id/complete
-   - Application status → COMPLETED
-   - Job status → COMPLETED
+1. Mission ends → cron job marks job and application as COMPLETED
 2. Both parties can now leave reviews
 3. Tap "Leave Review" → 5-star rating + optional comment
 4. POST /review → Review stored
 5. Reviews visible in mission history for both parties
+   (received rating only visible once both parties have reviewed)
 ```
 
 ---
@@ -335,7 +350,7 @@ The REST API exposes **41 endpoints** across 8 modules:
 | **Worker** | 7 | CRUD worker + availability calendar |
 | **Job** | 6 | CRUD jobs + search/filter |
 | **JobOffer** | 10 | Apply, Accept, Reject, Complete, Cancel, History |
-| **Message** | 3 | Send/Read messages within job offers |
+| **Message** | 3 | Send/Read messages within job offers | Not yet implemented in the frontend.
 | **Review** | 2 | Submit and view reviews |
 
 ### Authentication
@@ -358,10 +373,9 @@ All protected endpoints require: `Authorization: Bearer <access_token>`
 | **Users** | Authentication accounts (email, password, role) | → Company (1:1), → Worker (1:1) |
 | **Company** | Business profiles (name, SIRET, address, type) | → Users, → Job (1:N) |
 | **Worker** | Worker profiles (skills, availability, CV) | → Users, → JobOffer (1:N) |
-| **Job** | Mission postings (title, salary, dates, status) | → Company, → JobOffer (1:N), → Review (1:N) |
-| **JobOffer** | Applications (status, contract info) | → Job, → Worker, → Message (1:N) |
-| **Review** | Ratings and comments (1-5 stars) | → Job |
-| **Message** | Conversation messages (content, read status) | → JobOffer |
+| **Job** | Mission postings (title, salary, dates, status) | → Company, → JobOffer (1:N) |
+| **JobOffer** | Applications (status, contract info) | → Job, → Worker, → Review (1:2) |
+| **Review** | Ratings and comments (1-5 stars) | → JobOffer |
 
 ### Enums
 - **Role**: `COMPANY` | `WORKER`
@@ -381,16 +395,14 @@ All protected endpoints require: `Authorization: Bearer <access_token>`
 | Token storage (client) | Expo SecureStore (encrypted device storage) |
 | Input validation | class-validator DTOs on all endpoints |
 | Role authorization | Guard-based RBAC (JwtAuthGuard + RolesGuard) |
+| SQL injection prevention | Prisma ORM parameterized queries |
 | CORS | Enabled (configurable origins) |
-| Environment validation | Joi schema for env vars at startup |
 | Cascade deletion | All foreign keys with CASCADE delete |
 | 401 handling | Auto token cleanup + redirect on invalid/expired tokens |
 
 ---
 
 ## Testing
-
-### Back-end
 
 ```bash
 cd Back-end
@@ -405,17 +417,17 @@ npm run test:watch
 npm run test:cov
 ```
 
-Test files (`.spec.ts`) exist for all service layers:
-- Auth, Company, Job, Worker, Message, Review, User
+87 unit tests across 7 service files — all business logic tested in isolation with mocked Prisma:
 
-### Front-end
-
-```bash
-cd Front-end/Prestau
-
-# Lint check
-npm run lint
-```
+| File | Tests | Coverage |
+|---|---|---|
+| auth.service.spec.ts | 10 | Register, login, logout, refresh token |
+| company.service.spec.ts | 10 | CRUD + duplicate profile guard |
+| worker.service.spec.ts | 12 | CRUD |
+| job.service.spec.ts | 14 | CRUD + ownership + active applicants guard |
+| joboffer.service.spec.ts | 20 | Full application lifecycle |
+| review.service.spec.ts | 4 | Create + auto-review prevention |
+| user.service.spec.ts | 6 | Find, update, remove |
 
 ---
 
@@ -423,7 +435,7 @@ npm run lint
 
 | Document | Location | Content |
 |---|---|---|
-| **General README** | [README.md](README.md) | Project overview, setup, architecture |
+| **General README** | Project overview, setup, architecture |
 | **Back-end README** | [Back-end/README.md](Back-end/README.md) | Full API reference, database schema, auth flow |
 | **Front-end README** | [Front-end/Prestau/README.md](Front-end/Prestau/README.md) | Screens, components, navigation, design system |
 
@@ -436,6 +448,7 @@ npm run lint
 | Aurélie DI MARTINO | Full-stack Developer |
 | Julien GIRARDEY | Full-stack Developer |
 | Nicolai CARABET | Full-stack Developer |
+
 ---
 ---
 
@@ -446,7 +459,7 @@ npm run lint
 ---
 
 <p align="center">
-  <strong>Une marketplace connectant des entreprises de restauration avec des travailleurs intérimaires</strong>
+  <strong>Une plateforme connectant des entreprises de restauration avec des travailleurs intérimaires</strong>
 </p>
 
 <p align="center">
@@ -457,21 +470,21 @@ npm run lint
 
 ## Table des matières
 
-- [À propos du projet](#-à-propos-du-projet)
-- [Fonctionnalités clés](#-fonctionnalités-clés)
-- [Stack technique](#-stack-technique-1)
-- [Structure du projet](#-structure-du-projet)
-- [Démarrage rapide](#-démarrage-rapide)
+- [À propos du projet](#à-propos-du-projet)
+- [Fonctionnalités clés](#fonctionnalités-clés)
+- [Stack technique](#stack-technique)
+- [Structure du projet](#structure-du-projet)
+- [Démarrage rapide](#démarrage-rapide)
   - [Prérequis](#prérequis)
   - [Configuration du Back-end](#configuration-du-back-end)
   - [Configuration du Front-end](#configuration-du-front-end)
-- [Vue d'ensemble de l'architecture](#-vue-densemble-de-larchitecture)
-- [Parcours utilisateur](#-parcours-utilisateur)
-- [Aperçu de l'API](#-aperçu-de-lapi)
-- [Schéma de la base de données](#-schéma-de-la-base-de-données)
-- [Sécurité](#-sécurité)
-- [Tests](#-tests)
-- [Documentation](#-documentation-1)
+- [Vue d'ensemble de l'architecture](#vue-densemble-de-larchitecture)
+- [Parcours utilisateur](#parcours-utilisateur)
+- [Aperçu de l'API](#aperçu-de-lapi)
+- [Schéma de la base de données](#schéma-de-la-base-de-données)
+- [Sécurité](#sécurité)
+- [Tests](#tests)
+- [Documentation](#documentation)
 
 ---
 
@@ -487,7 +500,7 @@ Le secteur de la restauration a fréquemment besoin de personnel temporaire pour
 ### La solution
 Prestau offre une expérience simplifiée, pensée pour le mobile, où :
 - **Les entreprises** peuvent publier des missions, parcourir les profils des travailleurs et gérer le cycle complet d'embauche, de la candidature à la finalisation
-- **Les travailleurs** peuvent découvrir des opportunités, gérer leur calendrier, postuler en un clic et construire un historique vérifié
+- **Les travailleurs** peuvent découvrir des opportunités, postuler en un clic et construire un historique vérifié
 
 ---
 
@@ -498,12 +511,11 @@ Prestau offre une expérience simplifiée, pensée pour le mobile, où :
 - **Gestion des candidatures** : Examiner, accepter ou refuser les candidatures des travailleurs
 - **Cycle de vie des missions** : Suivi des missions de ouverte → en cours → terminée
 - **Découverte de travailleurs** : Voir les profils, compétences, expériences et notations des travailleurs
-- **Messagerie** : Communication directe avec les candidats et travailleurs embauchés
 - **Historique des missions** : Consulter les missions terminées avec avis mutuels
 - **Profil entreprise** : Mettre en valeur le type d'établissement, l'emplacement et la description
 
 ### Pour les Travailleurs
-- **Découverte de missions** : Parcourir et rechercher les missions disponibles avec filtres de salaire
+- **Découverte de missions** : Parcourir et rechercher les missions disponibles
 - **Candidature en un clic** : Processus de candidature rapide pour les missions disponibles
 - **Calendrier de disponibilité** : Calendrier interactif pour marquer les jours libres/occupés
 - **Missions actives** : Suivi du statut et des détails des missions en cours
@@ -514,11 +526,11 @@ Prestau offre une expérience simplifiée, pensée pour le mobile, où :
 ### Fonctionnalités de la plateforme
 - **Authentification JWT** : Accès sécurisé avec rotation et rafraîchissement des jetons
 - **Accès basé sur les rôles** : Expériences séparées pour entreprises et travailleurs
-- **Mises à jour en temps réel** : Suivi en direct du statut des missions et candidatures
+- **Transitions de statut automatiques** : Des tâches planifiées (cron jobs) gèrent automatiquement le passage des missions en cours puis en terminé
 - **Système d'avis mutuels** : Les deux parties se notent après chaque mission
-- **Recherche & Filtres** : Trouver des missions par titre, localisation et tranche de salaire
+- **Recherche** : Trouver des missions par titre et localisation
 - **Design responsive** : S'adapte à toute taille d'appareil mobile
-- **Multiplateforme** : Fonctionne sur iOS, Android et Web
+- **Multiplateforme** : Fonctionne sur iOS et Android via Expo Go
 
 ---
 
@@ -559,9 +571,10 @@ Prestau/
 ├── Back-end/                    # API REST NestJS
 │   ├── README.md                # Documentation détaillée du back-end
 │   ├── package.json
+│   ├── jest.config.js           # Configuration Jest (ts-jest)
 │   ├── prisma/
 │   │   ├── schema.prisma        # Schéma BDD (7 modèles, 4 enums)
-│   │   └── migrations/          # 9 fichiers de migration
+│   │   └── migrations/          # Fichiers de migration
 │   └── src/
 │       ├── main.ts              # Point d'entrée (port 3000)
 │       ├── app.module.ts        # Module racine
@@ -585,11 +598,11 @@ Prestau/
         │   ├── register.tsx     # Inscription
         │   ├── (tabs-company)/  # Tableau de bord entreprise (4 onglets)
         │   ├── (tabs-worker)/   # Tableau de bord travailleur (3 onglets)
-        │   ├── job/[id].tsx     # Détail d'une mission
+        │   ├── job/[id]/        # Détail + modification d'une mission
         │   ├── joboffer/[id].tsx # Détail d'une candidature
         │   └── review/[id].tsx  # Soumission d'avis
-        ├── components/          # 6 composants UI réutilisables
-        ├── src/api/             # 7 modules de services API
+        ├── components/          # Composants UI réutilisables
+        ├── src/api/             # Modules de services API
         └── constants/           # Thème & couleurs
 ```
 
@@ -682,8 +695,7 @@ Scannez le QR code avec **Expo Go** sur votre téléphone, ou appuyez sur `a`/`i
 ┌─────────────────────────────┐
 │   Base de données PostgreSQL│
 │  7 tables, 4 enums          │
-│  Relations suppression      │
-│  en cascade                 │
+│  Suppression en cascade       │
 │  Clés étrangères indexées   │
 └─────────────────────────────┘
 ```
@@ -734,7 +746,7 @@ App Mobile → Intercepteur Axios (injection JWT) → Contrôleur NestJS
 3. Touche une mission → voit les détails complets
 4. Touche "Postuler"
 5. POST /joboffer/:jobId → Candidature créée avec le statut PENDING
-6. La candidature apparaît dans "Mes candidatures" du travailleur
+6. La candidature apparaît dans le tableau de bord du travailleur
 7. L'entreprise voit un point de notification sur son tableau de bord
 ```
 
@@ -746,21 +758,37 @@ App Mobile → Intercepteur Axios (injection JWT) → Contrôleur NestJS
 3. Voit la liste des travailleurs avec nom, ville, téléphone, profession
 4. Touche "Accepter" → POST /joboffer/:id/accept
    - Statut candidature → ACCEPTED
-   - Statut mission → IN_PROGRESS
+   - Autres candidatures PENDING → REJECTED automatiquement
+   - Statut mission → reste OPEN jusqu'à la date de début
 5. Ou touche "Refuser" → POST /joboffer/:id/reject
    - Statut candidature → REJECTED
+```
+
+### Transitions automatiques de statut (Cron Jobs)
+
+```
+Toutes les minutes, deux tâches planifiées s'exécutent sur le serveur :
+
+handleJobStart :
+  - Recherche les missions OPEN avec une candidature ACCEPTED
+    dont la start_time est passée
+  - Met à jour le statut de la mission → IN_PROGRESS
+
+handleJobEnd :
+  - Recherche les missions IN_PROGRESS dont la end_time est passée
+  - Met à jour le statut de la mission → COMPLETED
+  - Met à jour la candidature ACCEPTED → COMPLETED (via transaction Prisma)
 ```
 
 ### Fin de mission & Avis
 
 ```
-1. L'entreprise marque la mission comme terminée → POST /joboffer/:id/complete
-   - Statut candidature → COMPLETED
-   - Statut mission → COMPLETED
+1. La mission se termine → le cron job marque la mission et la candidature COMPLETED
 2. Les deux parties peuvent maintenant laisser un avis
 3. Touche "Laisser un avis" → Notation 5 étoiles + commentaire optionnel
 4. POST /review → Avis enregistré
 5. Les avis sont visibles dans l'historique des missions des deux parties
+   (la note reçue n'est visible que lorsque les deux parties ont évalué)
 ```
 
 ---
@@ -774,10 +802,10 @@ L'API REST expose **41 endpoints** répartis en 8 modules :
 | **Auth** | 4 | Inscription, Connexion, Déconnexion, Rafraîchissement |
 | **User** | 4 | Obtenir/Modifier/Supprimer un profil |
 | **Company** | 5 | CRUD entreprise + consultation par travailleur |
-| **Worker** | 7 | CRUD travailleur + calendrier de disponibilité |
+| **Worker** | 7 | CRUD travailleur |
 | **Job** | 6 | CRUD missions + recherche/filtre |
 | **JobOffer** | 10 | Postuler, Accepter, Refuser, Terminer, Annuler, Historique |
-| **Message** | 3 | Envoyer/Lire des messages dans les candidatures |
+| **Message** | 3 | Envoyer/Lire des messages dans les candidatures | Pas encore implémenté dans le front
 | **Review** | 2 | Soumettre et consulter les avis |
 
 ### Authentification
@@ -787,7 +815,7 @@ Tous les endpoints protégés nécessitent : `Authorization: Bearer <access_toke
 - Les **jetons de rafraîchissement** expirent après 7 jours avec rotation automatique
 - Deux rôles : `COMPANY` et `WORKER` avec des permissions distinctes
 
-> Voir le [README du Back-end](Back-end/README.md) pour la référence API complète avec exemples de requêtes/réponses.
+> Voir le [README du Back-end](Back-end/README.md) pour la référence API complète.
 
 ---
 
@@ -800,10 +828,9 @@ Tous les endpoints protégés nécessitent : `Authorization: Bearer <access_toke
 | **Users** | Comptes d'authentification (email, mot de passe, rôle) | → Company (1:1), → Worker (1:1) |
 | **Company** | Profils entreprise (nom, SIRET, adresse, type) | → Users, → Job (1:N) |
 | **Worker** | Profils travailleur (compétences, disponibilité, CV) | → Users, → JobOffer (1:N) |
-| **Job** | Publications de missions (titre, salaire, dates, statut) | → Company, → JobOffer (1:N), → Review (1:N) |
-| **JobOffer** | Candidatures (statut, infos contrat) | → Job, → Worker, → Message (1:N) |
-| **Review** | Notes et commentaires (1-5 étoiles) | → Job |
-| **Message** | Messages de conversation (contenu, statut de lecture) | → JobOffer |
+| **Job** | Publications de missions (titre, salaire, dates, statut) | → Company, → JobOffer (1:N) |
+| **JobOffer** | Candidatures (statut, infos contrat) | → Job, → Worker, → Review (1:2) |
+| **Review** | Notes et commentaires (1-5 étoiles) | → JobOffer |
 
 ### Enums
 - **Role** : `COMPANY` | `WORKER`
@@ -823,16 +850,14 @@ Tous les endpoints protégés nécessitent : `Authorization: Bearer <access_toke
 | Stockage des jetons (client) | Expo SecureStore (stockage chiffré sur l'appareil) |
 | Validation des entrées | DTOs class-validator sur tous les endpoints |
 | Autorisation par rôle | RBAC par gardes (JwtAuthGuard + RolesGuard) |
+| Protection injections SQL | Requêtes paramétrées via Prisma ORM |
 | CORS | Activé (origines configurables) |
-| Validation environnement | Schéma Joi pour les variables d'env au démarrage |
 | Suppression en cascade | Toutes les clés étrangères avec CASCADE delete |
 | Gestion des 401 | Nettoyage automatique des jetons + redirection en cas de jeton invalide/expiré |
 
 ---
 
 ## Tests
-
-### Back-end
 
 ```bash
 cd Back-end
@@ -847,17 +872,17 @@ npm run test:watch
 npm run test:cov
 ```
 
-Des fichiers de tests (`.spec.ts`) existent pour toutes les couches de services :
-- Auth, Company, Job, Worker, Message, Review, User
+87 tests unitaires répartis sur 7 fichiers — toute la logique métier testée en isolation avec Prisma mocké :
 
-### Front-end
-
-```bash
-cd Front-end/Prestau
-
-# Vérification du lint
-npm run lint
-```
+| Fichier | Tests | Couverture |
+|---|---|---|
+| auth.service.spec.ts | 10 | Inscription, connexion, déconnexion, rafraîchissement |
+| company.service.spec.ts | 10 | CRUD + protection contre les doublons de profil |
+| worker.service.spec.ts | 12 | CRUD + gestion des disponibilités |
+| job.service.spec.ts | 14 | CRUD + vérification propriété + blocage candidatures actives |
+| joboffer.service.spec.ts | 20 | Cycle complet de candidature |
+| review.service.spec.ts | 4 | Création + protection auto-évaluation |
+| user.service.spec.ts | 6 | Consultation, modification, suppression |
 
 ---
 
@@ -865,16 +890,16 @@ npm run lint
 
 | Document | Emplacement | Contenu |
 |---|---|---|
-| **README Général** | [README.md](README.md) | Vue d'ensemble, installation, architecture |
+| **README Général** | Vue d'ensemble, installation, architecture |
 | **README Back-end** | [Back-end/README.md](Back-end/README.md) | Référence API complète, schéma BDD, flux d'auth |
 | **README Front-end** | [Front-end/Prestau/README.md](Front-end/Prestau/README.md) | Écrans, composants, navigation, système de design |
 
 ---
 
-## Authors
+## Auteurs
 
-| Name | Role |
+| Nom | Rôle |
 |---|---|
-| Aurélie DI MARTINO | Full-stack Developer |
-| Julien GIRARDEY | Full-stack Developer |
-| Nicolai CARABET | Full-stack Developer |
+| Aurélie DI MARTINO | Développeuse Full-stack |
+| Julien GIRARDEY | Développeur Full-stack |
+| Nicolai CARABET | Développeur Full-stack |
