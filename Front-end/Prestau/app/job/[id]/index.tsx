@@ -151,10 +151,8 @@ export default function JobDetailScreen() {
       </View>
     );
   }
-  // Recherche de l'offre du worker connecté pour déterminer si elle a été refusée ou annulée
-  const myOffer = job.jobOffers?.find((offer: any) =>
-      offer.status === 'REJECTED' || offer.status === 'CANCELLED'
-  );
+
+  const myOffer = (job as any).myOffer;
   // Si une offre existe avec le statut REJECTED, cela signifie que la candidature a été refusée par l'entreprise
   const isRejected = myOffer?.status === 'REJECTED';
   // Si une offre existe avec le statut CANCELLED, cela signifie que la candidature a été annulée par le worker
